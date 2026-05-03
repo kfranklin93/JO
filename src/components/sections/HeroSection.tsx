@@ -18,7 +18,7 @@ export function HeroSection() {
         >
           <source src="/videos/hero-drone.mp4" type="video/mp4" />
         </video>
-        <div className="absolute inset-0 bg-gradient-to-b from-[#1C2A39]/90 via-[#1C2A39]/75 to-[#1C2A39]" />
+        <div className="absolute inset-0 bg-gradient-to-b from-[#1C2A39]/95 via-[#1C2A39]/85 to-[#1C2A39]" />
       </div>
 
       <div className="relative mx-auto flex min-h-screen max-w-7xl flex-col justify-center px-8 pt-32 pb-20 lg:px-12">

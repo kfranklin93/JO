@@ -71,7 +71,7 @@ export function Header({ sticky = true, className }: HeaderProps) {
         className={cn(
           'fixed top-0 left-0 w-full z-50 transition-all duration-300',
           scrolled
-            ? 'bg-[#1C2A39]/80 backdrop-blur-md border-b border-[#FAF9F6]/10'
+            ? 'bg-[#1C2A39]/90 backdrop-blur-md border-b border-[#FAF9F6]/10'
             : 'bg-transparent',
           className
         )}

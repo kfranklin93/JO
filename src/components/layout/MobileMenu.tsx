@@ -51,22 +51,22 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
 
   return (
     <>
-      <div className="fixed inset-0 z-40 bg-slate-900/50 lg:hidden" onClick={onClose} aria-hidden="true" />
+      <div className="fixed inset-0 z-40 bg-[#1C2A39]/60 backdrop-blur-sm lg:hidden" onClick={onClose} aria-hidden="true" />
 
       <div
         id="mobile-menu"
         ref={menuRef}
-        className="fixed inset-y-0 right-0 z-50 w-full max-w-sm bg-white shadow-xl lg:hidden"
+        className="fixed inset-y-0 right-0 z-50 w-full max-w-sm bg-[#1C2A39] shadow-xl lg:hidden"
         role="dialog"
         aria-modal="true"
         aria-label="Mobile navigation"
       >
         <div className="flex h-full flex-col">
-          <div className="flex items-center justify-between border-b border-slate-200 px-4 py-4">
-            <span className="text-lg font-semibold text-slate-900">Menu</span>
+          <div className="flex items-center justify-between border-b border-[#FAF9F6]/10 px-4 py-4">
+            <span className="font-serif text-lg font-light text-[#FAF9F6]">Menu</span>
             <button
               type="button"
-              className="flex min-h-11 min-w-11 items-center justify-center rounded-lg text-slate-700 transition-colors hover:bg-slate-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-700"
+              className="flex min-h-11 min-w-11 items-center justify-center rounded-lg text-[#FAF9F6] transition-colors hover:bg-[#FAF9F6]/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#C5A059]"
               onClick={onClose}
               aria-label="Close menu"
             >
@@ -86,7 +86,7 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
                     <Link
                       ref={index === 0 ? firstFocusableRef : undefined}
                       href={item.href}
-                      className="block rounded-lg px-4 py-3 text-base font-medium text-slate-900 transition-colors hover:bg-slate-100 focus-visible:bg-slate-100 focus-visible:outline-none"
+                      className="block rounded-lg px-4 py-3 font-sans text-base font-light text-[#FAF9F6] transition-colors hover:bg-[#C5A059]/20 hover:text-[#C5A059] focus-visible:bg-[#C5A059]/20 focus-visible:outline-none"
                       onClick={onClose}
                     >
                       {item.label}
@@ -97,11 +97,13 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
             </ul>
           </nav>
 
-          <div className="border-t border-slate-200 p-4">
-            <Link href="/get-started" onClick={onClose}>
-              <Button variant="primary" size="lg" fullWidth>
-                Get Started
-              </Button>
+          <div className="border-t border-[#FAF9F6]/10 p-4">
+            <Link
+              href="/get-started"
+              onClick={onClose}
+              className="inline-flex w-full items-center justify-center rounded-2xl bg-[#C5A059] px-6 py-4 font-sans text-base font-normal text-[#FAF9F6] transition-all duration-300 hover:bg-[#C5A059]/90"
+            >
+              Get Started
             </Link>
           </div>
         </div>
@@ -124,7 +126,7 @@ function MobileMenuDropdown({ item, onClose }: MobileMenuDropdownProps) {
     <div>
       <button
         type="button"
-        className="flex w-full items-center justify-between rounded-lg px-4 py-3 text-base font-medium text-slate-900 transition-colors hover:bg-slate-100 focus-visible:bg-slate-100 focus-visible:outline-none"
+        className="flex w-full items-center justify-between rounded-lg px-4 py-3 font-sans text-base font-light text-[#FAF9F6] transition-colors hover:bg-[#C5A059]/20 hover:text-[#C5A059] focus-visible:bg-[#C5A059]/20 focus-visible:outline-none"
         onClick={() => setIsOpen(!isOpen)}
         aria-expanded={isOpen}
       >
@@ -140,12 +142,12 @@ function MobileMenuDropdown({ item, onClose }: MobileMenuDropdownProps) {
         </svg>
       </button>
       {isOpen && (
-        <ul className="ml-4 mt-1 space-y-1 border-l-2 border-slate-200 pl-4">
+        <ul className="ml-4 mt-1 space-y-1 border-l-2 border-[#C5A059]/30 pl-4">
           {item.children.map((child: NavigationItem) => (
             <li key={child.href}>
               <Link
                 href={child.href}
-                className="block rounded-lg px-4 py-2 text-sm text-slate-700 transition-colors hover:bg-slate-100 focus-visible:bg-slate-100 focus-visible:outline-none"
+                className="block rounded-lg px-4 py-2 font-sans text-sm font-light text-[#FAF9F6]/80 transition-colors hover:bg-[#C5A059]/20 hover:text-[#C5A059] focus-visible:bg-[#C5A059]/20 focus-visible:outline-none"
                 onClick={onClose}
               >
                 {child.label}
