@@ -104,8 +104,8 @@ export function Navigation({ items, className }: NavigationProps) {
   };
 
   return (
-    <nav className={cn('hidden lg:block', className)} aria-label="Main navigation">
-      <ul className="flex items-center gap-1">
+    <nav className={cn('hidden lg:flex', className)} aria-label="Main navigation">
+      <ul className="flex items-center gap-8">
         {items.map((item, index) => {
           const active = isActive(item.href);
           const childActive = hasActiveChild(item);
@@ -123,10 +123,9 @@ export function Navigation({ items, className }: NavigationProps) {
                   type="button"
                   data-nav-item={item.label}
                   className={cn(
-                    'flex items-center gap-1 rounded-lg px-4 py-2 text-sm font-medium transition-colors',
-                    'hover:bg-slate-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-700',
-                    (active || childActive) && 'text-teal-700',
-                    !active && !childActive && 'text-slate-700'
+                    'flex items-center gap-1 font-sans text-xs uppercase tracking-[0.2em] font-light transition-colors duration-300',
+                    'hover:text-[#C5A059] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#C5A059]',
+                    (active || childActive) ? 'text-[#C5A059]' : 'text-[#FAF9F6]/80'
                   )}
                   aria-expanded={isOpen}
                   aria-haspopup="true"
@@ -159,7 +158,7 @@ export function Navigation({ items, className }: NavigationProps) {
                         dropdownRefs.current.set(item.label, el);
                       }
                     }}
-                    className="absolute left-0 top-full z-50 mt-2 w-56 rounded-lg bg-white py-2 shadow-lg ring-1 ring-slate-900/5"
+                    className="absolute left-0 top-full z-50 mt-4 w-56 rounded-2xl bg-[#1C2A39]/95 backdrop-blur-md py-3 shadow-2xl border border-[#FAF9F6]/10"
                     role="menu"
                     aria-orientation="vertical"
                   >
@@ -168,11 +167,11 @@ export function Navigation({ items, className }: NavigationProps) {
                         key={child.href}
                         href={child.href}
                         className={cn(
-                          'block px-4 py-2 text-sm transition-colors',
-                          'hover:bg-slate-100 focus-visible:bg-slate-100 focus-visible:outline-none',
+                          'block px-6 py-3 font-sans text-sm font-light transition-colors duration-300',
+                          'hover:bg-[#C5A059]/20 hover:text-[#C5A059] focus-visible:bg-[#C5A059]/20 focus-visible:outline-none',
                           isActive(child.href)
-                            ? 'font-medium text-teal-700'
-                            : 'text-slate-700'
+                            ? 'text-[#C5A059] font-normal'
+                            : 'text-[#FAF9F6]/80'
                         )}
                         role="menuitem"
                         onClick={() => setOpenDropdown(null)}
@@ -199,10 +198,9 @@ export function Navigation({ items, className }: NavigationProps) {
               <Link
                 href={item.href}
                 className={cn(
-                  'block rounded-lg px-4 py-2 text-sm font-medium transition-colors',
-                  'hover:bg-slate-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-700',
-                  active && 'text-teal-700',
-                  !active && 'text-slate-700'
+                  'font-sans text-xs uppercase tracking-[0.2em] font-light transition-colors duration-300',
+                  'hover:text-[#C5A059] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#C5A059]',
+                  active ? 'text-[#C5A059]' : 'text-[#FAF9F6]/80'
                 )}
                 aria-current={active ? 'page' : undefined}
               >

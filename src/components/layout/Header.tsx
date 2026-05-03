@@ -69,27 +69,31 @@ export function Header({ sticky = true, className }: HeaderProps) {
 
       <header
         className={cn(
-          'w-full border-b border-slate-200 bg-white transition-shadow',
-          sticky && 'sticky top-0 z-40',
-          scrolled && 'shadow-sm',
+          'fixed top-0 left-0 w-full z-50 transition-all duration-300',
+          scrolled
+            ? 'bg-[#1C2A39]/80 backdrop-blur-md border-b border-[#FAF9F6]/10'
+            : 'bg-transparent',
           className
         )}
       >
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex h-16 items-center justify-between gap-4">
+        <div className="mx-auto max-w-7xl px-8 lg:px-12">
+          <div className="flex h-20 items-center justify-between gap-4">
             {/* Logo */}
             <div className="flex items-center">
               <Link
                 href="/"
-                className="flex items-center gap-2 rounded-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-700"
+                className="flex items-center gap-3 rounded-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#C5A059]"
                 aria-label={`${siteConfig.name} - Home`}
               >
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-teal-700 text-white">
-                  <span className="text-xl font-bold" aria-hidden="true">
+                <div className={cn(
+                  "flex h-12 w-12 items-center justify-center rounded-lg transition-colors duration-300",
+                  scrolled ? "bg-[#C5A059]" : "bg-[#C5A059]/90"
+                )}>
+                  <span className="text-xl font-bold text-[#FAF9F6]" aria-hidden="true">
                     JO
                   </span>
                 </div>
-                <span className="hidden text-lg font-bold text-slate-900 sm:inline">
+                <span className="hidden font-serif text-xl font-light text-[#FAF9F6] sm:inline">
                   {siteConfig.name}
                 </span>
               </Link>
@@ -100,10 +104,11 @@ export function Header({ sticky = true, className }: HeaderProps) {
 
             {/* CTA Button - Desktop */}
             <div className="hidden items-center gap-3 lg:flex">
-              <Link href="/get-started">
-                <Button variant="primary" size="md">
-                  Get Started
-                </Button>
+              <Link
+                href="/get-started"
+                className="inline-flex items-center justify-center rounded-2xl border border-[#C5A059] bg-transparent px-6 py-3 font-sans text-sm font-light text-[#C5A059] transition-all duration-300 hover:bg-[#C5A059] hover:text-[#FAF9F6]"
+              >
+                Get Started
               </Link>
             </div>
 
@@ -111,8 +116,8 @@ export function Header({ sticky = true, className }: HeaderProps) {
             <button
               type="button"
               className={cn(
-                'flex min-h-11 min-w-11 items-center justify-center rounded-lg text-slate-700 transition-colors lg:hidden',
-                'hover:bg-slate-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-700'
+                'flex min-h-11 min-w-11 items-center justify-center rounded-lg transition-colors lg:hidden',
+                'text-[#FAF9F6] hover:bg-[#FAF9F6]/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#C5A059]'
               )}
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               aria-expanded={mobileMenuOpen}

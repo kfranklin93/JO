@@ -14,14 +14,14 @@ export function HeroSection() {
           loop
           muted
           playsInline
-          className="h-full w-full object-cover opacity-40"
+          className="h-full w-full object-cover opacity-30"
         >
           <source src="/videos/hero-drone.mp4" type="video/mp4" />
         </video>
-        <div className="absolute inset-0 bg-gradient-to-b from-[#1C2A39]/80 via-[#1C2A39]/60 to-[#1C2A39]" />
+        <div className="absolute inset-0 bg-gradient-to-b from-[#1C2A39]/90 via-[#1C2A39]/75 to-[#1C2A39]" />
       </div>
 
-      <div className="relative mx-auto flex min-h-screen max-w-7xl flex-col justify-center px-8 py-32 lg:px-12">
+      <div className="relative mx-auto flex min-h-screen max-w-7xl flex-col justify-center px-8 pt-32 pb-20 lg:px-12">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
