@@ -18,7 +18,7 @@ export function HeroSection() {
         >
           <source src="/videos/hero-drone.mp4" type="video/mp4" />
         </video>
-        <div className="absolute inset-0 bg-gradient-to-b from-[#1C2A39]/95 via-[#1C2A39]/85 to-[#1C2A39]" />
+        <div className="absolute inset-0 bg-gradient-to-b from-[#1C2A39] via-[#1C2A39]/60 to-[#1C2A39]" />
       </div>
 
       <div className="relative mx-auto flex min-h-screen max-w-7xl flex-col justify-center px-8 pt-32 pb-20 lg:px-12">
@@ -35,9 +35,9 @@ export function HeroSection() {
             </span>
           </div>
 
-          <h1 className="font-serif text-6xl leading-tight text-[#FAF9F6] sm:text-7xl lg:text-8xl">
+          <h1 className="font-serif text-6xl leading-tight text-[#FAF9F6] drop-shadow-xl sm:text-7xl lg:text-8xl">
             Find Your Perfect Home on the{' '}
-            <span className="text-[#C5A059]">First Showing</span>
+            <span className="text-[#C5A059] drop-shadow-[0_2px_10px_rgba(197,160,89,0.3)]">First Showing</span>
           </h1>
 
           <p className="mt-8 max-w-2xl font-sans text-xl font-light leading-relaxed text-[#FAF9F6]/90">
@@ -48,7 +48,7 @@ export function HeroSection() {
           <div className="mt-12 flex flex-col gap-4 sm:flex-row sm:gap-6">
             <Link
               href="/get-started"
-              className="group inline-flex items-center justify-center gap-3 rounded-2xl bg-[#C5A059] px-10 py-5 font-sans text-lg font-normal text-[#FAF9F6] transition-all duration-300 hover:bg-[#C5A059]/90 hover:shadow-2xl hover:shadow-[#C5A059]/20"
+              className="group inline-flex items-center justify-center gap-3 rounded-2xl bg-[#C5A059] px-10 py-5 font-sans text-lg font-normal text-[#1C2A39] shadow-[0_0_20px_rgba(197,160,89,0.3)] transition-all duration-300 hover:-translate-y-1 hover:bg-[#D4AF68] hover:shadow-[0_8px_30px_rgba(197,160,89,0.5)]"
             >
               <span>Schedule Your Viewing</span>
               <svg className="h-5 w-5 transition-transform group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -58,7 +58,7 @@ export function HeroSection() {
 
             <Link
               href="/properties"
-              className="inline-flex items-center justify-center gap-3 rounded-2xl border border-[#FAF9F6]/30 bg-transparent px-10 py-5 font-sans text-lg font-light text-[#FAF9F6] backdrop-blur-sm transition-all duration-300 hover:border-[#FAF9F6] hover:bg-[#FAF9F6]/10"
+              className="inline-flex items-center justify-center gap-3 rounded-2xl border border-[#FAF9F6]/50 bg-transparent px-10 py-5 font-sans text-lg font-light text-[#FAF9F6] backdrop-blur-sm transition-all duration-300 hover:border-[#FAF9F6] hover:bg-[#FAF9F6]/10"
             >
               <span>Browse Listings</span>
             </Link>

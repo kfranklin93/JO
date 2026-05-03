@@ -123,9 +123,9 @@ export function Navigation({ items, className }: NavigationProps) {
                   type="button"
                   data-nav-item={item.label}
                   className={cn(
-                    'flex items-center gap-1 font-sans text-xs uppercase tracking-[0.2em] font-light transition-colors duration-300',
-                    'hover:text-[#C5A059] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#C5A059]',
-                    (active || childActive) ? 'text-[#C5A059]' : 'text-[#FAF9F6]/90'
+                    'flex items-center gap-1 font-sans text-[13px] uppercase tracking-[0.2em] font-normal drop-shadow-sm transition-all duration-300',
+                    'hover:text-[#C5A059] hover:drop-shadow-[0_0_8px_rgba(197,160,89,0.4)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#C5A059]',
+                    (active || childActive) ? 'text-[#C5A059] drop-shadow-[0_0_8px_rgba(197,160,89,0.4)]' : 'text-[#FAF9F6]'
                   )}
                   aria-expanded={isOpen}
                   aria-haspopup="true"
@@ -167,11 +167,11 @@ export function Navigation({ items, className }: NavigationProps) {
                         key={child.href}
                         href={child.href}
                         className={cn(
-                          'block px-6 py-3 font-sans text-sm font-light transition-colors duration-300',
-                          'hover:bg-[#C5A059]/20 hover:text-[#C5A059] focus-visible:bg-[#C5A059]/20 focus-visible:outline-none',
+                          'block px-6 py-3 font-sans text-sm font-light transition-all duration-300',
+                          'hover:bg-[#C5A059]/20 hover:text-[#C5A059] hover:drop-shadow-[0_0_8px_rgba(197,160,89,0.4)] focus-visible:bg-[#C5A059]/20 focus-visible:outline-none',
                           isActive(child.href)
-                            ? 'text-[#C5A059] font-normal'
-                            : 'text-[#FAF9F6]/90'
+                            ? 'text-[#C5A059] font-normal drop-shadow-[0_0_8px_rgba(197,160,89,0.4)]'
+                            : 'text-[#FAF9F6]'
                         )}
                         role="menuitem"
                         onClick={() => setOpenDropdown(null)}
@@ -198,9 +198,9 @@ export function Navigation({ items, className }: NavigationProps) {
               <Link
                 href={item.href}
                 className={cn(
-                  'font-sans text-xs uppercase tracking-[0.2em] font-light transition-colors duration-300',
-                  'hover:text-[#C5A059] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#C5A059]',
-                  active ? 'text-[#C5A059]' : 'text-[#FAF9F6]/90'
+                  'font-sans text-[13px] uppercase tracking-[0.2em] font-normal drop-shadow-sm transition-all duration-300',
+                  'hover:text-[#C5A059] hover:drop-shadow-[0_0_8px_rgba(197,160,89,0.4)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#C5A059]',
+                  active ? 'text-[#C5A059] drop-shadow-[0_0_8px_rgba(197,160,89,0.4)]' : 'text-[#FAF9F6]'
                 )}
                 aria-current={active ? 'page' : undefined}
               >

@@ -69,15 +69,15 @@ export function Header({ sticky = true, className }: HeaderProps) {
 
       <header
         className={cn(
-          'fixed top-0 left-0 w-full z-50 transition-all duration-300',
+          'fixed top-0 left-0 w-full z-50 transition-all duration-500',
           scrolled
-            ? 'bg-[#1C2A39]/90 backdrop-blur-md border-b border-[#FAF9F6]/10'
-            : 'bg-transparent',
+            ? 'bg-[#1C2A39]/70 backdrop-blur-xl border-b border-[#C5A059]/20 shadow-[0_4px_30px_rgba(0,0,0,0.1)] py-4'
+            : 'bg-transparent py-6',
           className
         )}
       >
         <div className="mx-auto max-w-7xl px-8 lg:px-12">
-          <div className="flex h-20 items-center justify-between gap-4">
+          <div className="flex items-center justify-between gap-4">
             {/* Logo */}
             <div className="flex items-center">
               <Link

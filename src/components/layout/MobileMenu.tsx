@@ -86,7 +86,7 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
                     <Link
                       ref={index === 0 ? firstFocusableRef : undefined}
                       href={item.href}
-                      className="block rounded-lg px-4 py-3 font-sans text-base font-light text-[#FAF9F6] transition-colors hover:bg-[#C5A059]/20 hover:text-[#C5A059] focus-visible:bg-[#C5A059]/20 focus-visible:outline-none"
+                      className="block rounded-lg px-4 py-3 font-sans text-xl font-light tracking-[0.1em] text-[#FAF9F6] transition-all duration-300 hover:bg-[#C5A059]/20 hover:text-[#C5A059] focus-visible:bg-[#C5A059]/20 focus-visible:outline-none"
                       onClick={onClose}
                     >
                       {item.label}
@@ -126,7 +126,7 @@ function MobileMenuDropdown({ item, onClose }: MobileMenuDropdownProps) {
     <div>
       <button
         type="button"
-        className="flex w-full items-center justify-between rounded-lg px-4 py-3 font-sans text-base font-light text-[#FAF9F6] transition-colors hover:bg-[#C5A059]/20 hover:text-[#C5A059] focus-visible:bg-[#C5A059]/20 focus-visible:outline-none"
+        className="flex w-full items-center justify-between rounded-lg px-4 py-3 font-sans text-xl font-light tracking-[0.1em] text-[#FAF9F6] transition-all duration-300 hover:bg-[#C5A059]/20 hover:text-[#C5A059] focus-visible:bg-[#C5A059]/20 focus-visible:outline-none"
         onClick={() => setIsOpen(!isOpen)}
         aria-expanded={isOpen}
       >
@@ -147,7 +147,7 @@ function MobileMenuDropdown({ item, onClose }: MobileMenuDropdownProps) {
             <li key={child.href}>
               <Link
                 href={child.href}
-                className="block rounded-lg px-4 py-2 font-sans text-sm font-light text-[#FAF9F6]/80 transition-colors hover:bg-[#C5A059]/20 hover:text-[#C5A059] focus-visible:bg-[#C5A059]/20 focus-visible:outline-none"
+                className="block rounded-lg px-4 py-2 font-sans text-base font-light tracking-[0.1em] text-[#FAF9F6]/80 transition-all duration-300 hover:bg-[#C5A059]/20 hover:text-[#C5A059] focus-visible:bg-[#C5A059]/20 focus-visible:outline-none"
                 onClick={onClose}
               >
                 {child.label}
