@@ -24,12 +24,12 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
           aria-invalid={error ? true : undefined}
           aria-describedby={describedBy}
           className={cn(
-            'flex min-h-11 w-full rounded-xl border bg-[#FAF9F6] px-4 py-3 text-sm text-[#1C2A39] shadow-sm transition',
+            'flex min-h-11 w-full rounded-xl border bg-[#FAF9F6] px-4 py-3 font-sans text-sm font-light text-[#1C2A39] shadow-sm transition-all',
             'placeholder:text-[#1C2A39]/40',
-            'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2',
+            'focus-visible:outline-none focus-visible:ring-1 focus-visible:border-[#C5A059]',
             error
-              ? 'border-red-600 focus-visible:outline-red-600'
-              : 'border-[#1C2A39]/20 focus-visible:outline-[#C5A059]',
+              ? 'border-red-600 focus-visible:ring-red-600 focus-visible:border-red-600'
+              : 'border-[#1C2A39]/20 focus-visible:ring-[#C5A059]',
             'disabled:cursor-not-allowed disabled:bg-[#1C2A39]/5 disabled:text-[#1C2A39]/40',
             className
           )}

@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import { Navigation, type NavigationItem } from '@/components/layout/Navigation';
 import { MobileMenu } from '@/components/layout/MobileMenu';
@@ -15,6 +16,8 @@ export interface HeaderProps {
 }
 
 export function Header({ sticky = true, className }: HeaderProps) {
+  const pathname = usePathname();
+  const isHome = pathname === '/';
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
   const [scrolled, setScrolled] = React.useState(false);
 
@@ -70,8 +73,8 @@ export function Header({ sticky = true, className }: HeaderProps) {
       <header
         className={cn(
           'fixed top-0 left-0 w-full z-50 transition-all duration-500',
-          scrolled
-            ? 'bg-[#1C2A39]/70 backdrop-blur-xl border-b border-[#C5A059]/20 shadow-[0_4px_30px_rgba(0,0,0,0.1)] py-4'
+          !isHome || scrolled
+            ? 'bg-[#1C2A39]/95 backdrop-blur-md border-b border-[#C5A059]/20 shadow-sm py-4'
             : 'bg-transparent py-6',
           className
         )}
