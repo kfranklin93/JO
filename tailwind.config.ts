@@ -12,40 +12,38 @@ const config: Config = {
       colors: {
         background: 'var(--color-background)',
         foreground: 'var(--color-foreground)',
-        // Joey O Brand Colors - Quiet Luxury Palette
-        mocha: {
-          DEFAULT: '#A38A75',
-          light: '#B3A394',
-          dark: '#8B7461',
+        // Property Guys Atlanta Inspired - Clean Monochrome Palette
+        neutral: {
+          50: '#FAFAFA',
+          100: '#F5F5F5',
+          200: '#E5E5E5',
+          300: '#D4D4D4',
+          400: '#A3A3A3',
+          500: '#737373',
+          600: '#525252',
+          700: '#404040',
+          800: '#262626',
+          900: '#171717',
+          950: '#0A0A0A',
         },
-        taupe: {
-          DEFAULT: '#B3A394',
-          light: '#C4B5A8',
-          dark: '#9D8F82',
-        },
-        emerald: {
-          DEFAULT: '#043927',
-          light: '#065A3E',
-          dark: '#032A1D',
-        },
-        // Legacy colors for compatibility
+        // Brand colors
         primary: {
-          DEFAULT: '#043927', // Emerald for CTAs
+          DEFAULT: '#000000', // Pure black for text and primary elements
           foreground: '#ffffff',
         },
         secondary: {
-          DEFAULT: '#A38A75', // Mocha
-          foreground: '#ffffff',
+          DEFAULT: '#F5F5F5', // Light neutral for backgrounds
+          foreground: '#000000',
         },
         accent: {
-          DEFAULT: '#043927', // Emerald
+          DEFAULT: '#000000', // Black for CTAs
           foreground: '#ffffff',
         },
         muted: {
-          DEFAULT: '#B3A394', // Warm Taupe
-          foreground: '#1a1a1a',
+          DEFAULT: '#737373', // Mid-gray for secondary text
+          foreground: '#ffffff',
         },
-        border: '#C4B5A8',
+        border: '#E5E5E5',
         surface: '#ffffff',
       },
       fontFamily: {

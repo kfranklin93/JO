@@ -85,9 +85,9 @@ export function MagneticButton({
   }, [strength]);
 
   const variants = {
-    primary: 'bg-[#C5A059] text-[#FAF9F6] hover:bg-[#C5A059]/90',
-    secondary: 'bg-[#1C2A39] text-[#FAF9F6] hover:bg-[#1C2A39]/90',
-    outline: 'border-2 border-[#C5A059] text-[#C5A059] hover:bg-[#C5A059] hover:text-[#FAF9F6]',
+    primary: 'bg-[black] text-[white] hover:bg-[black]/90',
+    secondary: 'bg-[black] text-[white] hover:bg-[black]/90',
+    outline: 'border-2 border-[black] text-[black] hover:bg-[black] hover:text-[white]',
   };
 
   const sizes = {
@@ -101,7 +101,7 @@ export function MagneticButton({
       ref={buttonRef}
       className={cn(
         'relative inline-flex items-center justify-center gap-2 rounded-2xl font-sans font-normal transition-all duration-300',
-        'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#C5A059]',
+        'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[black]',
         'disabled:cursor-not-allowed disabled:opacity-50',
         variants[variant],
         sizes[size],

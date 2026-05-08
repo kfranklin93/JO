@@ -70,18 +70,18 @@ export function StickyScrollCTA() {
           transition={{ duration: 0.3, ease: 'easeOut' }}
           className="fixed bottom-6 right-6 z-50 max-w-sm"
         >
-          <div className="rounded-2xl border border-[#1C2A39]/10 bg-[#FAF9F6] p-6 shadow-2xl">
+          <div className="rounded-2xl border border-[black]/10 bg-[white] p-6 shadow-2xl">
             {/* Urgency Badge */}
             {currentMessage.urgency && (
               <motion.div
                 initial={{ scale: 0.9, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ delay: 0.2 }}
-                className="mb-3 inline-flex items-center gap-2 rounded-2xl bg-[#C5A059]/10 px-3 py-1 text-xs font-light text-[#C5A059]"
+                className="mb-3 inline-flex items-center gap-2 rounded-2xl bg-[black]/10 px-3 py-1 text-xs font-light text-[black]"
               >
                 <span className="relative flex h-2 w-2">
-                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#C5A059] opacity-75"></span>
-                  <span className="relative inline-flex h-2 w-2 rounded-full bg-[#C5A059]"></span>
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[black] opacity-75"></span>
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-[black]"></span>
                 </span>
                 {currentMessage.urgency}
               </motion.div>
@@ -93,7 +93,7 @@ export function StickyScrollCTA() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3 }}
-              className="mb-4 font-sans text-sm font-normal text-[#1C2A39]"
+              className="mb-4 font-sans text-sm font-normal text-[black]"
             >
               {currentMessage.message}
             </motion.p>
@@ -113,9 +113,9 @@ export function StickyScrollCTA() {
             </Link>
 
             {/* Progress Indicator */}
-            <div className="mt-4 h-1 w-full overflow-hidden rounded-full bg-[#1C2A39]/10">
+            <div className="mt-4 h-1 w-full overflow-hidden rounded-full bg-[black]/10">
               <motion.div
-                className="h-full bg-[#C5A059]"
+                className="h-full bg-[black]"
                 initial={{ width: '0%' }}
                 animate={{ width: `${scrollDepth}%` }}
                 transition={{ duration: 0.3 }}

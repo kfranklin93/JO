@@ -82,7 +82,7 @@ export function FormNavigation({
   return (
     <div
       className={cn(
-        'flex items-center justify-between gap-4 border-t border-[#1C2A39]/10 pt-6',
+        'flex items-center justify-between gap-4 border-t border-[black]/10 pt-6',
         className
       )}
     >

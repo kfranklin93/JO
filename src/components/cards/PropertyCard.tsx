@@ -17,7 +17,7 @@ export function PropertyCard({ property, index }: PropertyCardProps) {
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ duration: 0.6, delay: index * 0.1 }}
-      className="group relative overflow-hidden rounded-sm border border-[#1C2A39]/10 bg-white"
+      className="group relative overflow-hidden rounded-sm border border-[black]/10 bg-white"
     >
       <div className="relative aspect-[4/5] overflow-hidden group">
         <img
@@ -25,13 +25,13 @@ export function PropertyCard({ property, index }: PropertyCardProps) {
           alt={property.title}
           className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
         />
-        <div className="absolute left-4 top-4 rounded-sm bg-[#C5A059] px-4 py-2 font-sans text-xs font-light uppercase tracking-widest text-[#FAF9F6]">
+        <div className="absolute left-4 top-4 rounded-sm bg-[black] px-4 py-2 font-sans text-xs font-light uppercase tracking-widest text-[white]">
           {property.status}
         </div>
-        <div className="absolute inset-0 flex items-center justify-center bg-[#1C2A39]/80 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+        <div className="absolute inset-0 flex items-center justify-center bg-[black]/80 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
           <Link
             href="/get-started"
-            className="rounded-2xl bg-[#C5A059] px-6 py-3 font-sans text-sm font-normal text-[#FAF9F6] transition-transform hover:scale-105"
+            className="rounded-2xl bg-[black] px-6 py-3 font-sans text-sm font-normal text-[white] transition-transform hover:scale-105"
           >
             Schedule Viewing
           </Link>
@@ -39,10 +39,10 @@ export function PropertyCard({ property, index }: PropertyCardProps) {
       </div>
 
       <div className="p-8">
-        <div className="font-serif text-3xl text-[#1C2A39]">{property.price}</div>
-        <h3 className="mt-3 font-serif text-2xl text-[#1C2A39]">{property.title}</h3>
+        <div className="font-serif text-3xl text-[black]">{property.price}</div>
+        <h3 className="mt-3 font-serif text-2xl text-[black]">{property.title}</h3>
         
-        <div className="mt-6 flex items-center gap-6 border-t border-[#1C2A39]/10 pt-6 font-sans text-xs uppercase tracking-widest text-[#1C2A39]/60">
+        <div className="mt-6 flex items-center gap-6 border-t border-[black]/10 pt-6 font-sans text-xs uppercase tracking-widest text-[black]/60">
           <div className="flex items-center gap-2">
             <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
@@ -65,7 +65,7 @@ export function PropertyCard({ property, index }: PropertyCardProps) {
 
         <Link
           href={`/properties/${index + 1}`}
-          className="mt-6 inline-flex items-center gap-2 font-sans text-sm font-normal text-[#C5A059] transition-colors hover:text-[#C5A059]/80"
+          className="mt-6 inline-flex items-center gap-2 font-sans text-sm font-normal text-[black] transition-colors hover:text-[black]/80"
         >
           <span>View Full Details</span>
           <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">

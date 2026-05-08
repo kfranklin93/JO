@@ -124,10 +124,10 @@ export function Navigation({ items, className }: NavigationProps) {
                   data-nav-item={item.label}
                   className={cn(
                     'flex items-center gap-1 font-sans text-sm uppercase tracking-[0.15em] font-medium transition-all duration-300',
-                    'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#C5A059]',
+                    'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[black]',
                     (active || childActive)
-                      ? 'text-[#C5A059] drop-shadow-[0_0_8px_rgba(197,160,89,0.6)]'
-                      : 'text-[#FAF9F6] [text-shadow:0_2px_8px_rgba(0,0,0,0.6)] hover:text-[#C5A059] hover:[text-shadow:0_0_8px_rgba(197,160,89,0.4)]'
+                      ? 'text-[black] drop-shadow-[0_0_8px_rgba(197,160,89,0.6)]'
+                      : 'text-[white] [text-shadow:0_2px_8px_rgba(0,0,0,0.6)] hover:text-[black] hover:[text-shadow:0_0_8px_rgba(197,160,89,0.4)]'
                   )}
                   aria-expanded={isOpen}
                   aria-haspopup="true"
@@ -160,7 +160,7 @@ export function Navigation({ items, className }: NavigationProps) {
                         dropdownRefs.current.set(item.label, el);
                       }
                     }}
-                    className="absolute left-0 top-full z-50 mt-4 w-56 rounded-2xl bg-[#1C2A39] backdrop-blur-md py-3 shadow-2xl shadow-[#1C2A39]/10 border border-[#C5A059]/20"
+                    className="absolute left-0 top-full z-50 mt-4 w-56 rounded-2xl bg-[black] backdrop-blur-md py-3 shadow-2xl shadow-[black]/10 border border-[black]/20"
                     role="menu"
                     aria-orientation="vertical"
                   >
@@ -170,10 +170,10 @@ export function Navigation({ items, className }: NavigationProps) {
                         href={child.href}
                         className={cn(
                           'block px-6 py-3 font-sans text-sm font-medium transition-all duration-300',
-                          'focus-visible:bg-[#C5A059]/20 focus-visible:outline-none',
+                          'focus-visible:bg-[black]/20 focus-visible:outline-none',
                           isActive(child.href)
-                            ? 'text-[#C5A059] drop-shadow-[0_0_8px_rgba(197,160,89,0.6)] bg-[#C5A059]/10'
-                            : 'text-[#FAF9F6] hover:bg-[#C5A059]/20 hover:text-[#C5A059] hover:[text-shadow:0_0_8px_rgba(197,160,89,0.4)]'
+                            ? 'text-[black] drop-shadow-[0_0_8px_rgba(197,160,89,0.6)] bg-[black]/10'
+                            : 'text-[white] hover:bg-[black]/20 hover:text-[black] hover:[text-shadow:0_0_8px_rgba(197,160,89,0.4)]'
                         )}
                         role="menuitem"
                         onClick={() => setOpenDropdown(null)}
@@ -201,10 +201,10 @@ export function Navigation({ items, className }: NavigationProps) {
                 href={item.href}
                 className={cn(
                   'font-sans text-sm uppercase tracking-[0.15em] font-medium transition-all duration-300',
-                  'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#C5A059]',
+                  'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[black]',
                   active
-                    ? 'text-[#C5A059] drop-shadow-[0_0_8px_rgba(197,160,89,0.6)]'
-                    : 'text-[#FAF9F6] [text-shadow:0_2px_8px_rgba(0,0,0,0.6)] hover:text-[#C5A059] hover:[text-shadow:0_0_8px_rgba(197,160,89,0.4)]'
+                    ? 'text-[black] drop-shadow-[0_0_8px_rgba(197,160,89,0.6)]'
+                    : 'text-[white] [text-shadow:0_2px_8px_rgba(0,0,0,0.6)] hover:text-[black] hover:[text-shadow:0_0_8px_rgba(197,160,89,0.4)]'
                 )}
                 aria-current={active ? 'page' : undefined}
               >

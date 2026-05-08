@@ -6,13 +6,13 @@ import { cn } from '@/lib/utils/cn';
 const buttonVariants = {
   variant: {
     primary:
-      'bg-[#C5A059] text-white shadow-sm hover:bg-[#B8935A] focus-visible:outline-[#C5A059] disabled:bg-[#C5A059]/40',
+      'bg-[black] text-white shadow-sm hover:bg-[#B8935A] focus-visible:outline-[black] disabled:bg-[black]/40',
     secondary:
-      'bg-[#1C2A39] text-white shadow-sm hover:bg-[#1C2A39]/90 focus-visible:outline-[#1C2A39] disabled:bg-[#1C2A39]/40',
+      'bg-[black] text-white shadow-sm hover:bg-[black]/90 focus-visible:outline-[black] disabled:bg-[black]/40',
     outline:
-      'border border-[#1C2A39]/20 bg-[#FAF9F6] text-[#1C2A39] hover:bg-[#1C2A39]/5 focus-visible:outline-[#C5A059] disabled:border-[#1C2A39]/10 disabled:text-[#1C2A39]/40',
+      'border border-[black]/20 bg-[white] text-[black] hover:bg-[black]/5 focus-visible:outline-[black] disabled:border-[black]/10 disabled:text-[black]/40',
     ghost:
-      'bg-transparent text-[#1C2A39] hover:bg-[#1C2A39]/5 focus-visible:outline-[#C5A059] disabled:text-[#1C2A39]/40',
+      'bg-transparent text-[black] hover:bg-[black]/5 focus-visible:outline-[black] disabled:text-[black]/40',
     danger:
       'bg-red-600 text-white shadow-sm hover:bg-red-700 focus-visible:outline-red-600 disabled:bg-red-400',
   },

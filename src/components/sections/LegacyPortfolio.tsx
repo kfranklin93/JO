@@ -67,17 +67,17 @@ const legacyProperties: LegacyProperty[] = [
 
 export function LegacyPortfolio() {
   return (
-    <section className="bg-gradient-to-b from-[#FAF9F6] to-[#1C2A39]/5 py-32 sm:py-40">
+    <section className="bg-gradient-to-b from-[white] to-[black]/5 py-32 sm:py-40">
       <div className="mx-auto max-w-7xl px-8 lg:px-12">
         {/* Header */}
         <div className="text-center">
-          <span className="font-sans text-sm font-light uppercase tracking-[0.3em] text-[#C5A059]">
+          <span className="font-sans text-sm font-light uppercase tracking-[0.3em] text-[black]">
             Proven Track Record
           </span>
-          <h2 className="mt-4 font-serif text-5xl text-[#1C2A39] sm:text-6xl">
+          <h2 className="mt-4 font-serif text-5xl text-[black] sm:text-6xl">
             Joey's Legacy
           </h2>
-          <p className="mx-auto mt-6 max-w-2xl font-sans text-lg font-light text-[#1C2A39]/70">
+          <p className="mx-auto mt-6 max-w-2xl font-sans text-lg font-light text-[black]/70">
             {siteConfig.stats.closedDeals} successful transactions totaling {siteConfig.stats.totalVolume}.
             Hover to reveal the stories behind each sale.
           </p>
@@ -100,27 +100,27 @@ export function LegacyPortfolio() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.8 }}
-          className="mt-20 grid gap-12 border-t border-[#1C2A39]/10 pt-20 sm:grid-cols-3"
+          className="mt-20 grid gap-12 border-t border-[black]/10 pt-20 sm:grid-cols-3"
         >
           <div className="text-center">
-            <div className="font-serif text-5xl text-[#C5A059]">
+            <div className="font-serif text-5xl text-[black]">
               {siteConfig.stats.closedDeals}
             </div>
-            <div className="mt-3 font-sans text-sm font-light uppercase tracking-wider text-[#1C2A39]/60">
+            <div className="mt-3 font-sans text-sm font-light uppercase tracking-wider text-[black]/60">
               Closed Deals
             </div>
           </div>
           <div className="text-center">
-            <div className="font-serif text-5xl text-[#C5A059]">
+            <div className="font-serif text-5xl text-[black]">
               {siteConfig.stats.totalVolume}
             </div>
-            <div className="mt-3 font-sans text-sm font-light uppercase tracking-wider text-[#1C2A39]/60">
+            <div className="mt-3 font-sans text-sm font-light uppercase tracking-wider text-[black]/60">
               Total Volume
             </div>
           </div>
           <div className="text-center">
-            <div className="font-serif text-5xl text-[#C5A059]">3.8</div>
-            <div className="mt-3 font-sans text-sm font-light uppercase tracking-wider text-[#1C2A39]/60">
+            <div className="font-serif text-5xl text-[black]">3.8</div>
+            <div className="mt-3 font-sans text-sm font-light uppercase tracking-wider text-[black]/60">
               Avg Days on Market
             </div>
           </div>
@@ -145,10 +145,10 @@ function LegacyPropertyCard({ property, index }: { property: LegacyProperty; ind
       transition={{ duration: 0.6, delay: index * 0.1 }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      className="group relative cursor-pointer overflow-hidden rounded-2xl border border-[#1C2A39]/10 bg-[#FAF9F6] shadow-lg transition-shadow duration-300 hover:shadow-2xl"
+      className="group relative cursor-pointer overflow-hidden rounded-2xl border border-[black]/10 bg-[white] shadow-lg transition-shadow duration-300 hover:shadow-2xl"
     >
       {/* Image Container with Color Shift */}
-      <div className="relative aspect-[4/3] overflow-hidden bg-[#1C2A39]/5">
+      <div className="relative aspect-[4/3] overflow-hidden bg-[black]/5">
         {/* Black and White Image */}
         <img
           src={property.image}
@@ -173,9 +173,9 @@ function LegacyPropertyCard({ property, index }: { property: LegacyProperty; ind
           initial={{ scale: 0, opacity: 0 }}
           animate={isHovered ? { scale: 1, opacity: 1 } : { scale: 0, opacity: 0 }}
           transition={{ duration: 0.3 }}
-          className="absolute left-4 top-4 rounded-2xl bg-[#C5A059] px-4 py-2 shadow-lg"
+          className="absolute left-4 top-4 rounded-2xl bg-[black] px-4 py-2 shadow-lg"
         >
-          <span className="font-sans text-sm font-light uppercase tracking-wider text-[#FAF9F6]">
+          <span className="font-sans text-sm font-light uppercase tracking-wider text-[white]">
             Sold
           </span>
         </motion.div>
@@ -183,7 +183,7 @@ function LegacyPropertyCard({ property, index }: { property: LegacyProperty; ind
 
       {/* Content - Reveals on Hover */}
       <div className="p-6">
-        <h3 className="font-serif text-xl text-[#1C2A39]">{property.address}</h3>
+        <h3 className="font-serif text-xl text-[black]">{property.address}</h3>
         
         {/* Details - Slide Up on Hover */}
         <motion.div
@@ -192,18 +192,18 @@ function LegacyPropertyCard({ property, index }: { property: LegacyProperty; ind
           transition={{ duration: 0.3 }}
           className="overflow-hidden"
         >
-          <div className="mt-4 space-y-2 border-t border-[#1C2A39]/10 pt-4">
+          <div className="mt-4 space-y-2 border-t border-[black]/10 pt-4">
             <div className="flex justify-between font-sans text-sm font-light">
-              <span className="text-[#1C2A39]/60">Sold Price</span>
-              <span className="font-normal text-[#C5A059]">{property.soldPrice}</span>
+              <span className="text-[black]/60">Sold Price</span>
+              <span className="font-normal text-[black]">{property.soldPrice}</span>
             </div>
             <div className="flex justify-between font-sans text-sm font-light">
-              <span className="text-[#1C2A39]/60">Sold Date</span>
-              <span className="font-normal text-[#1C2A39]">{property.soldDate}</span>
+              <span className="text-[black]/60">Sold Date</span>
+              <span className="font-normal text-[black]">{property.soldDate}</span>
             </div>
             <div className="flex justify-between font-sans text-sm font-light">
-              <span className="text-[#1C2A39]/60">Days on Market</span>
-              <span className="font-normal text-[#1C2A39]">{property.daysOnMarket} days</span>
+              <span className="text-[black]/60">Days on Market</span>
+              <span className="font-normal text-[black]">{property.daysOnMarket} days</span>
             </div>
           </div>
         </motion.div>

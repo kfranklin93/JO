@@ -102,15 +102,15 @@ export function HorizontalScrollGallery() {
   return (
     <section
       ref={containerRef}
-      className="relative h-screen overflow-hidden bg-[#1C2A39]"
+      className="relative h-screen overflow-hidden bg-[black]"
     >
       {/* Section Header - Fixed */}
-      <div className="absolute left-0 right-0 top-0 z-10 bg-gradient-to-b from-[#1C2A39] to-transparent px-8 py-12 lg:px-12">
+      <div className="absolute left-0 right-0 top-0 z-10 bg-gradient-to-b from-[black] to-transparent px-8 py-12 lg:px-12">
         <div className="mx-auto max-w-7xl">
-          <span className="font-sans text-sm font-light uppercase tracking-[0.3em] text-[#FAF9F6]/70">
+          <span className="font-sans text-sm font-light uppercase tracking-[0.3em] text-[white]/70">
             Lifestyle Insights
           </span>
-          <h2 className="mt-4 font-serif text-5xl text-[#FAF9F6] sm:text-6xl">
+          <h2 className="mt-4 font-serif text-5xl text-[white] sm:text-6xl">
             Life in Marietta
           </h2>
         </div>
@@ -133,18 +133,18 @@ export function HorizontalScrollGallery() {
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true, margin: '-100px' }}
             transition={{ duration: 0.5, delay: index * 0.1 }}
-            className="group relative h-[70vh] w-[400px] flex-shrink-0 overflow-hidden rounded-2xl border border-[#FAF9F6]/10 bg-[#FAF9F6] shadow-2xl"
+            className="group relative h-[70vh] w-[400px] flex-shrink-0 overflow-hidden rounded-2xl border border-[white]/10 bg-[white] shadow-2xl"
           >
             {/* Image */}
-            <div className="relative h-2/3 overflow-hidden bg-[#1C2A39]/5">
+            <div className="relative h-2/3 overflow-hidden bg-[black]/5">
               <img
                 src={insight.image}
                 alt={insight.title}
                 className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
               />
               {/* Category Badge */}
-              <div className="absolute left-4 top-4 rounded-2xl bg-[#FAF9F6]/90 px-3 py-1 backdrop-blur-sm">
-                <span className="font-sans text-xs font-light text-[#1C2A39]">
+              <div className="absolute left-4 top-4 rounded-2xl bg-[white]/90 px-3 py-1 backdrop-blur-sm">
+                <span className="font-sans text-xs font-light text-[black]">
                   {insight.category}
                 </span>
               </div>
@@ -153,10 +153,10 @@ export function HorizontalScrollGallery() {
             {/* Content */}
             <div className="flex h-1/3 flex-col justify-between p-6">
               <div>
-                <h3 className="font-serif text-2xl text-[#1C2A39]">
+                <h3 className="font-serif text-2xl text-[black]">
                   {insight.title}
                 </h3>
-                <p className="mt-2 font-sans text-sm font-light text-[#1C2A39]/70">
+                <p className="mt-2 font-sans text-sm font-light text-[black]/70">
                   {insight.description}
                 </p>
               </div>
@@ -170,12 +170,12 @@ export function HorizontalScrollGallery() {
           whileInView={{ opacity: 1, scale: 1 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
-          className="flex h-[70vh] w-[500px] flex-shrink-0 flex-col items-center justify-center rounded-2xl bg-[#C5A059] p-12 text-center shadow-2xl"
+          className="flex h-[70vh] w-[500px] flex-shrink-0 flex-col items-center justify-center rounded-2xl bg-[black] p-12 text-center shadow-2xl"
         >
-          <h3 className="font-serif text-4xl text-[#FAF9F6]">
+          <h3 className="font-serif text-4xl text-[white]">
             Ready to Call Marietta Home?
           </h3>
-          <p className="mt-6 font-sans text-lg font-light text-[#FAF9F6]/90">
+          <p className="mt-6 font-sans text-lg font-light text-[white]/90">
             Discover properties in these sought-after neighborhoods
           </p>
           <div className="mt-8">
@@ -183,7 +183,7 @@ export function HorizontalScrollGallery() {
               <MagneticButton
                 variant="outline"
                 size="lg"
-                className="border-[#FAF9F6] bg-[#FAF9F6] text-[#1C2A39] hover:bg-[#FAF9F6]/90"
+                className="border-[white] bg-[white] text-[black] hover:bg-[white]/90"
               >
                 View Available Homes
                 <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -200,7 +200,7 @@ export function HorizontalScrollGallery() {
 
       {/* Scroll Hint */}
       <div className="pointer-events-none absolute bottom-8 left-1/2 z-10 -translate-x-1/2">
-        <div className="flex items-center gap-3 text-[#FAF9F6]/70">
+        <div className="flex items-center gap-3 text-[white]/70">
           <span className="font-sans text-sm font-light uppercase tracking-wider">Scroll Horizontally</span>
           <svg className="h-6 w-6 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
