@@ -2,19 +2,26 @@
 
 import * as React from 'react';
 import { useRef, useEffect } from 'react';
+import Link from 'next/link';
 import { gsap } from 'gsap';
 import { cn } from '@/lib/utils/cn';
 
-export interface MagneticButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+export interface MagneticButtonProps {
   strength?: number;
   children: React.ReactNode;
   variant?: 'primary' | 'secondary' | 'outline';
   size?: 'sm' | 'md' | 'lg';
+  className?: string;
+  href?: string;
+  onClick?: () => void;
+  disabled?: boolean;
+  type?: 'button' | 'submit' | 'reset';
 }
 
 /**
  * Magnetic Button with GSAP micro-interactions
  * Button subtly pulls toward cursor for rewarding click experience
+ * Supports both button and link functionality
  */
 export function MagneticButton({
   strength = 0.3,
@@ -22,24 +29,27 @@ export function MagneticButton({
   variant = 'primary',
   size = 'md',
   className,
-  ...props
+  href,
+  onClick,
+  disabled = false,
+  type = 'button',
 }: MagneticButtonProps) {
-  const buttonRef = useRef<HTMLButtonElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const textRef = useRef<HTMLSpanElement>(null);
 
   useEffect(() => {
-    const button = buttonRef.current;
+    const container = containerRef.current;
     const text = textRef.current;
-    if (!button || !text) return;
+    if (!container || !text || disabled) return;
 
     // Use GSAP context for proper cleanup
     const ctx = gsap.context(() => {
       const handleMouseMove = (e: MouseEvent) => {
-        const rect = button.getBoundingClientRect();
+        const rect = container.getBoundingClientRect();
         const x = e.clientX - rect.left - rect.width / 2;
         const y = e.clientY - rect.top - rect.height / 2;
 
-        gsap.to(button, {
+        gsap.to(container, {
           x: x * strength,
           y: y * strength,
           duration: 0.3,
@@ -55,7 +65,7 @@ export function MagneticButton({
       };
 
       const handleMouseLeave = () => {
-        gsap.to(button, {
+        gsap.to(container, {
           x: 0,
           y: 0,
           duration: 0.5,
@@ -70,49 +80,68 @@ export function MagneticButton({
         });
       };
 
-      button.addEventListener('mousemove', handleMouseMove);
-      button.addEventListener('mouseleave', handleMouseLeave);
+      container.addEventListener('mousemove', handleMouseMove);
+      container.addEventListener('mouseleave', handleMouseLeave);
 
       return () => {
-        button.removeEventListener('mousemove', handleMouseMove);
-        button.removeEventListener('mouseleave', handleMouseLeave);
+        container.removeEventListener('mousemove', handleMouseMove);
+        container.removeEventListener('mouseleave', handleMouseLeave);
       };
-    }, buttonRef);
+    }, containerRef);
 
     return () => {
       ctx.revert();
     };
-  }, [strength]);
+  }, [strength, disabled]);
 
   const variants = {
-    primary: 'bg-[black] text-[white] hover:bg-[black]/90',
-    secondary: 'bg-[black] text-[white] hover:bg-[black]/90',
-    outline: 'border-2 border-[black] text-[black] hover:bg-[black] hover:text-[white]',
+    primary: 'bg-primary text-primary-foreground hover:bg-primary/90 border-2 border-primary',
+    secondary: 'bg-secondary text-secondary-foreground hover:bg-secondary/80 border-2 border-border',
+    outline: 'border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground',
   };
 
   const sizes = {
-    sm: 'px-4 py-2 text-sm',
-    md: 'px-6 py-3 text-base',
-    lg: 'px-8 py-4 text-lg',
+    sm: 'px-6 py-3 text-sm',
+    md: 'px-8 py-4 text-base',
+    lg: 'px-12 py-5 text-base',
   };
 
+  const baseClasses = cn(
+    'relative inline-flex items-center justify-center gap-3 rounded-none font-sans font-medium uppercase tracking-wider transition-all duration-300',
+    'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary',
+    'disabled:cursor-not-allowed disabled:opacity-50',
+    variants[variant],
+    sizes[size],
+    className
+  );
+
+  const content = (
+    <span ref={textRef} className="relative z-10 inline-flex items-center gap-3">
+      {children}
+    </span>
+  );
+
+  if (href && !disabled) {
+    return (
+      <div ref={containerRef} className="inline-block">
+        <Link href={href} className={baseClasses}>
+          {content}
+        </Link>
+      </div>
+    );
+  }
+
   return (
-    <button
-      ref={buttonRef}
-      className={cn(
-        'relative inline-flex items-center justify-center gap-2 rounded-2xl font-sans font-normal transition-all duration-300',
-        'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[black]',
-        'disabled:cursor-not-allowed disabled:opacity-50',
-        variants[variant],
-        sizes[size],
-        className
-      )}
-      {...props}
-    >
-      <span ref={textRef} className="relative z-10 inline-flex items-center gap-2">
-        {children}
-      </span>
-    </button>
+    <div ref={containerRef} className="inline-block">
+      <button
+        type={type}
+        onClick={onClick}
+        disabled={disabled}
+        className={baseClasses}
+      >
+        {content}
+      </button>
+    </div>
   );
 }
 

@@ -36,8 +36,9 @@ const config: Config = {
           foreground: '#000000',
         },
         accent: {
-          DEFAULT: '#000000', // Black for CTAs
-          foreground: '#ffffff',
+          DEFAULT: '#D4AF37', // Gold accent for links and highlights
+          foreground: '#000000',
+          hover: '#B8941F', // Darker gold for hover states
         },
         muted: {
           DEFAULT: '#737373', // Mid-gray for secondary text

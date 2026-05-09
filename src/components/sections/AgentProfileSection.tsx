@@ -2,8 +2,8 @@
 
 import * as React from 'react';
 import Image from 'next/image';
-import Link from 'next/link';
 import { motion } from 'framer-motion';
+import { MagneticButton } from '@/components/ui/MagneticButton';
 import { siteConfig } from '@/config/site';
 
 export function AgentProfileSection() {
@@ -61,11 +61,13 @@ export function AgentProfileSection() {
 
             {/* CTA */}
             <div className="mt-10 flex flex-col gap-4 sm:flex-row sm:gap-6">
-              <Link
+              <MagneticButton
                 href="/about"
-                className="group inline-flex items-center justify-center gap-3 border-2 border-white bg-white px-8 py-4 font-sans text-sm font-medium uppercase tracking-wider text-black transition-all duration-300 hover:bg-transparent hover:text-white"
+                variant="secondary"
+                size="md"
+                className="group"
               >
-                <span>Learn More About Joey</span>
+                <span>Discover Joey's Story</span>
                 <svg
                   className="h-5 w-5 transition-transform group-hover:translate-x-1"
                   fill="none"
@@ -75,14 +77,16 @@ export function AgentProfileSection() {
                 >
                   <path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
                 </svg>
-              </Link>
+              </MagneticButton>
 
-              <Link
+              <MagneticButton
                 href="/contact"
-                className="inline-flex items-center justify-center gap-3 border-2 border-white bg-transparent px-8 py-4 font-sans text-sm font-medium uppercase tracking-wider text-white transition-all duration-300 hover:bg-white hover:text-black"
+                variant="outline"
+                size="md"
+                className="border-[#D4AF37] text-[#D4AF37] hover:bg-[#D4AF37] hover:text-black"
               >
-                <span>Schedule a Meeting</span>
-              </Link>
+                <span>Schedule a Consultation</span>
+              </MagneticButton>
             </div>
 
             {/* Credentials */}

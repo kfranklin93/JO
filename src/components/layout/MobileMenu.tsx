@@ -109,7 +109,7 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
             <Link
               href="/contact"
               onClick={onClose}
-              className="inline-flex w-full items-center justify-center gap-2 border-2 border-black bg-black px-6 py-4 font-sans text-sm font-medium uppercase tracking-wider text-white transition-all duration-300 hover:bg-white hover:text-black"
+              className="inline-flex w-full items-center justify-center gap-2 border-2 border-black bg-black px-6 py-4 font-sans text-sm font-medium uppercase tracking-wider text-white transition-all duration-300 hover:bg-[#D4AF37] hover:text-black hover:border-[#D4AF37]"
             >
               <span>Get in Touch</span>
               <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>

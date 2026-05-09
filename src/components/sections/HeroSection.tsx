@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { siteConfig } from '@/config/site';
+import { MagneticButton } from '@/components/ui/MagneticButton';
 
 export function HeroSection() {
   return (
@@ -64,13 +65,15 @@ export function HeroSection() {
               </div>
             </div>
 
-            {/* Primary CTA */}
+            {/* Primary CTA - Magnetic Button */}
             <div className="mt-12">
-              <Link
+              <MagneticButton
                 href="/properties"
-                className="group inline-flex w-full items-center justify-center gap-3 rounded-none border-2 border-black bg-black px-12 py-5 font-sans text-base font-medium uppercase tracking-wider text-white transition-all duration-300 hover:bg-white hover:text-black sm:w-auto"
+                variant="primary"
+                size="lg"
+                className="w-full sm:w-auto group"
               >
-                <span>Search Homes</span>
+                <span>Explore the Collection</span>
                 <svg
                   className="h-5 w-5 transition-transform group-hover:translate-x-1"
                   fill="none"
@@ -80,7 +83,7 @@ export function HeroSection() {
                 >
                   <path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
                 </svg>
-              </Link>
+              </MagneticButton>
             </div>
 
             {/* Contact Info */}
