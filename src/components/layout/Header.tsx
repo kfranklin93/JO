@@ -81,6 +81,7 @@ export function Header({ sticky = true, className }: HeaderProps) {
               className="flex items-center gap-3 rounded-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
               aria-label={`${siteConfig.name} - Home`}
             >
+              {/* JOEY UPDATE: Logo placeholder - replace with actual logo file when ready */}
               <div className="flex h-10 w-10 items-center justify-center rounded-full bg-black transition-transform duration-300 hover:scale-105">
                 <span className="font-serif text-lg font-bold text-white" aria-hidden="true">
                   JO
@@ -90,6 +91,19 @@ export function Header({ sticky = true, className }: HeaderProps) {
                 {siteConfig.name}
               </span>
             </Link>
+
+            {/* JOEY UPDATE: Phone number visible on desktop */}
+            <div className="hidden items-center gap-6 lg:flex">
+              <a
+                href={`tel:${siteConfig.contact.phone}`}
+                className="flex items-center gap-2 font-sans text-sm font-medium text-neutral-700 transition-colors hover:text-black"
+              >
+                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" />
+                </svg>
+                {siteConfig.contact.phoneDisplay}
+              </a>
+            </div>
 
             {/* Hamburger Menu Button */}
             <button

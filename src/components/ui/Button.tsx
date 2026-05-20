@@ -6,20 +6,20 @@ import { cn } from '@/lib/utils/cn';
 const buttonVariants = {
   variant: {
     primary:
-      'bg-[black] text-white shadow-sm hover:bg-[#B8935A] focus-visible:outline-[black] disabled:bg-[black]/40',
+      'bg-primary text-primary-foreground shadow-sm hover:bg-accent focus-visible:outline-primary disabled:bg-primary/40',
     secondary:
-      'bg-[black] text-white shadow-sm hover:bg-[black]/90 focus-visible:outline-[black] disabled:bg-[black]/40',
+      'bg-secondary text-secondary-foreground shadow-sm hover:bg-neutral-200 focus-visible:outline-secondary disabled:bg-secondary/40',
     outline:
-      'border border-[black]/20 bg-[white] text-[black] hover:bg-[black]/5 focus-visible:outline-[black] disabled:border-[black]/10 disabled:text-[black]/40',
+      'border-2 border-primary/20 bg-surface text-primary hover:border-primary hover:bg-secondary focus-visible:outline-primary disabled:border-primary/10 disabled:text-primary/40',
     ghost:
-      'bg-transparent text-[black] hover:bg-[black]/5 focus-visible:outline-[black] disabled:text-[black]/40',
+      'bg-transparent text-primary hover:bg-secondary focus-visible:outline-primary disabled:text-primary/40',
     danger:
       'bg-red-600 text-white shadow-sm hover:bg-red-700 focus-visible:outline-red-600 disabled:bg-red-400',
   },
   size: {
-    sm: 'min-h-11 px-4 text-sm',
-    md: 'min-h-11 px-5 text-sm sm:text-base',
-    lg: 'min-h-12 px-6 text-base',
+    sm: 'min-h-11 px-4 py-3 text-sm',
+    md: 'min-h-11 px-5 py-3 text-sm sm:text-base',
+    lg: 'min-h-12 px-6 py-3 text-base',
     icon: 'min-h-11 min-w-11 px-3',
   },
 } as const;

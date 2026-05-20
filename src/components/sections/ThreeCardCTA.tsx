@@ -3,6 +3,7 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
+import { MagneticButton } from '@/components/ui/MagneticButton';
 
 const ctaCards = [
   {
@@ -69,10 +70,10 @@ export function ThreeCardCTA() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: index * 0.1 }}
-              className="group relative flex flex-col border border-neutral-200 bg-white p-8 transition-all duration-300 hover:border-black hover:shadow-2xl lg:p-10"
+              className="group relative flex flex-col border border-neutral-200 bg-white p-8 transition-all duration-300 hover:border-primary hover:shadow-2xl lg:p-10"
             >
               {/* Icon */}
-              <div className="mb-6 text-neutral-400 transition-colors duration-300 group-hover:text-black">
+              <div className="mb-6 text-neutral-400 transition-colors duration-300 group-hover:text-primary">
                 {card.icon}
               </div>
 
@@ -86,12 +87,12 @@ export function ThreeCardCTA() {
                 {card.description}
               </p>
 
-              {/* CTA Link */}
+              {/* CTA Link with Progressive Disclosure */}
               <Link
                 href={card.href}
-                className="group/link inline-flex items-center gap-2 font-sans text-sm font-medium uppercase tracking-wider text-black transition-all duration-300"
+                className="group/link inline-flex items-center gap-2 font-sans text-sm font-medium uppercase tracking-wider text-primary transition-all duration-300 hover:text-accent"
               >
-                <span className="border-b-2 border-black pb-1">{card.cta}</span>
+                <span className="border-b border-transparent pb-1 group-hover/link:border-accent">{card.cta}</span>
                 <svg
                   className="h-4 w-4 transition-transform group-hover/link:translate-x-2"
                   fill="none"
@@ -104,12 +105,12 @@ export function ThreeCardCTA() {
               </Link>
 
               {/* Decorative Corner */}
-              <div className="absolute bottom-0 right-0 h-0 w-0 border-b-[40px] border-r-[40px] border-b-transparent border-r-neutral-100 transition-all duration-300 group-hover:border-r-black" />
+              <div className="absolute bottom-0 right-0 h-0 w-0 border-b-[40px] border-r-[40px] border-b-transparent border-r-neutral-100 transition-all duration-300 group-hover:border-r-primary" />
             </motion.div>
           ))}
         </div>
 
-        {/* Bottom CTA */}
+        {/* Bottom CTA with MagneticButton */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -120,15 +121,17 @@ export function ThreeCardCTA() {
           <p className="mb-6 font-sans text-lg text-neutral-600">
             Not sure where to start?
           </p>
-          <Link
-            href="/contact"
-            className="inline-flex items-center justify-center gap-3 border-2 border-black bg-black px-10 py-4 font-sans text-sm font-medium uppercase tracking-wider text-white transition-all duration-300 hover:bg-[#D4AF37] hover:text-black hover:border-[#D4AF37]"
+          <MagneticButton 
+            href="/contact" 
+            variant="primary" 
+            size="lg"
+            className="group"
           >
             <span>Schedule a Consultation</span>
-            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <svg className="h-5 w-5 transition-transform group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
             </svg>
-          </Link>
+          </MagneticButton>
         </motion.div>
       </div>
     </section>
