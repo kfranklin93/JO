@@ -61,7 +61,7 @@ export function PropertyCard({ property, index }: PropertyCardProps) {
           <div className="font-serif text-3xl text-primary">{property.price}</div>
           <h3 className="mt-3 font-serif text-2xl text-primary">{property.title}</h3>
           
-          {/* Property Meta - Enhanced Contrast for WCAG AA */}
+          {/* Property Meta - Enhanced Contrast */}
           <div className="mt-6 flex items-center justify-between border-t border-neutral-200 pt-6 font-sans text-xs uppercase tracking-widest text-neutral-600">
             <div className="flex items-center gap-1.5">
               <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} aria-hidden="true">
@@ -83,7 +83,7 @@ export function PropertyCard({ property, index }: PropertyCardProps) {
             </div>
           </div>
 
-          {/* Action-Oriented CTA with Progressive Disclosure */}
+          {/* Action-Oriented CTA */}
           <div className="mt-6 flex items-center justify-between font-sans text-sm font-medium text-primary transition-colors group-hover:text-accent">
             <span className="underline-offset-4 group-hover:underline">View Full Details</span>
             <svg className="h-4 w-4 transform transition-transform group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">

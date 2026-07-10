@@ -87,7 +87,7 @@ export function ThreeCardCTA() {
                 {card.description}
               </p>
 
-              {/* CTA Link with Progressive Disclosure */}
+              {/* CTA Link */}
               <Link
                 href={card.href}
                 className="group/link inline-flex items-center gap-2 font-sans text-sm font-medium uppercase tracking-wider text-primary transition-all duration-300 hover:text-accent"
