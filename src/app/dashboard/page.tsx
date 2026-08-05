@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import { useRouter } from 'next/navigation';
+import { AiLogsPanel } from '@/components/dashboard/AiLogsPanel';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -125,11 +126,16 @@ type SortDir = 'asc' | 'desc';
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
+type ActiveView = 'overview' | 'ai-copilot';
+
 export default function DashboardPage() {
   const router = useRouter();
   const [data, setData] = React.useState<DashboardData | null>(null);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState('');
+
+  // View switcher
+  const [activeView, setActiveView] = React.useState<ActiveView>('overview');
 
   // Filter / search state
   const [search, setSearch] = React.useState('');
@@ -257,12 +263,44 @@ export default function DashboardPage() {
       {/* ── Header ── */}
       <header className="sticky top-0 z-10 border-b border-neutral-200 bg-white px-6 py-4">
         <div className="mx-auto flex max-w-screen-xl items-center justify-between">
-          <div>
-            <span className="font-serif text-xl text-neutral-900">Joey O.</span>
-            <span className="ml-3 text-sm uppercase tracking-widest text-neutral-400">
-              Lead Dashboard
-            </span>
+          <div className="flex items-center gap-6">
+            <div>
+              <span className="font-serif text-xl text-[#1C2A39]">Joey O.</span>
+              <span className="ml-3 text-sm uppercase tracking-widest text-neutral-400">
+                Dashboard
+              </span>
+            </div>
+
+            {/* ── View Switcher ── */}
+            <div className="flex rounded-xl border border-neutral-200 bg-neutral-50 p-1">
+              <button
+                type="button"
+                onClick={() => setActiveView('overview')}
+                className={`rounded-lg px-4 py-1.5 font-sans text-xs font-semibold uppercase tracking-[0.1em] transition-all ${
+                  activeView === 'overview'
+                    ? 'bg-[#1C2A39] text-[#FAF9F6] shadow-sm'
+                    : 'text-neutral-500 hover:text-neutral-900'
+                }`}
+              >
+                Lead Overview
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveView('ai-copilot')}
+                className={`flex items-center gap-1.5 rounded-lg px-4 py-1.5 font-sans text-xs font-semibold uppercase tracking-[0.1em] transition-all ${
+                  activeView === 'ai-copilot'
+                    ? 'bg-[#1C2A39] text-[#FAF9F6] shadow-sm'
+                    : 'text-neutral-500 hover:text-neutral-900'
+                }`}
+              >
+                <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
+                </svg>
+                AI Copilot
+              </button>
+            </div>
           </div>
+
           <div className="flex items-center gap-4">
             <span className="text-xs text-neutral-400">
               {stats.total} total lead{stats.total !== 1 ? 's' : ''}
@@ -277,7 +315,20 @@ export default function DashboardPage() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-screen-xl px-6 py-8 space-y-8">
+      {/* ── AI Copilot Panel ── */}
+      {activeView === 'ai-copilot' && (
+        <main className="mx-auto max-w-screen-xl px-6 py-8">
+          <div className="mb-6">
+            <h2 className="font-serif text-2xl text-[#1C2A39]">AI Copilot & Client Logs</h2>
+            <p className="mt-1 font-sans text-sm text-[#1C2A39]/50">
+              Real-time Amazon Bedrock client conversations · Claude 3.5 Sonnet
+            </p>
+          </div>
+          <AiLogsPanel />
+        </main>
+      )}
+
+      <main className={`mx-auto max-w-screen-xl px-6 py-8 space-y-8 ${activeView !== 'overview' ? 'hidden' : ''}`}>
 
         {/* ── Stats Row ── */}
         <section>
