@@ -73,10 +73,10 @@ export function BuyersGuideSection() {
           transition={{ duration: 0.6 }}
           className="mb-16 text-center"
         >
-          <h2 className="font-serif text-4xl text-black sm:text-5xl lg:text-6xl">
+          <h2 className="font-serif text-4xl text-navy sm:text-5xl lg:text-6xl">
             Your Home Buying Journey
           </h2>
-          <p className="mx-auto mt-6 max-w-2xl font-sans text-lg text-neutral-600">
+          <p className="mx-auto mt-6 max-w-2xl font-sans text-lg text-stone">
             From first-time buyers to seasoned investors, I'll guide you through every step with clarity and confidence
           </p>
         </motion.div>
@@ -90,21 +90,21 @@ export function BuyersGuideSection() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: index * 0.1 }}
-              className="group relative rounded-lg border border-neutral-200 bg-white p-8 transition-all duration-300 hover:border-accent hover:shadow-lg"
+              className="group relative rounded-lg border border-neutral-200 bg-white p-8 transition-all duration-300 hover:border-champagne hover:shadow-lg"
             >
               {/* Step number */}
-              <div className="mb-4 font-serif text-5xl text-neutral-200 transition-colors group-hover:text-accent/30">
+              <div className="mb-4 font-serif text-5xl text-neutral-200 transition-colors group-hover:text-champagne/30">
                 {step.number}
               </div>
 
               {/* Icon */}
-              <div className="mb-4 text-neutral-400 transition-colors group-hover:text-accent">
+              <div className="mb-4 text-neutral-400 transition-colors group-hover:text-champagne">
                 {step.icon}
               </div>
 
               {/* Content */}
-              <h3 className="mb-3 font-serif text-xl text-black">{step.title}</h3>
-              <p className="font-sans text-sm leading-relaxed text-neutral-600">{step.description}</p>
+              <h3 className="mb-3 font-serif text-xl text-navy">{step.title}</h3>
+              <p className="font-sans text-sm leading-relaxed text-stone">{step.description}</p>
             </motion.div>
           ))}
         </div>
@@ -117,8 +117,8 @@ export function BuyersGuideSection() {
           transition={{ duration: 0.6, delay: 0.6 }}
           className="mt-16 rounded-lg bg-neutral-50 p-8 text-center lg:p-12"
         >
-          <h3 className="font-serif text-3xl text-black">Ready to Start Your Journey?</h3>
-          <p className="mx-auto mt-4 max-w-2xl font-sans text-lg text-neutral-600">
+          <h3 className="font-serif text-3xl text-navy">Ready to Start Your Journey?</h3>
+          <p className="mx-auto mt-4 max-w-2xl font-sans text-lg text-stone">
             Whether you're buying your first home or your fifth, I'm here to make the process smooth, transparent, and successful.
           </p>
           <div className="mt-8 flex flex-wrap items-center justify-center gap-4">

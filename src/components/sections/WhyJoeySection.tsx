@@ -75,10 +75,10 @@ export function WhyJoeySection() {
           transition={{ duration: 0.6 }}
           className="mb-16 text-center"
         >
-          <h2 className="font-serif text-4xl text-black sm:text-5xl lg:text-6xl">
+          <h2 className="font-serif text-4xl text-navy sm:text-5xl lg:text-6xl">
             Why Work With Me?
           </h2>
-          <p className="mx-auto mt-6 max-w-2xl font-sans text-lg text-neutral-600">
+          <p className="mx-auto mt-6 max-w-2xl font-sans text-lg text-stone">
             Real estate is personal. I bring experience, integrity, and a genuine commitment to your success.
           </p>
         </motion.div>
@@ -95,13 +95,13 @@ export function WhyJoeySection() {
               className="group rounded-lg bg-white p-8 shadow-sm transition-all duration-300 hover:shadow-lg"
             >
               {/* Icon */}
-              <div className="mb-4 text-neutral-400 transition-colors group-hover:text-accent">
+              <div className="mb-4 text-neutral-400 transition-colors group-hover:text-champagne">
                 {reason.icon}
               </div>
 
               {/* Content */}
-              <h3 className="mb-3 font-serif text-xl text-black">{reason.title}</h3>
-              <p className="font-sans text-sm leading-relaxed text-neutral-600">{reason.description}</p>
+              <h3 className="mb-3 font-serif text-xl text-navy">{reason.title}</h3>
+              <p className="font-sans text-sm leading-relaxed text-stone">{reason.description}</p>
             </motion.div>
           ))}
         </div>
@@ -114,12 +114,12 @@ export function WhyJoeySection() {
           transition={{ duration: 0.6, delay: 0.6 }}
           className="mt-16 text-center"
         >
-          <p className="mb-6 font-sans text-lg text-neutral-600">
+          <p className="mb-6 font-sans text-lg text-stone">
             Ready to experience the difference?
           </p>
           <a
             href="/contact"
-            className="inline-flex items-center gap-2 rounded-lg bg-primary px-8 py-4 font-sans text-sm font-medium uppercase tracking-wider text-primary-foreground transition-all hover:bg-accent hover:text-black hover:shadow-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+            className="inline-flex items-center gap-2 rounded-lg bg-champagne px-8 py-4 font-sans text-sm font-medium uppercase tracking-wider text-navy transition-all hover:bg-[#b08e4a] hover:shadow-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-champagne"
           >
             <span>Let's Get Started</span>
             <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>

@@ -52,13 +52,13 @@ export function MarketStatsSection() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.1 }}
-            className="group relative overflow-hidden rounded-lg border border-white/10 bg-white/5 p-8 backdrop-blur-sm transition-all duration-300 hover:border-accent hover:bg-white/10"
+            className="group relative overflow-hidden rounded-lg border border-white/10 bg-white/5 p-8 backdrop-blur-sm transition-all duration-300 hover:border-champagne hover:bg-white/10"
           >
             <div className="relative z-10">
-              <div className="font-serif text-5xl text-accent lg:text-6xl">
+              <div className="font-serif text-5xl text-champagne lg:text-6xl">
                 {siteConfig.stats.closedDeals}
               </div>
-              <div className="mt-4 font-sans text-sm uppercase tracking-wider text-white/80">
+              <div className="mt-4 font-sans text-sm uppercase tracking-[0.2em] text-white/80">
                 Homes Sold
               </div>
               <p className="mt-2 font-sans text-sm text-white/60">
@@ -66,7 +66,7 @@ export function MarketStatsSection() {
               </p>
             </div>
             {/* Decorative gradient */}
-            <div className="absolute inset-0 bg-gradient-to-br from-accent/10 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
+            <div className="absolute inset-0 bg-gradient-to-br from-champagne/10 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
           </motion.div>
 
           <motion.div
@@ -74,20 +74,20 @@ export function MarketStatsSection() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="group relative overflow-hidden rounded-lg border border-white/10 bg-white/5 p-8 backdrop-blur-sm transition-all duration-300 hover:border-accent hover:bg-white/10"
+            className="group relative overflow-hidden rounded-lg border border-white/10 bg-white/5 p-8 backdrop-blur-sm transition-all duration-300 hover:border-champagne hover:bg-white/10"
           >
             <div className="relative z-10">
-              <div className="font-serif text-5xl text-accent lg:text-6xl">
+              <div className="font-serif text-5xl text-champagne lg:text-6xl">
                 {siteConfig.stats.totalVolume}
               </div>
-              <div className="mt-4 font-sans text-sm uppercase tracking-wider text-white/80">
+              <div className="mt-4 font-sans text-sm uppercase tracking-[0.2em] text-white/80">
                 Total Volume
               </div>
               <p className="mt-2 font-sans text-sm text-white/60">
                 In closed real estate sales
               </p>
             </div>
-            <div className="absolute inset-0 bg-gradient-to-br from-accent/10 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
+            <div className="absolute inset-0 bg-gradient-to-br from-champagne/10 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
           </motion.div>
 
           <motion.div
@@ -95,20 +95,20 @@ export function MarketStatsSection() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.3 }}
-            className="group relative overflow-hidden rounded-lg border border-white/10 bg-white/5 p-8 backdrop-blur-sm transition-all duration-300 hover:border-accent hover:bg-white/10"
+            className="group relative overflow-hidden rounded-lg border border-white/10 bg-white/5 p-8 backdrop-blur-sm transition-all duration-300 hover:border-champagne hover:bg-white/10"
           >
             <div className="relative z-10">
-              <div className="font-serif text-5xl text-accent lg:text-6xl">
+              <div className="font-serif text-5xl text-champagne lg:text-6xl">
                 {siteConfig.stats.avgDaysOnMarket}
               </div>
-              <div className="mt-4 font-sans text-sm uppercase tracking-wider text-white/80">
+              <div className="mt-4 font-sans text-sm uppercase tracking-[0.2em] text-white/80">
                 Avg Days on Market
               </div>
               <p className="mt-2 font-sans text-sm text-white/60">
                 Fast, efficient closings
               </p>
             </div>
-            <div className="absolute inset-0 bg-gradient-to-br from-accent/10 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
+            <div className="absolute inset-0 bg-gradient-to-br from-champagne/10 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
           </motion.div>
 
           <motion.div
@@ -116,20 +116,20 @@ export function MarketStatsSection() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.4 }}
-            className="group relative overflow-hidden rounded-lg border border-white/10 bg-white/5 p-8 backdrop-blur-sm transition-all duration-300 hover:border-accent hover:bg-white/10"
+            className="group relative overflow-hidden rounded-lg border border-white/10 bg-white/5 p-8 backdrop-blur-sm transition-all duration-300 hover:border-champagne hover:bg-white/10"
           >
             <div className="relative z-10">
-              <div className="font-serif text-5xl text-accent lg:text-6xl">
+              <div className="font-serif text-5xl text-champagne lg:text-6xl">
                 {siteConfig.stats.conversionRate}
               </div>
-              <div className="mt-4 font-sans text-sm uppercase tracking-wider text-white/80">
+              <div className="mt-4 font-sans text-sm uppercase tracking-[0.2em] text-white/80">
                 Conversion Rate
               </div>
               <p className="mt-2 font-sans text-sm text-white/60">
                 Most clients buy on first tour
               </p>
             </div>
-            <div className="absolute inset-0 bg-gradient-to-br from-accent/10 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
+            <div className="absolute inset-0 bg-gradient-to-br from-champagne/10 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
           </motion.div>
         </div>
 
@@ -148,7 +148,7 @@ export function MarketStatsSection() {
                 key={index}
                 className="flex items-center gap-3 font-sans text-sm text-white/80"
               >
-                <svg className="h-5 w-5 text-accent" fill="currentColor" viewBox="0 0 20 20">
+                <svg className="h-5 w-5 text-champagne" fill="currentColor" viewBox="0 0 20 20">
                   <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                 </svg>
                 <span>{award}</span>

@@ -12,7 +12,14 @@ const config: Config = {
       colors: {
         background: 'var(--color-background)',
         foreground: 'var(--color-foreground)',
-        // Property Guys Atlanta Inspired - Clean Monochrome Palette
+        // Quiet Luxury Palette
+        mocha: '#1C1917',   // Warm near-black — body background
+        linen: '#FAF9F6',   // Light surface canvas
+        navy: '#1C2A39',    // Dark surface & deep primary text
+        onyx: '#0D1117',    // Deep dark sections
+        champagne: '#C5A059', // Accent gold
+        stone: '#707070',   // Secondary light-mode body text
+        silver: '#8E8E93',  // Secondary dark-mode body text
         neutral: {
           50: '#FAFAFA',
           100: '#F5F5F5',
@@ -26,29 +33,29 @@ const config: Config = {
           900: '#171717',
           950: '#0A0A0A',
         },
-        // Brand colors
+        // Brand semantic tokens
         primary: {
-          DEFAULT: '#000000', // Pure black for text and primary elements
-          foreground: '#ffffff',
+          DEFAULT: '#1C2A39', // Midnight Navy
+          foreground: '#FAF9F6',
         },
         secondary: {
-          DEFAULT: '#F5F5F5', // Light neutral for backgrounds
-          foreground: '#000000',
+          DEFAULT: '#FAF9F6', // Linen
+          foreground: '#1C2A39',
         },
         accent: {
-          DEFAULT: '#D4AF37', // Gold accent for links and highlights
-          foreground: '#000000',
-          hover: '#B8941F', // Darker gold for hover states
+          DEFAULT: '#C5A059', // Champagne Gold
+          foreground: '#1C2A39',
+          hover: '#b08e4a',
         },
         muted: {
-          DEFAULT: '#737373', // Mid-gray for secondary text
-          foreground: '#ffffff',
+          DEFAULT: '#707070', // Stone gray
+          foreground: '#FAF9F6',
         },
         border: '#E5E5E5',
-        surface: '#ffffff',
+        surface: '#FAF9F6',
       },
       fontFamily: {
-        serif: ['var(--font-bellefair)', 'Georgia', 'serif'],
+        serif: ['var(--font-bellefair)', 'Playfair Display', 'Georgia', 'serif'],
         sans: ['var(--font-montserrat)', 'Arial', 'sans-serif'],
         mono: ['var(--font-geist-mono)', 'monospace'],
       },

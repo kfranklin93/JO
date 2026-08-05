@@ -109,7 +109,7 @@ export function EnhancedHeroSection() {
               </div>
               <button
                 type="submit"
-                className="h-16 rounded-lg bg-accent px-8 font-sans text-lg font-medium text-black transition-all hover:bg-accent/90 hover:shadow-2xl hover:shadow-accent/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent sm:px-12"
+                className="h-16 rounded-lg bg-champagne px-8 font-sans text-lg font-medium text-navy transition-all hover:bg-[#b08e4a] hover:shadow-2xl hover:shadow-champagne/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-champagne sm:px-12"
               >
                 Search
               </button>

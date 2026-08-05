@@ -95,9 +95,9 @@ export function MagneticButton({
   }, [strength, disabled]);
 
   const variants = {
-    primary: 'bg-primary text-primary-foreground hover:bg-primary/90 border-2 border-primary',
-    secondary: 'bg-secondary text-secondary-foreground hover:bg-secondary/80 border-2 border-border',
-    outline: 'border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground',
+    primary: 'bg-champagne text-navy border-2 border-champagne hover:bg-[#b08e4a] hover:border-[#b08e4a]',
+    secondary: 'bg-linen text-navy border-2 border-neutral-200 hover:bg-neutral-100',
+    outline: 'border-2 border-navy text-navy hover:bg-navy hover:text-linen',
   };
 
   const sizes = {
