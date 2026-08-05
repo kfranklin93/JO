@@ -40,7 +40,7 @@ export function FloatingConnectCTA({ onOpenForm }: FloatingConnectCTAProps) {
           {/* JOEY UPDATE: Premium floating button with magnetic hover effect */}
           <button
             onClick={onOpenForm}
-            className="group relative flex items-center gap-3 rounded-full bg-primary px-8 py-4 font-sans text-sm font-medium uppercase tracking-wider text-primary-foreground shadow-2xl transition-all duration-300 hover:scale-105 hover:bg-accent hover:shadow-accent/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
+            className="group relative flex items-center gap-3 rounded-full bg-navy px-8 py-4 font-sans text-sm font-medium uppercase tracking-wider text-linen shadow-2xl transition-all duration-300 hover:scale-105 hover:bg-champagne hover:text-navy hover:shadow-champagne/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-navy"
             aria-label="Open contact form"
           >
             {/* Icon */}
@@ -62,14 +62,14 @@ export function FloatingConnectCTA({ onOpenForm }: FloatingConnectCTAProps) {
             <span className="hidden sm:inline">Let's Connect</span>
 
             {/* Pulse animation ring */}
-            <span className="absolute inset-0 rounded-full bg-accent opacity-0 transition-opacity group-hover:opacity-20" />
+            <span className="absolute inset-0 rounded-full bg-champagne opacity-0 transition-opacity group-hover:opacity-20" />
           </button>
 
           {/* JOEY UPDATE: Mobile-optimized smaller button on small screens */}
           <div className="sm:hidden">
             <button
               onClick={onOpenForm}
-              className="flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-2xl transition-all duration-300 hover:scale-105 hover:bg-accent focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
+              className="flex h-14 w-14 items-center justify-center rounded-full bg-navy text-linen shadow-2xl transition-all duration-300 hover:scale-105 hover:bg-champagne hover:text-navy focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-navy"
               aria-label="Open contact form"
             >
               <svg

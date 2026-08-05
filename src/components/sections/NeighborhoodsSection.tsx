@@ -21,10 +21,10 @@ export function NeighborhoodsSection() {
           transition={{ duration: 0.6 }}
           className="mb-16 text-center"
         >
-          <h2 className="font-serif text-4xl text-black sm:text-5xl lg:text-6xl">
+          <h2 className="font-serif text-4xl text-navy sm:text-5xl lg:text-6xl">
             Explore Atlanta Neighborhoods
           </h2>
-          <p className="mx-auto mt-6 max-w-2xl font-sans text-lg text-neutral-600">
+          <p className="mx-auto mt-6 max-w-2xl font-sans text-lg text-stone">
             From urban sophistication to family-friendly suburbs, discover the perfect community for your lifestyle
           </p>
         </motion.div>
@@ -61,10 +61,10 @@ export function NeighborhoodsSection() {
 
                 {/* JOEY UPDATE: Neighborhood details */}
                 <div className="p-6">
-                  <h3 className="font-serif text-2xl text-black group-hover:text-accent transition-colors">
+                  <h3 className="font-serif text-2xl text-navy transition-colors group-hover:text-champagne">
                     {neighborhood.name}
                   </h3>
-                  <p className="mt-3 font-sans text-base leading-relaxed text-neutral-600">
+                  <p className="mt-3 font-sans text-base leading-relaxed text-stone">
                     {neighborhood.description}
                   </p>
 
@@ -73,7 +73,7 @@ export function NeighborhoodsSection() {
                     {neighborhood.highlights.slice(0, 3).map((highlight) => (
                       <span
                         key={highlight}
-                        className="rounded-full bg-neutral-100 px-3 py-1 font-sans text-xs text-neutral-700"
+                        className="rounded-full bg-neutral-100 px-3 py-1 font-sans text-xs text-stone"
                       >
                         {highlight}
                       </span>
@@ -81,7 +81,7 @@ export function NeighborhoodsSection() {
                   </div>
 
                   {/* JOEY UPDATE: View homes CTA */}
-                  <div className="mt-6 flex items-center gap-2 font-sans text-sm font-medium text-primary transition-colors group-hover:text-accent">
+                  <div className="mt-6 flex items-center gap-2 font-sans text-sm font-medium text-navy transition-colors group-hover:text-champagne">
                     <span>View Homes</span>
                     <svg
                       className="h-4 w-4 transition-transform group-hover:translate-x-2"
@@ -109,7 +109,7 @@ export function NeighborhoodsSection() {
         >
           <Link
             href="/properties"
-            className="inline-flex items-center gap-2 rounded-lg border-2 border-primary bg-white px-8 py-4 font-sans text-sm font-medium uppercase tracking-wider text-primary transition-all hover:border-accent hover:bg-accent hover:text-black hover:shadow-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+            className="inline-flex items-center gap-2 rounded-lg border-2 border-navy bg-white px-8 py-4 font-sans text-sm font-medium uppercase tracking-wider text-navy transition-all hover:border-champagne hover:bg-champagne hover:text-navy hover:shadow-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy"
           >
             <span>Explore All Areas</span>
             <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>

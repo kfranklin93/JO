@@ -6,13 +6,13 @@ import { cn } from '@/lib/utils/cn';
 const buttonVariants = {
   variant: {
     primary:
-      'bg-primary text-primary-foreground shadow-sm hover:bg-accent focus-visible:outline-primary disabled:bg-primary/40',
+      'bg-champagne text-navy shadow-sm hover:bg-[#b08e4a] focus-visible:outline-champagne disabled:bg-champagne/40',
     secondary:
-      'bg-secondary text-secondary-foreground shadow-sm hover:bg-neutral-200 focus-visible:outline-secondary disabled:bg-secondary/40',
+      'bg-linen text-navy shadow-sm hover:bg-neutral-200 focus-visible:outline-navy disabled:bg-linen/40',
     outline:
-      'border-2 border-primary/20 bg-surface text-primary hover:border-primary hover:bg-secondary focus-visible:outline-primary disabled:border-primary/10 disabled:text-primary/40',
+      'border-2 border-navy bg-surface text-navy hover:border-champagne hover:bg-champagne hover:text-navy focus-visible:outline-navy disabled:border-navy/20 disabled:text-navy/40',
     ghost:
-      'bg-transparent text-primary hover:bg-secondary focus-visible:outline-primary disabled:text-primary/40',
+      'bg-transparent text-navy hover:bg-linen focus-visible:outline-navy disabled:text-navy/40',
     danger:
       'bg-red-600 text-white shadow-sm hover:bg-red-700 focus-visible:outline-red-600 disabled:bg-red-400',
   },

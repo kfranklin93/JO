@@ -28,30 +28,30 @@ export function Footer({ className }: FooterProps) {
               className="flex items-center gap-2 rounded-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
               aria-label={`${siteConfig.name} - Home`}
             >
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-black text-white">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-navy text-linen">
                 <span className="text-xl font-bold" aria-hidden="true">
                   JO
                 </span>
               </div>
-              <span className="text-lg font-bold text-black">
+              <span className="text-lg font-bold text-navy">
                 {siteConfig.name}
               </span>
             </Link>
-            <p className="mt-4 text-sm text-neutral-600">
+            <p className="mt-4 text-sm text-stone">
               Your trusted partner for buying, selling, and insuring your home.
             </p>
           </div>
 
           {/* Services */}
           <div>
-            <h3 className="text-sm font-semibold uppercase tracking-wider text-black">
+            <h3 className="text-sm font-semibold uppercase tracking-[0.2em] text-navy">
               Services
             </h3>
             <ul className="mt-4 space-y-3">
               <li>
                 <Link
                   href="/buy-home"
-                  className="text-sm text-neutral-600 transition-colors hover:text-black focus-visible:text-black focus-visible:outline-none"
+                  className="text-sm text-stone transition-colors hover:text-navy focus-visible:text-navy focus-visible:outline-none"
                 >
                   Buy a Home
                 </Link>
@@ -59,7 +59,7 @@ export function Footer({ className }: FooterProps) {
               <li>
                 <Link
                   href="/sell-home"
-                  className="text-sm text-neutral-600 transition-colors hover:text-black focus-visible:text-black focus-visible:outline-none"
+                  className="text-sm text-stone transition-colors hover:text-navy focus-visible:text-navy focus-visible:outline-none"
                 >
                   Sell Your Home
                 </Link>
@@ -67,7 +67,7 @@ export function Footer({ className }: FooterProps) {
               <li>
                 <Link
                   href="/home-insurance"
-                  className="text-sm text-neutral-600 transition-colors hover:text-black focus-visible:text-black focus-visible:outline-none"
+                  className="text-sm text-stone transition-colors hover:text-navy focus-visible:text-navy focus-visible:outline-none"
                 >
                   Home Insurance
                 </Link>
@@ -75,7 +75,7 @@ export function Footer({ className }: FooterProps) {
               <li>
                 <Link
                   href="/closing-services"
-                  className="text-sm text-neutral-600 transition-colors hover:text-black focus-visible:text-black focus-visible:outline-none"
+                  className="text-sm text-stone transition-colors hover:text-navy focus-visible:text-navy focus-visible:outline-none"
                 >
                   Closing Services
                 </Link>
@@ -85,14 +85,14 @@ export function Footer({ className }: FooterProps) {
 
           {/* Company */}
           <div>
-            <h3 className="text-sm font-semibold uppercase tracking-wider text-black">
+            <h3 className="text-sm font-semibold uppercase tracking-[0.2em] text-navy">
               Company
             </h3>
             <ul className="mt-4 space-y-3">
               <li>
                 <Link
                   href="/about"
-                  className="text-sm text-neutral-600 transition-colors hover:text-black focus-visible:text-black focus-visible:outline-none"
+                  className="text-sm text-stone transition-colors hover:text-navy focus-visible:text-navy focus-visible:outline-none"
                 >
                   About Us
                 </Link>
@@ -100,7 +100,7 @@ export function Footer({ className }: FooterProps) {
               <li>
                 <Link
                   href="/contact"
-                  className="text-sm text-neutral-600 transition-colors hover:text-black focus-visible:text-black focus-visible:outline-none"
+                  className="text-sm text-stone transition-colors hover:text-navy focus-visible:text-navy focus-visible:outline-none"
                 >
                   Contact
                 </Link>
@@ -108,7 +108,7 @@ export function Footer({ className }: FooterProps) {
               <li>
                 <Link
                   href="/get-started"
-                  className="text-sm text-neutral-600 transition-colors hover:text-black focus-visible:text-black focus-visible:outline-none"
+                  className="text-sm text-stone transition-colors hover:text-navy focus-visible:text-navy focus-visible:outline-none"
                 >
                   Get Started
                 </Link>
@@ -118,14 +118,14 @@ export function Footer({ className }: FooterProps) {
 
           {/* Contact Info */}
           <div>
-            <h3 className="text-sm font-semibold uppercase tracking-wider text-black">
+            <h3 className="text-sm font-semibold uppercase tracking-[0.2em] text-navy">
               Contact Us
             </h3>
             <ul className="mt-4 space-y-3">
               <li>
                 <a
                   href={`tel:${siteConfig.contact.phone}`}
-                  className="flex items-center gap-2 text-sm text-neutral-600 transition-colors hover:text-black focus-visible:text-black focus-visible:outline-none"
+                  className="flex items-center gap-2 text-sm text-stone transition-colors hover:text-navy focus-visible:text-navy focus-visible:outline-none"
                   aria-label={`Call us at ${siteConfig.contact.phoneDisplay}`}
                 >
                   <svg
@@ -148,7 +148,7 @@ export function Footer({ className }: FooterProps) {
               <li>
                 <a
                   href={`mailto:${siteConfig.contact.email}`}
-                  className="flex items-center gap-2 text-sm text-neutral-600 transition-colors hover:text-black focus-visible:text-black focus-visible:outline-none"
+                  className="flex items-center gap-2 text-sm text-stone transition-colors hover:text-navy focus-visible:text-navy focus-visible:outline-none"
                   aria-label={`Email us at ${siteConfig.contact.email}`}
                 >
                   <svg
@@ -169,7 +169,7 @@ export function Footer({ className }: FooterProps) {
                 </a>
               </li>
               <li>
-                <address className="flex items-start gap-2 text-sm not-italic text-neutral-600">
+                <address className="flex items-start gap-2 text-sm not-italic text-stone">
                   <svg
                     className="mt-0.5 h-5 w-5 flex-shrink-0"
                     fill="none"
@@ -201,7 +201,7 @@ export function Footer({ className }: FooterProps) {
 
             {/* Social Media */}
             <div className="mt-6">
-              <h4 className="text-sm font-semibold text-black">
+              <h4 className="text-sm font-semibold text-navy">
                 Follow Us
               </h4>
               <div className="mt-3 flex gap-3">
@@ -209,7 +209,7 @@ export function Footer({ className }: FooterProps) {
                   href={siteConfig.social.facebook}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex min-h-11 min-w-11 items-center justify-center rounded-lg text-neutral-600 transition-colors hover:bg-neutral-200 hover:text-black focus-visible:bg-neutral-200 focus-visible:text-black focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
+                  className="flex min-h-11 min-w-11 items-center justify-center rounded-lg text-stone transition-colors hover:bg-neutral-100 hover:text-navy focus-visible:bg-neutral-100 focus-visible:text-navy focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy"
                   aria-label="Follow us on Facebook"
                 >
                   <svg
@@ -225,7 +225,7 @@ export function Footer({ className }: FooterProps) {
                   href={siteConfig.social.linkedin}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex min-h-11 min-w-11 items-center justify-center rounded-lg text-neutral-600 transition-colors hover:bg-neutral-200 hover:text-black focus-visible:bg-neutral-200 focus-visible:text-black focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
+                  className="flex min-h-11 min-w-11 items-center justify-center rounded-lg text-stone transition-colors hover:bg-neutral-100 hover:text-navy focus-visible:bg-neutral-100 focus-visible:text-navy focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy"
                   aria-label="Follow us on LinkedIn"
                 >
                   <svg
@@ -241,7 +241,7 @@ export function Footer({ className }: FooterProps) {
                   href={siteConfig.social.instagram}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex min-h-11 min-w-11 items-center justify-center rounded-lg text-neutral-600 transition-colors hover:bg-neutral-200 hover:text-black focus-visible:bg-neutral-200 focus-visible:text-black focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
+                  className="flex min-h-11 min-w-11 items-center justify-center rounded-lg text-stone transition-colors hover:bg-neutral-100 hover:text-navy focus-visible:bg-neutral-100 focus-visible:text-navy focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy"
                   aria-label="Follow us on Instagram"
                 >
                   <svg
@@ -257,7 +257,7 @@ export function Footer({ className }: FooterProps) {
                   href={siteConfig.social.youtube}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex min-h-11 min-w-11 items-center justify-center rounded-lg text-neutral-600 transition-colors hover:bg-neutral-200 hover:text-black focus-visible:bg-neutral-200 focus-visible:text-black focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
+                  className="flex min-h-11 min-w-11 items-center justify-center rounded-lg text-stone transition-colors hover:bg-neutral-100 hover:text-navy focus-visible:bg-neutral-100 focus-visible:text-navy focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy"
                   aria-label="Follow us on YouTube"
                 >
                   <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
@@ -272,19 +272,19 @@ export function Footer({ className }: FooterProps) {
         {/* Bottom Bar */}
         <div className="mt-12 border-t border-neutral-200 pt-8">
           <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
-            <p className="text-sm text-neutral-600">
+            <p className="text-sm text-stone">
               &copy; {currentYear} {siteConfig.name}. All rights reserved.
             </p>
             <div className="flex gap-6">
               <Link
                 href="/privacy"
-                className="text-sm text-neutral-600 transition-colors hover:text-black focus-visible:text-black focus-visible:outline-none"
+                className="text-sm text-stone transition-colors hover:text-navy focus-visible:text-navy focus-visible:outline-none"
               >
                 Privacy Policy
               </Link>
               <Link
                 href="/terms"
-                className="text-sm text-neutral-600 transition-colors hover:text-black focus-visible:text-black focus-visible:outline-none"
+                className="text-sm text-stone transition-colors hover:text-navy focus-visible:text-navy focus-visible:outline-none"
               >
                 Terms of Service
               </Link>
