@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 
+// Must match the AUTH_TOKEN constant in middleware.ts
+const AUTH_TOKEN = 'joey_dashboard_authenticated';
+
 export async function POST(request: NextRequest) {
   try {
     const { password } = await request.json();
@@ -14,8 +17,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid password' }, { status: 401 });
     }
 
+    // Set a fixed token — NOT the password itself — so the middleware
+    // never needs to read process.env (which is unreliable in Edge Runtime).
     const cookieStore = await cookies();
-    cookieStore.set('dashboard_auth', adminPassword, {
+    cookieStore.set('dashboard_auth', AUTH_TOKEN, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',

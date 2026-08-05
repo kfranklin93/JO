@@ -3,10 +3,11 @@ import { cookies } from 'next/headers';
 import { db, leads, followUps } from '@/lib/db';
 import { desc } from 'drizzle-orm';
 
+// Must match AUTH_TOKEN in middleware.ts and login route
+const AUTH_TOKEN = 'joey_dashboard_authenticated';
+
 function isAuthenticated(cookieValue: string | undefined): boolean {
-  const adminPassword = process.env.ADMIN_PASSWORD;
-  if (!adminPassword || !cookieValue) return false;
-  return cookieValue === adminPassword;
+  return cookieValue === AUTH_TOKEN;
 }
 
 export async function GET(request: NextRequest) {
