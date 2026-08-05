@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-// The cookie value set by /api/auth/login on successful authentication.
-// Middleware only checks for this token — password validation happens
-// entirely in the API route where process.env is reliably available.
+export function middleware(_request: NextRequest) {
+  // Auth temporarily disabled — re-enable by restoring the token check below
+  return NextResponse.next();
+}
+
+/*
 const AUTH_TOKEN = 'joey_dashboard_authenticated';
 
 export function middleware(request: NextRequest) {
@@ -19,6 +22,7 @@ export function middleware(request: NextRequest) {
 
   return NextResponse.next();
 }
+*/
 
 export const config = {
   matcher: ['/dashboard/:path*'],
