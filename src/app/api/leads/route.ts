@@ -4,6 +4,7 @@ import { sendLeadToLofty } from '@/lib/api/lofty';
 import { notifyJoeyOfNewLead } from '@/lib/services/email-service';
 import { sendSMSAlert } from '@/lib/services/sms-service';
 import type { Lead } from '@/lib/services/follow-up-scheduler';
+import { db, leads } from '@/lib/db';
 
 export async function POST(request: NextRequest) {
   try {
@@ -17,9 +18,42 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create lead object
+    // Persist to database first
+    const nameParts = (body.name as string).trim().split(/\s+/);
+    const firstName = nameParts[0] ?? '';
+    const lastName = nameParts.slice(1).join(' ') || null;
+
+    const rows = await db
+      .insert(leads)
+      .values({
+        email: body.email,
+        phone: body.phone ?? null,
+        firstName,
+        lastName,
+        fullName: body.name,
+        propertyInterest: body.intent,
+        timeline: body.timeline ?? null,
+        formData: {
+          budget: body.budget ?? null,
+          location: body.location ?? null,
+          bedrooms: body.bedrooms ?? null,
+          bathrooms: body.bathrooms ?? null,
+          propertyType: body.propertyType ?? null,
+          additionalNotes: body.additionalNotes ?? null,
+        },
+        status: 'new',
+        source: 'website_form',
+      })
+      .returning();
+
+    const savedLead = rows[0];
+    if (!savedLead) {
+      return NextResponse.json({ error: 'Failed to save lead' }, { status: 500 });
+    }
+
+    // Create lead object for downstream integrations
     const lead: Lead = {
-      id: `lead_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      id: savedLead.id,
       name: body.name,
       email: body.email,
       phone: body.phone,
@@ -31,11 +65,11 @@ export async function POST(request: NextRequest) {
       bathrooms: body.bathrooms,
       propertyType: body.propertyType,
       additionalNotes: body.additionalNotes,
-      createdAt: new Date(),
+      createdAt: savedLead.createdAt,
       status: 'new',
     };
 
-    console.log('New lead created:', lead.id);
+    console.log('New lead saved to database:', savedLead.id);
 
     // Run all integrations in parallel (don't block on failures)
     const [followUpResult, loftyResult, emailResult, smsResult] = await Promise.allSettled([
@@ -83,7 +117,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         success: true,
-        leadId: lead.id,
+        leadId: savedLead.id,
         message: 'Lead submitted successfully',
         integrations: {
           followUp: followUpResult.status === 'fulfilled' && followUpResult.value,
