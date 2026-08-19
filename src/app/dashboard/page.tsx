@@ -278,7 +278,7 @@ export default function DashboardPage() {
                 onClick={() => setActiveView('overview')}
                 className={`rounded-lg px-4 py-1.5 font-sans text-xs font-semibold uppercase tracking-[0.1em] transition-all ${
                   activeView === 'overview'
-                    ? 'bg-[#1C2A39] text-[#FAF9F6] shadow-sm'
+                    ? 'bg-cerulean text-white shadow-sm'
                     : 'text-neutral-500 hover:text-neutral-900'
                 }`}
               >
@@ -289,7 +289,7 @@ export default function DashboardPage() {
                 onClick={() => setActiveView('ai-copilot')}
                 className={`flex items-center gap-1.5 rounded-lg px-4 py-1.5 font-sans text-xs font-semibold uppercase tracking-[0.1em] transition-all ${
                   activeView === 'ai-copilot'
-                    ? 'bg-[#1C2A39] text-[#FAF9F6] shadow-sm'
+                    ? 'bg-cerulean text-white shadow-sm'
                     : 'text-neutral-500 hover:text-neutral-900'
                 }`}
               >
@@ -307,7 +307,7 @@ export default function DashboardPage() {
             </span>
             <button
               onClick={handleLogout}
-              className="rounded-lg border border-neutral-200 px-3 py-1.5 text-sm text-neutral-600 transition hover:border-neutral-400 hover:text-neutral-900"
+              className="rounded-lg border border-bronze/40 px-3 py-1.5 text-sm text-bronze transition hover:bg-bronze/10 hover:border-bronze"
             >
               Sign out
             </button>

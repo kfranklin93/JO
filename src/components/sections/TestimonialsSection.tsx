@@ -44,7 +44,7 @@ export function TestimonialsSection() {
                 {Array.from({ length: testimonial.rating }).map((_, i) => (
                   <svg
                     key={i}
-                    className="h-5 w-5 text-champagne"
+                    className="h-5 w-5 text-bronze"
                     fill="currentColor"
                     viewBox="0 0 20 20"
                   >
@@ -82,7 +82,7 @@ export function TestimonialsSection() {
 
               {/* JOEY UPDATE: Decorative quote mark */}
               <div className="absolute right-8 top-8 opacity-10 transition-opacity group-hover:opacity-20">
-                <svg className="h-12 w-12 text-champagne" fill="currentColor" viewBox="0 0 32 32">
+                <svg className="h-12 w-12 text-bronze" fill="currentColor" viewBox="0 0 32 32">
                   <path d="M9.352 4C4.456 7.456 1 13.12 1 19.36c0 5.088 3.072 8.064 6.624 8.064 3.36 0 5.856-2.688 5.856-5.856 0-3.168-2.208-5.472-5.088-5.472-.576 0-1.344.096-1.536.192.48-3.264 3.552-7.104 6.624-9.024L9.352 4zm16.512 0c-4.8 3.456-8.256 9.12-8.256 15.36 0 5.088 3.072 8.064 6.624 8.064 3.264 0 5.856-2.688 5.856-5.856 0-3.168-2.304-5.472-5.184-5.472-.576 0-1.248.096-1.44.192.48-3.264 3.456-7.104 6.528-9.024L25.864 4z" />
                 </svg>
               </div>
@@ -100,15 +100,15 @@ export function TestimonialsSection() {
         >
           <div className="grid gap-8 sm:grid-cols-3">
             <div>
-              <div className="font-serif text-4xl text-champagne">60+</div>
+              <div className="font-serif text-4xl text-bronze">60+</div>
               <div className="mt-2 font-sans text-sm uppercase tracking-[0.2em] text-stone">Homes Sold</div>
             </div>
             <div>
-              <div className="font-serif text-4xl text-champagne">$23.9M</div>
+              <div className="font-serif text-4xl text-bronze">$23.9M</div>
               <div className="mt-2 font-sans text-sm uppercase tracking-[0.2em] text-stone">Total Volume</div>
             </div>
             <div>
-              <div className="font-serif text-4xl text-champagne">5.0</div>
+              <div className="font-serif text-4xl text-bronze">5.0</div>
               <div className="mt-2 font-sans text-sm uppercase tracking-[0.2em] text-stone">Average Rating</div>
             </div>
           </div>

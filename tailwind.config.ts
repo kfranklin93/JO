@@ -43,14 +43,16 @@ const config: Config = {
           foreground: '#1C2A39',
         },
         accent: {
-          DEFAULT: '#C5A059', // Champagne Gold
-          foreground: '#1C2A39',
-          hover: '#b08e4a',
+          DEFAULT: '#0A7EA4', // Cerulean — single source of truth for accent
+          foreground: '#ffffff',
+          hover: '#086d8f',
         },
         muted: {
           DEFAULT: '#707070', // Stone gray
           foreground: '#FAF9F6',
         },
+        cerulean: '#0A7EA4',  // Cerulean blue — active states, focus rings, info badges
+        bronze: '#A0522D',    // Bronze — CTA accents, logout, hover states
         border: '#E5E5E5',
         surface: '#FAF9F6',
       },

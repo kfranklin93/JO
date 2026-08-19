@@ -1,11 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-export function middleware(_request: NextRequest) {
-  // Auth temporarily disabled — re-enable by restoring the token check below
-  return NextResponse.next();
-}
-
-/*
 const AUTH_TOKEN = 'joey_dashboard_authenticated';
 
 export function middleware(request: NextRequest) {
@@ -22,7 +16,6 @@ export function middleware(request: NextRequest) {
 
   return NextResponse.next();
 }
-*/
 
 export const config = {
   matcher: ['/dashboard/:path*'],

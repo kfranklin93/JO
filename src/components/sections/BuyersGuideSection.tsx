@@ -90,15 +90,15 @@ export function BuyersGuideSection() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: index * 0.1 }}
-              className="group relative rounded-lg border border-neutral-200 bg-white p-8 transition-all duration-300 hover:border-champagne hover:shadow-lg"
+              className="group relative rounded-lg border border-neutral-200 bg-white p-8 transition-all duration-300 hover:border-cerulean hover:shadow-lg"
             >
               {/* Step number */}
-              <div className="mb-4 font-serif text-5xl text-neutral-200 transition-colors group-hover:text-champagne/30">
+              <div className="mb-4 font-serif text-5xl text-neutral-200 transition-colors group-hover:text-cerulean/30">
                 {step.number}
               </div>
 
               {/* Icon */}
-              <div className="mb-4 text-neutral-400 transition-colors group-hover:text-champagne">
+              <div className="mb-4 text-neutral-400 transition-colors group-hover:text-cerulean">
                 {step.icon}
               </div>
 

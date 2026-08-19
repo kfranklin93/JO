@@ -69,7 +69,7 @@ function AuditDrawer({ meta }: { meta: NonNullable<BedrockMessage['meta']> }) {
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="flex items-center gap-1.5 rounded px-2 py-1 text-xs font-medium text-[#C5A059] transition-colors hover:bg-[#C5A059]/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[#C5A059]"
+        className="flex items-center gap-1.5 rounded px-2 py-1 text-xs font-medium text-accent transition-colors hover:bg-accent/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-accent"
         aria-expanded={open}
       >
         <svg
@@ -86,7 +86,7 @@ function AuditDrawer({ meta }: { meta: NonNullable<BedrockMessage['meta']> }) {
       </button>
 
       {open && (
-        <div className="mt-2 rounded-lg border border-[#C5A059]/20 bg-[#1C2A39]/5 p-4 text-xs">
+        <div className="mt-2 rounded-lg border border-accent/20 bg-[#1C2A39]/5 p-4 text-xs">
           {/* Top row: latency / tokens / model */}
           <div className="mb-3 flex flex-wrap gap-4">
             <div>
@@ -159,7 +159,7 @@ function MessageBubble({ msg }: { msg: BedrockMessage }) {
           className={`rounded-2xl px-4 py-3 text-sm leading-relaxed ${
             isAI
               ? 'rounded-tl-sm bg-[#1C2A39] text-[#FAF9F6]'
-              : 'rounded-tr-sm bg-[#C5A059]/15 text-[#1C2A39]'
+              : 'rounded-tr-sm bg-accent/15 text-[#1C2A39]'
           }`}
         >
           {msg.content}
@@ -196,10 +196,10 @@ function ThreadListItem({
     <button
       type="button"
       onClick={onSelect}
-      className={`w-full rounded-xl border px-4 py-3.5 text-left transition-all duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[#C5A059] ${
+      className={`w-full rounded-xl border px-4 py-3.5 text-left transition-all duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-accent ${
         isSelected
-          ? 'border-[#C5A059]/60 bg-[#1C2A39] text-[#FAF9F6]'
-          : 'border-[#1C2A39]/10 bg-[#FAF9F6] text-[#1C2A39] hover:border-[#C5A059]/30 hover:bg-white'
+          ? 'border-accent/60 bg-[#1C2A39] text-[#FAF9F6]'
+          : 'border-[#1C2A39]/10 bg-[#FAF9F6] text-[#1C2A39] hover:border-accent/30 hover:bg-white'
       }`}
     >
       {/* Name + badge */}
@@ -222,7 +222,7 @@ function ThreadListItem({
       {/* Sentiment + confidence */}
       <div className="mt-2 flex items-center justify-between">
         <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-          isSelected ? 'bg-[#C5A059]/20 text-[#C5A059]' : 'bg-[#C5A059]/10 text-[#1C2A39]/60'
+          isSelected ? 'bg-accent/20 text-accent' : 'bg-accent/10 text-[#1C2A39]/60'
         }`}>
           {thread.sentiment}
         </span>
@@ -231,13 +231,13 @@ function ThreadListItem({
             <div
               className="h-1 rounded-full"
               style={{
-                width: `${thread.latestConfidence}%`,
-                backgroundColor: isSelected ? '#C5A059' : color,
-              }}
+                  width: `${thread.latestConfidence}%`,
+                  backgroundColor: isSelected ? 'var(--color-accent, #0A7EA4)' : color,
+                }}
             />
           </div>
-          <span className={`text-xs font-semibold tabular-nums ${isSelected ? 'text-[#C5A059]' : ''}`}
-            style={{ color: isSelected ? '#C5A059' : color }}>
+          <span className={`text-xs font-semibold tabular-nums ${isSelected ? 'text-accent' : ''}`}
+            style={{ color: isSelected ? 'var(--color-accent, #0A7EA4)' : color }}>
             {thread.latestConfidence}%
           </span>
         </div>
@@ -391,7 +391,7 @@ export function AiLogsPanel() {
               className={`flex items-center gap-2 rounded-lg border px-3 py-2 font-sans text-xs font-medium transition-all ${
                 isPaused
                   ? 'border-emerald-400 bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
-                  : 'border-[#C5A059] bg-[#C5A059]/10 text-[#1C2A39] hover:bg-[#C5A059]/20'
+                  : 'border-accent bg-accent/10 text-[#1C2A39] hover:bg-accent/20'
               }`}
             >
               {isPaused ? (
@@ -414,7 +414,7 @@ export function AiLogsPanel() {
         </div>
 
         {/* Property context strip */}
-        <div className="border-b border-[#C5A059]/20 bg-[#1C2A39]/3 px-6 py-2">
+        <div className="border-b border-accent/20 bg-[#1C2A39]/3 px-6 py-2">
           <p className="font-sans text-xs text-[#1C2A39]/60">
             <span className="font-semibold text-[#1C2A39]/80">Property: </span>
             {selectedThread.propertyContext}

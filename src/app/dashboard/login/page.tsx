@@ -40,7 +40,7 @@ export default function DashboardLoginPage() {
         {/* Logo / Brand */}
         <div className="mb-8 text-center">
           <p className="font-serif text-3xl tracking-wide text-neutral-900">Joey O.</p>
-          <p className="mt-1 text-sm uppercase tracking-widest text-neutral-500">
+          <p className="mt-1 text-sm uppercase tracking-widest text-bronze">
             Dashboard
           </p>
         </div>
@@ -67,7 +67,7 @@ export default function DashboardLoginPage() {
                 required
                 autoFocus
                 autoComplete="current-password"
-                className="w-full rounded-lg border border-neutral-300 bg-white px-4 py-2.5 text-sm text-neutral-900 outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/20 disabled:opacity-50"
+                className="w-full rounded-lg border border-neutral-300 bg-white px-4 py-2.5 text-sm text-neutral-900 outline-none transition focus:border-cerulean focus:ring-2 focus:ring-cerulean/20 disabled:opacity-50"
                 disabled={loading}
                 placeholder="Enter your password"
               />
@@ -82,7 +82,7 @@ export default function DashboardLoginPage() {
             <button
               type="submit"
               disabled={loading || !password}
-              className="w-full rounded-lg bg-neutral-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-neutral-700 disabled:cursor-not-allowed disabled:opacity-50"
+              className="w-full rounded-lg bg-cerulean px-4 py-2.5 text-sm font-medium text-white transition hover:bg-cerulean/90 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {loading ? 'Signing in…' : 'Sign in'}
             </button>

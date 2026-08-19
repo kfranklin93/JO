@@ -83,7 +83,7 @@ export function AgentProfileSection() {
                 href="/contact"
                 variant="outline"
                 size="md"
-                className="border-[#D4AF37] text-[#D4AF37] hover:bg-[#D4AF37] hover:text-black"
+                className="border-bronze text-bronze hover:bg-bronze hover:text-white hover:border-bronze"
               >
                 <span>Schedule a Consultation</span>
               </MagneticButton>

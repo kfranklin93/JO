@@ -49,7 +49,7 @@ export function TeamSection() {
               />
             </div>
             {/* Decorative element */}
-            <div className="absolute -bottom-6 -right-6 -z-10 h-full w-full rounded-lg bg-champagne/10" />
+            <div className="absolute -bottom-6 -right-6 -z-10 h-full w-full rounded-lg bg-bronze/10" />
           </motion.div>
 
           {/* Story and Credentials */}
@@ -83,7 +83,7 @@ export function TeamSection() {
             {/* JOEY UPDATE: Credentials and specialties */}
             <div className="mt-8 space-y-6">
               <div>
-                <h4 className="mb-3 font-sans text-sm font-medium uppercase tracking-[0.2em] text-champagne">
+                <h4 className="mb-3 font-sans text-sm font-medium uppercase tracking-[0.2em] text-bronze">
                   Specialties
                 </h4>
                 <div className="flex flex-wrap gap-2">
@@ -99,24 +99,24 @@ export function TeamSection() {
               </div>
 
               <div>
-                <h4 className="mb-3 font-sans text-sm font-medium uppercase tracking-[0.2em] text-champagne">
+                <h4 className="mb-3 font-sans text-sm font-medium uppercase tracking-[0.2em] text-bronze">
                   Education & Background
                 </h4>
                 <ul className="space-y-2 font-sans text-sm text-stone">
                   <li className="flex items-start gap-2">
-                    <svg className="mt-0.5 h-5 w-5 flex-shrink-0 text-champagne" fill="currentColor" viewBox="0 0 20 20">
+                    <svg className="mt-0.5 h-5 w-5 flex-shrink-0 text-bronze" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                     </svg>
                     <span>{siteConfig.background.education}</span>
                   </li>
                   <li className="flex items-start gap-2">
-                    <svg className="mt-0.5 h-5 w-5 flex-shrink-0 text-champagne" fill="currentColor" viewBox="0 0 20 20">
+                    <svg className="mt-0.5 h-5 w-5 flex-shrink-0 text-bronze" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                     </svg>
                     <span>{siteConfig.background.previousCareer}</span>
                   </li>
                   <li className="flex items-start gap-2">
-                    <svg className="mt-0.5 h-5 w-5 flex-shrink-0 text-champagne" fill="currentColor" viewBox="0 0 20 20">
+                    <svg className="mt-0.5 h-5 w-5 flex-shrink-0 text-bronze" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                     </svg>
                     <span>{siteConfig.background.athletics}</span>
@@ -129,7 +129,7 @@ export function TeamSection() {
             <div className="mt-8 flex flex-wrap gap-4">
               <a
                 href={`tel:${siteConfig.contact.phone}`}
-                className="inline-flex items-center gap-2 rounded-lg bg-champagne px-6 py-3 font-sans text-sm font-medium text-navy transition-all hover:bg-[#b08e4a] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-champagne"
+                className="inline-flex items-center gap-2 rounded-lg bg-cerulean px-6 py-3 font-sans text-sm font-medium text-white transition-all hover:bg-cerulean/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cerulean"
               >
                 <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" />
@@ -138,7 +138,7 @@ export function TeamSection() {
               </a>
               <a
                 href={`mailto:${siteConfig.contact.email}`}
-                className="inline-flex items-center gap-2 rounded-lg border-2 border-navy bg-white px-6 py-3 font-sans text-sm font-medium text-navy transition-all hover:border-champagne hover:bg-champagne hover:text-navy focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy"
+                className="inline-flex items-center gap-2 rounded-lg border-2 border-navy bg-white px-6 py-3 font-sans text-sm font-medium text-navy transition-all hover:border-cerulean hover:bg-cerulean hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cerulean"
               >
                 <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />

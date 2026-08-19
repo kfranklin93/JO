@@ -38,7 +38,7 @@ export function FinalCTA() {
               href="/contact"
               variant="outline"
               size="lg"
-              className="border-[#D4AF37] text-[#D4AF37] hover:bg-[#D4AF37] hover:text-black"
+              className="border-bronze text-bronze hover:bg-bronze hover:text-white hover:border-bronze"
             >
               <span>Connect with Joey</span>
             </MagneticButton>

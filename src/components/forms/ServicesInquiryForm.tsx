@@ -136,9 +136,9 @@ export function ServicesInquiryForm({ isOpen, onClose }: ServicesInquiryFormProp
                   <div className="mt-8 grid gap-4 sm:grid-cols-2">
                     <button
                       onClick={() => handleServiceSelect('buying')}
-                      className="group flex flex-col items-start rounded-lg border-2 border-neutral-200 bg-white p-6 text-left transition-all hover:border-champagne hover:shadow-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-champagne"
+                      className="group flex flex-col items-start rounded-lg border-2 border-neutral-200 bg-white p-6 text-left transition-all hover:border-cerulean hover:shadow-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cerulean"
                     >
-                      <svg className="h-8 w-8 text-neutral-400 transition-colors group-hover:text-champagne" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                      <svg className="h-8 w-8 text-neutral-400 transition-colors group-hover:text-cerulean" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
                       </svg>
                       <h3 className="mt-4 font-serif text-xl text-navy">Buying a Home</h3>
@@ -147,9 +147,9 @@ export function ServicesInquiryForm({ isOpen, onClose }: ServicesInquiryFormProp
 
                     <button
                       onClick={() => handleServiceSelect('selling')}
-                      className="group flex flex-col items-start rounded-lg border-2 border-neutral-200 bg-white p-6 text-left transition-all hover:border-champagne hover:shadow-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-champagne"
+                      className="group flex flex-col items-start rounded-lg border-2 border-neutral-200 bg-white p-6 text-left transition-all hover:border-cerulean hover:shadow-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cerulean"
                     >
-                      <svg className="h-8 w-8 text-neutral-400 transition-colors group-hover:text-champagne" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                      <svg className="h-8 w-8 text-neutral-400 transition-colors group-hover:text-cerulean" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 18L9 11.25l4.306 4.307a11.95 11.95 0 015.814-5.519l2.74-1.22m0 0l-5.94-2.28m5.94 2.28l-2.28 5.941" />
                       </svg>
                       <h3 className="mt-4 font-serif text-xl text-navy">Selling a Home</h3>
@@ -158,9 +158,9 @@ export function ServicesInquiryForm({ isOpen, onClose }: ServicesInquiryFormProp
 
                     <button
                       onClick={() => handleServiceSelect('both')}
-                      className="group flex flex-col items-start rounded-lg border-2 border-neutral-200 bg-white p-6 text-left transition-all hover:border-champagne hover:shadow-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-champagne"
+                      className="group flex flex-col items-start rounded-lg border-2 border-neutral-200 bg-white p-6 text-left transition-all hover:border-cerulean hover:shadow-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cerulean"
                     >
-                      <svg className="h-8 w-8 text-neutral-400 transition-colors group-hover:text-champagne" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                      <svg className="h-8 w-8 text-neutral-400 transition-colors group-hover:text-cerulean" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5" />
                       </svg>
                       <h3 className="mt-4 font-serif text-xl text-navy">Buying & Selling</h3>
@@ -169,9 +169,9 @@ export function ServicesInquiryForm({ isOpen, onClose }: ServicesInquiryFormProp
 
                     <button
                       onClick={() => handleServiceSelect('general')}
-                      className="group flex flex-col items-start rounded-lg border-2 border-neutral-200 bg-white p-6 text-left transition-all hover:border-champagne hover:shadow-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-champagne"
+                      className="group flex flex-col items-start rounded-lg border-2 border-neutral-200 bg-white p-6 text-left transition-all hover:border-cerulean hover:shadow-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cerulean"
                     >
-                      <svg className="h-8 w-8 text-neutral-400 transition-colors group-hover:text-champagne" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                      <svg className="h-8 w-8 text-neutral-400 transition-colors group-hover:text-cerulean" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 8.511c.884.284 1.5 1.128 1.5 2.097v4.286c0 1.136-.847 2.1-1.98 2.193-.34.027-.68.052-1.02.072v3.091l-3-3c-1.354 0-2.694-.055-4.02-.163a2.115 2.115 0 01-.825-.242m9.345-8.334a2.126 2.126 0 00-.476-.095 48.64 48.64 0 00-8.048 0c-1.131.094-1.976 1.057-1.976 2.192v4.286c0 .837.46 1.58 1.155 1.951m9.345-8.334V6.637c0-1.621-1.152-3.026-2.76-3.235A48.455 48.455 0 0011.25 3c-2.115 0-4.198.137-6.24.402-1.608.209-2.76 1.614-2.76 3.235v6.226c0 1.621 1.152 3.026 2.76 3.235.577.075 1.157.14 1.74.194V21l4.155-4.155" />
                       </svg>
                       <h3 className="mt-4 font-serif text-xl text-navy">General Question</h3>

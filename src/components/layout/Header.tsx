@@ -107,7 +107,7 @@ export function Header({ sticky = true, className }: HeaderProps) {
               {/* Agent Portal — discreet ghost button, only visible to Joey */}
               <Link
                 href="/dashboard"
-                className="flex items-center gap-1.5 rounded-lg border border-navy/20 px-3 py-1.5 font-sans text-xs font-medium uppercase tracking-[0.12em] text-navy/60 transition-all duration-300 hover:border-champagne hover:text-navy focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-champagne"
+                className="flex items-center gap-1.5 rounded-lg border border-navy/20 px-3 py-1.5 font-sans text-xs font-medium uppercase tracking-[0.12em] text-navy/60 transition-all duration-300 hover:border-cerulean hover:text-cerulean focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cerulean"
                 aria-label="Agent portal login"
               >
                 <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
