@@ -4,7 +4,7 @@ import { sendLeadToLofty } from '@/lib/api/lofty';
 import { notifyJoeyOfNewLead } from '@/lib/services/email-service';
 import { sendSMSAlert } from '@/lib/services/sms-service';
 import type { Lead } from '@/lib/services/follow-up-scheduler';
-import { db, leads } from '@/lib/db';
+import { db, leads, followUps } from '@/lib/db';
 
 export async function POST(request: NextRequest) {
   try {
@@ -68,6 +68,36 @@ export async function POST(request: NextRequest) {
       createdAt: savedLead.createdAt,
       status: 'new',
     };
+
+    // Schedule future follow-ups in the DB so the cron job can process them
+    const createdAt = savedLead.createdAt;
+    const day = 24 * 60 * 60 * 1000;
+    await db.insert(followUps).values([
+      {
+        leadId: savedLead.id,
+        templateType: 'day3',
+        scheduledFor: new Date(createdAt.getTime() + 3 * day),
+        status: 'scheduled',
+      },
+      {
+        leadId: savedLead.id,
+        templateType: 'day7',
+        scheduledFor: new Date(createdAt.getTime() + 7 * day),
+        status: 'scheduled',
+      },
+      {
+        leadId: savedLead.id,
+        templateType: 'day14',
+        scheduledFor: new Date(createdAt.getTime() + 14 * day),
+        status: 'scheduled',
+      },
+      {
+        leadId: savedLead.id,
+        templateType: 'day30',
+        scheduledFor: new Date(createdAt.getTime() + 30 * day),
+        status: 'scheduled',
+      },
+    ]);
 
     console.log('New lead saved to database:', savedLead.id);
 
