@@ -9,7 +9,7 @@
  * - ab_tests: A/B testing for message optimization
  */
 
-import { pgTable, uuid, varchar, text, timestamp, boolean, integer, jsonb, pgEnum } from 'drizzle-orm/pg-core';
+import { pgTable, uuid, varchar, text, timestamp, boolean, integer, jsonb, pgEnum, index } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 
 // Enums
@@ -114,7 +114,14 @@ export const leads = pgTable('leads', {
   // Timestamps
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
-});
+}, (table) => [
+  // Lookup by email. Deliberately NOT unique: a repeat client legitimately
+  // submits more than once (buy now, sell in three years), and a unique
+  // constraint would turn the second inquiry into a 500.
+  index('leads_email_idx').on(table.email),
+  // Dashboard ordering — see api/dashboard/data/route.ts.
+  index('leads_created_at_idx').on(table.createdAt),
+]);
 
 export const conversations = pgTable('conversations', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -142,7 +149,12 @@ export const conversations = pgTable('conversations', {
   metadata: jsonb('metadata'), // Additional data (Twilio SID, email ID, etc.)
   
   createdAt: timestamp('created_at').notNull().defaultNow(),
-});
+}, (table) => [
+  // Postgres does not index foreign-key child columns automatically, only the
+  // referenced primary key. Without this, resolving a lead's conversations and
+  // every ON DELETE CASCADE both fall back to a sequential scan.
+  index('conversations_lead_id_idx').on(table.leadId),
+]);
 
 export const followUps = pgTable('follow_ups', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -171,7 +183,14 @@ export const followUps = pgTable('follow_ups', {
   
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
-});
+}, (table) => [
+  // The cron job's only query: due follow-ups by status and schedule.
+  // See api/cron/follow-ups/route.ts. Without this it sequentially scans the
+  // entire follow-up history on every run, forever.
+  index('follow_ups_status_scheduled_for_idx').on(table.status, table.scheduledFor),
+  // FK child column, not auto-indexed.
+  index('follow_ups_lead_id_idx').on(table.leadId),
+]);
 
 export const analyticsEvents = pgTable('analytics_events', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -190,7 +209,12 @@ export const analyticsEvents = pgTable('analytics_events', {
   value: integer('value'), // For conversion value tracking
   
   createdAt: timestamp('created_at').notNull().defaultNow(),
-});
+}, (table) => [
+  // FK child column, not auto-indexed. Nullable here, so the index is partial
+  // in effect — rows with a null lead_id are not indexed, which is fine because
+  // nothing queries for them.
+  index('analytics_events_lead_id_idx').on(table.leadId),
+]);
 
 export const abTests = pgTable('ab_tests', {
   id: uuid('id').primaryKey().defaultRandom(),

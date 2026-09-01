@@ -6,13 +6,23 @@ import {
   fillPromptTemplate,
   formatLeadContext,
 } from '@/lib/prompts/joey-voice';
+import type { LeadIntentValue } from '@/lib/validation/lead';
 
 export interface Lead {
   id: string;
   name: string;
   email: string;
   phone?: string;
-  intent: 'buy' | 'sell' | 'insurance' | 'closing';
+  /**
+   * Sourced from the canonical set in src/lib/validation/lead.ts rather than
+   * redeclared here.
+   *
+   * This union previously listed only buy / sell / insurance / closing, while
+   * the UI has always offered `general` as well — which is why
+   * api/cron/follow-ups/route.ts casts `'general'` into it. Referencing the
+   * validated set means the two cannot drift apart again.
+   */
+  intent: LeadIntentValue;
   budget?: string;
   timeline?: string;
   location?: string;
