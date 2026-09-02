@@ -1,35 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { sendDailyLeadSummary } from '@/lib/services/email-service';
-import { env } from '@/config/env';
 import { envErrorResponse, requireEnv } from '@/lib/utils/require-env';
+import { requireCronAuth } from '@/lib/api/cron-auth';
 
 /**
  * Daily Lead Summary Cron Job
- * 
- * Runs every morning at 7 AM to send Joey a summary of all leads
- * from the previous day.
- * 
- * Configure in vercel.json:
- * {
- *   "crons": [{
- *     "path": "/api/cron/daily-summary",
- *     "schedule": "0 7 * * *"
- *   }]
- * }
+ *
+ * Sends Joey a digest of the previous day's leads.
+ *
+ * Triggered externally by cron-job.org:
+ *   GET https://gowithjoeyo.netlify.app/api/cron/daily-summary
+ *   Authorization: Bearer <CRON_SECRET>
+ *   Schedule: 30 11 * * * (UTC) — offset half an hour from the follow-up run
+ *
+ * Netlify ignores `vercel.json`, so the crons previously declared there
+ * scheduled nothing at all.
  */
 export async function GET(request: NextRequest) {
   try {
-    // Verify cron secret to prevent unauthorized access. Read from the
-    // validated schema rather than process.env.
-    const authHeader = request.headers.get('authorization');
-    const cronSecret = env.CRON_SECRET;
-    
-    if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
+    // Fails closed, including when CRON_SECRET is unset. See cron-auth.ts.
+    const denied = requireCronAuth(request);
+    if (denied) return denied;
 
     // Asserted after auth so an unauthenticated caller cannot probe which
     // variables a deployment is missing.

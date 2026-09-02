@@ -3,31 +3,26 @@ import { eq, lte, and, inArray } from 'drizzle-orm';
 import { db, leads, followUps } from '@/lib/db';
 import { sendFollowUp } from '@/lib/services/follow-up-scheduler';
 import type { Lead } from '@/lib/services/follow-up-scheduler';
-import { env } from '@/config/env';
 import { envErrorResponse, requireEnv } from '@/lib/utils/require-env';
+import { requireCronAuth } from '@/lib/api/cron-auth';
 
 /**
  * Cron job endpoint for processing automated follow-ups.
  *
- * Runs every morning at 7 AM. Trigger via external cron (cron-job.org,
- * EasyCron, etc.) with:
+ * Triggered externally by cron-job.org:
  *   GET https://gowithjoeyo.netlify.app/api/cron/follow-ups
  *   Authorization: Bearer <CRON_SECRET>
+ *   Schedule: 0 11 * * * (UTC) — roughly 7 AM Eastern
  *
- * For Netlify scheduled functions add to netlify.toml:
- *   [functions."api/cron/follow-ups"]
- *     schedule = "0 7 * * *"
+ * Netlify scheduled functions cannot drive this: they only target functions in
+ * the Netlify functions directory and cannot be invoked by URL. `vercel.json` is
+ * ignored by Netlify entirely, so an entry there schedules nothing.
  */
 export async function GET(request: NextRequest) {
   try {
-    // Verify cron secret. Read from the validated schema rather than
-    // process.env so the variable is documented in one place.
-    const authHeader = request.headers.get('authorization');
-    const cronSecret = env.CRON_SECRET;
-
-    if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    // Fails closed, including when CRON_SECRET is unset. See cron-auth.ts.
+    const denied = requireCronAuth(request);
+    if (denied) return denied;
 
     // Asserted after auth so an unauthenticated caller cannot probe which
     // variables a deployment is missing.
