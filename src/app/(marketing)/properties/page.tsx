@@ -212,4 +212,3 @@ export default function PropertiesPage() {
   );
 }
 
-// Made with Bob

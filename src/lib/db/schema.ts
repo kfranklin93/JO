@@ -307,4 +307,3 @@ export type NewAnalyticsEvent = typeof analyticsEvents.$inferInsert;
 export type ABTest = typeof abTests.$inferSelect;
 export type NewABTest = typeof abTests.$inferInsert;
 
-// Made with Bob

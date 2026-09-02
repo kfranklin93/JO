@@ -49,21 +49,21 @@
 
   expecting an `Index Scan using follow_ups_status_scheduled_for_idx` rather than `Seq Scan`. Note that on a small table Postgres may still prefer a sequential scan because it is genuinely cheaper; `SET enable_seqscan = off` within the session confirms the index is usable if so.
 
-- [ ] 6. Build the shared submit helper and wire `/get-started`
+- [x] 6. Build the shared submit helper and wire `/get-started`
   - Create `src/lib/api/submit-lead.ts` exporting `submitLead` returning a discriminated union for success, field errors, and general failure
   - Replace the `console.log`, 1500ms fake delay, and `alert()` in `src/app/(marketing)/get-started/page.tsx` with a real submit
   - Render a loading state that blocks duplicate submission, an inline success confirmation, and field-level errors mapped from the 422 response
   - Write tests for the helper (201, 422, network failure) and a component test asserting each UI state
   - _Requirements: 5.1, 5.3, 5.4, 5.5, 5.6, 5.7, 5.8_
 
-- [ ] 7. Wire the homepage inquiry modal
+- [x] 7. Wire the homepage inquiry modal
   - Replace the `console.log` at `src/components/forms/ServicesInquiryForm.tsx:69` with a call to the same `submitLead` helper
   - Map the service picker values (`buying`, `selling`, `both`, `general`) onto the canonical `intent` enum, since the picker vocabulary does not match the schema
   - Render the same loading, success, and error states as `/get-started`
   - Write an equivalent component test, including one asserting the intent mapping
   - _Requirements: 5.2, 5.3, 5.4, 5.5, 5.6, 5.7, 5.8_
 
-- [ ] 8. Verify the spec end to end
+- [x] 8. Verify the spec end to end
   - Run `npm test`, `npm run typecheck`, and `npm run build`
   - Submit through `/get-started` in a browser and confirm the row appears in the database and then in the dashboard
   - Submit through the homepage modal and confirm the intent recorded matches the service selected

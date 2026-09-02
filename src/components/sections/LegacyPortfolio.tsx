@@ -212,4 +212,3 @@ function LegacyPropertyCard({ property, index }: { property: LegacyProperty; ind
   );
 }
 
-// Made with Bob

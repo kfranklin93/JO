@@ -170,4 +170,3 @@ export function Header({ sticky = true, className }: HeaderProps) {
   );
 }
 
-// Made with Bob

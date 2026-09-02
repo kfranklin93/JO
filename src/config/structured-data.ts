@@ -351,4 +351,3 @@ export const homepageSchema = {
   ],
 };
 
-// Made with Bob

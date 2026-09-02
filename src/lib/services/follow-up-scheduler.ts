@@ -202,4 +202,3 @@ export async function sendImmediateFollowUp(lead: Lead): Promise<boolean> {
   return sendFollowUp(lead, 'immediate');
 }
 
-// Made with Bob

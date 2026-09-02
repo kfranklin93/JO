@@ -19,4 +19,3 @@ export default {
   strict: true,
 } satisfies Config;
 
-// Made with Bob

@@ -52,4 +52,3 @@ export interface LoftyWebhookPayload {
   data: Record<string, unknown>;
 }
 
-// Made with Bob

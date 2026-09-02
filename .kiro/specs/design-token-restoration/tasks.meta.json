@@ -1,0 +1,45 @@
+{
+  "pbtResults": {},
+  "executionHistory": {
+    "1. Migrate the palette into a `@theme` block": [
+      {
+        "executionId": "575e07f4-c4a9-43a1-ae00-ab7f43ab7644",
+        "chatSessionId": "sess_a1afaa27-b5cb-41cf-87af-a1229a5ae11d",
+        "timestamp": 1788311993133
+      },
+      {
+        "executionId": "575e07f4-c4a9-43a1-ae00-ab7f43ab7644",
+        "chatSessionId": "sess_a1afaa27-b5cb-41cf-87af-a1229a5ae11d",
+        "timestamp": 1788312000097
+      }
+    ],
+    "2. Replace the arbitrary colour escapes": [
+      {
+        "executionId": "575e07f4-c4a9-43a1-ae00-ab7f43ab7644",
+        "chatSessionId": "sess_a1afaa27-b5cb-41cf-87af-a1229a5ae11d",
+        "timestamp": 1788311993175
+      }
+    ],
+    "3. Fix the error boundaries": [
+      {
+        "executionId": "575e07f4-c4a9-43a1-ae00-ab7f43ab7644",
+        "chatSessionId": "sess_a1afaa27-b5cb-41cf-87af-a1229a5ae11d",
+        "timestamp": 1788311993201
+      }
+    ],
+    "4. Update the steering rule": [
+      {
+        "executionId": "575e07f4-c4a9-43a1-ae00-ab7f43ab7644",
+        "chatSessionId": "sess_a1afaa27-b5cb-41cf-87af-a1229a5ae11d",
+        "timestamp": 1788311993234
+      }
+    ],
+    "5. Verify the spec": [
+      {
+        "executionId": "575e07f4-c4a9-43a1-ae00-ab7f43ab7644",
+        "chatSessionId": "sess_a1afaa27-b5cb-41cf-87af-a1229a5ae11d",
+        "timestamp": 1788311993272
+      }
+    ]
+  }
+}

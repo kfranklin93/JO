@@ -1,0 +1,56 @@
+{
+  "pbtResults": {},
+  "executionHistory": {
+    "6. Build the shared submit helper and wire `/get-started`": [
+      {
+        "executionId": "1a7d9da3-2d94-49a6-8eb0-3a4030ead489",
+        "chatSessionId": "sess_9d0b5073-8d20-4b25-acd3-5131c0692b7d",
+        "timestamp": 1788309926719
+      },
+      {
+        "executionId": "1a7d9da3-2d94-49a6-8eb0-3a4030ead489",
+        "chatSessionId": "sess_9d0b5073-8d20-4b25-acd3-5131c0692b7d",
+        "timestamp": 1788309932566
+      },
+      {
+        "executionId": "1a7d9da3-2d94-49a6-8eb0-3a4030ead489",
+        "chatSessionId": "sess_9d0b5073-8d20-4b25-acd3-5131c0692b7d",
+        "timestamp": 1788310431866
+      }
+    ],
+    "7. Wire the homepage inquiry modal": [
+      {
+        "executionId": "1a7d9da3-2d94-49a6-8eb0-3a4030ead489",
+        "chatSessionId": "sess_9d0b5073-8d20-4b25-acd3-5131c0692b7d",
+        "timestamp": 1788309926762
+      },
+      {
+        "executionId": "1a7d9da3-2d94-49a6-8eb0-3a4030ead489",
+        "chatSessionId": "sess_9d0b5073-8d20-4b25-acd3-5131c0692b7d",
+        "timestamp": 1788310435232
+      },
+      {
+        "executionId": "1a7d9da3-2d94-49a6-8eb0-3a4030ead489",
+        "chatSessionId": "sess_9d0b5073-8d20-4b25-acd3-5131c0692b7d",
+        "timestamp": 1788311073336
+      }
+    ],
+    "8. Verify the spec end to end": [
+      {
+        "executionId": "1a7d9da3-2d94-49a6-8eb0-3a4030ead489",
+        "chatSessionId": "sess_9d0b5073-8d20-4b25-acd3-5131c0692b7d",
+        "timestamp": 1788309926803
+      },
+      {
+        "executionId": "1a7d9da3-2d94-49a6-8eb0-3a4030ead489",
+        "chatSessionId": "sess_9d0b5073-8d20-4b25-acd3-5131c0692b7d",
+        "timestamp": 1788311076959
+      },
+      {
+        "executionId": "1a7d9da3-2d94-49a6-8eb0-3a4030ead489",
+        "chatSessionId": "sess_9d0b5073-8d20-4b25-acd3-5131c0692b7d",
+        "timestamp": 1788311140418
+      }
+    ]
+  }
+}

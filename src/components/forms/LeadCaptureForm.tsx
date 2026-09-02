@@ -164,6 +164,20 @@ export function LeadCaptureForm({
     [state.data, state.validation, onSubmit, onSuccess, onError, setSubmissionState, resetForm]
   );
 
+  // Prevent Enter key from submitting form on non-final steps
+  const handleKeyDown = React.useCallback(
+    (e: React.KeyboardEvent<HTMLFormElement>) => {
+      if (e.key === 'Enter' && e.target instanceof HTMLInputElement) {
+        const isLastStep = state.progress.currentStep === state.progress.totalSteps;
+        if (!isLastStep) {
+          e.preventDefault();
+          nextStep();
+        }
+      }
+    },
+    [state.progress.currentStep, state.progress.totalSteps, nextStep]
+  );
+
   const renderField = (field: FormFieldConfig) => {
     const fieldValue = field.name.startsWith('propertyRequest.')
       ? state.data.propertyRequest?.[field.name.replace('propertyRequest.', '') as keyof NonNullable<CreateLeadInput['propertyRequest']>]
@@ -220,6 +234,7 @@ export function LeadCaptureForm({
     <form
       ref={formRef}
       onSubmit={handleSubmit}
+      onKeyDown={handleKeyDown}
       className={cn('w-full space-y-8', className)}
       noValidate
     >
@@ -270,5 +285,3 @@ export function LeadCaptureForm({
     </form>
   );
 }
-
-// Made with Bob

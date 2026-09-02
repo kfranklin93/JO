@@ -145,4 +145,3 @@ export async function POST(request: NextRequest) {
   return GET(request);
 }
 
-// Made with Bob

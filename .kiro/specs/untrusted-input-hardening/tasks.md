@@ -1,6 +1,6 @@
 # Untrusted Input Hardening — Tasks
 
-- [ ] 1. Build the escaping helpers and apply them to outbound email
+- [x] 1. Build the escaping helpers and apply them to outbound email
   - Create `src/lib/utils/escape.ts` with `escapeHtml`, `escapeAttr`, `safeMailto`, and `safeTel`, replacing `&` before other characters so nothing double-encodes
   - Apply to every lead-derived interpolation in `notifyJoeyOfNewLead` (`email-service.ts:120-128`), including the `href="mailto:"` and `href="tel:"` attribute contexts at lines 124-125
   - Apply to the lead rows and intent labels in `sendDailyLeadSummary` (`email-service.ts:185-200`)
@@ -8,7 +8,7 @@
   - Write unit tests per character, a `javascript:` URL in attribute position, a full `"><script>alert(1)</script>` payload, and an apostrophe in a name rendering as the correct glyph
   - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7_
 
-- [ ] 2. Fix template substitution
+- [x] 2. Fix template substitution
   - Change `fillPromptTemplate` (`joey-voice.ts:198`) to use a replacement function so `$&`, `` $` ``, `$'`, and `$1` in lead data pass through literally
   - Restructure the loop into a single pass so injected text cannot be re-scanned by a later key's substitution
   - Write tests with lead data containing each `$` sequence and a literal `{area}` string

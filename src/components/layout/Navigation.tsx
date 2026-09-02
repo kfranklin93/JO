@@ -218,4 +218,3 @@ export function Navigation({ items, className }: NavigationProps) {
   );
 }
 
-// Made with Bob

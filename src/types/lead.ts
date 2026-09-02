@@ -118,4 +118,3 @@ export interface UpdateLeadInput {
   lastContactedAt?: Date;
 }
 
-// Made with Bob

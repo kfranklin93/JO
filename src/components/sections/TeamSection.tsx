@@ -153,4 +153,3 @@ export function TeamSection() {
   );
 }
 
-// Made with Bob

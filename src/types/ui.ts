@@ -48,4 +48,3 @@ export interface UIState {
   isMobileMenuOpen: boolean;
 }
 
-// Made with Bob

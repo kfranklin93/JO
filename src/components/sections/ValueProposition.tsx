@@ -93,4 +93,3 @@ export function ValueProposition() {
   );
 }
 
-// Made with Bob

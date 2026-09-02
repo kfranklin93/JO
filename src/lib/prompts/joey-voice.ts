@@ -188,16 +188,30 @@ export function formatLeadContext(lead: {
 
 /**
  * Replace placeholders in prompt templates
+ * Uses a replacement function to prevent special characters ($&, $`, $', $1-$99)
+ * from being interpreted as replacement patterns.
+ * Single-pass replacement prevents injected text from being re-scanned.
  */
 export function fillPromptTemplate(
   template: string,
   data: Record<string, string>
 ): string {
-  let filled = template;
-  for (const [key, value] of Object.entries(data)) {
-    filled = filled.replace(new RegExp(`\\{${key}\\}`, 'g'), value);
-  }
-  return filled;
+  // Create a combined pattern that matches any of the placeholders
+  const keys = Object.keys(data);
+  if (keys.length === 0) return template;
+  
+  // Build a single regex pattern that matches all placeholders
+  const pattern = new RegExp(
+    keys.map(key => `\\{${key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\}`).join('|'),
+    'g'
+  );
+  
+  // Single-pass replacement with a function to prevent pattern interpretation
+  return template.replace(pattern, (match) => {
+    // Extract the key from {key}
+    const key = match.slice(1, -1);
+    // Return the value, which won't be interpreted as a replacement pattern
+    return data[key] ?? match;
+  });
 }
 
-// Made with Bob

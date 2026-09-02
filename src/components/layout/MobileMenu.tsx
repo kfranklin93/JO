@@ -172,4 +172,3 @@ function MobileMenuDropdown({ item, onClose }: MobileMenuDropdownProps) {
   );
 }
 
-// Made with Bob

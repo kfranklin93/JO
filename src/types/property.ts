@@ -54,4 +54,3 @@ export interface PropertyRequest {
  */
 export type CreatePropertyRequestInput = Partial<PropertyRequest>;
 
-// Made with Bob

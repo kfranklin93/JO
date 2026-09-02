@@ -61,4 +61,3 @@ export async function sendSMSWithBooking(
   return sendSMS(to, fullMessage);
 }
 
-// Made with Bob

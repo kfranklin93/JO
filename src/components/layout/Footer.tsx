@@ -296,4 +296,3 @@ export function Footer({ className }: FooterProps) {
   );
 }
 
-// Made with Bob

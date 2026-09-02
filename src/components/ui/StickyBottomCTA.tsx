@@ -115,4 +115,3 @@ export function StickyBottomCTA({ triggerElementId = 'featured-listings' }: Stic
   );
 }
 
-// Made with Bob

@@ -84,4 +84,3 @@ export interface PlaceholderPageProps {
   description: string;
 }
 
-// Made with Bob

@@ -177,4 +177,3 @@ function PropertySpecItem({ spec, index }: { spec: PropertySpec; index: number }
   );
 }
 
-// Made with Bob

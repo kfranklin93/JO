@@ -110,4 +110,3 @@ export async function testBedrockConnection(): Promise<boolean> {
   }
 }
 
-// Made with Bob

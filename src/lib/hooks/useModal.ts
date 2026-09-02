@@ -30,4 +30,3 @@ export function useModal(initialState: ModalState = { isOpen: false, modalId: nu
   };
 }
 
-// Made with Bob

@@ -6,6 +6,9 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Textarea } from '@/components/ui/Textarea';
 import { Label } from '@/components/ui/Label';
+import { submitLead } from '@/lib/api/submit-lead';
+import type { LeadSubmissionInput } from '@/lib/validation/lead';
+import { LeadIntent } from '@/types/lead';
 
 // JOEY UPDATE: Created dynamic services inquiry form with step-based flow
 // Form adapts based on user's selected service type (Buy, Sell, Both, General)
@@ -17,8 +20,31 @@ interface ServicesInquiryFormProps {
 
 type ServiceType = 'buying' | 'selling' | 'both' | 'general' | null;
 
+/**
+ * Maps the UI service picker vocabulary to the canonical LeadIntent enum.
+ * The picker offers "buying"/"selling"/"both"/"general" while the schema
+ * accepts "buy"/"sell"/"invest"/etc. This translation layer keeps the two
+ * vocabularies from drifting.
+ */
+function mapServiceTypeToIntent(serviceType: ServiceType): LeadIntent {
+  switch (serviceType) {
+    case 'buying':
+      return LeadIntent.BUY;
+    case 'selling':
+      return LeadIntent.SELL;
+    case 'both':
+      // "both" means buy + sell, but the schema accepts one intent.
+      // Map to BUY as the primary intent; the user's message clarifies.
+      return LeadIntent.BUY;
+    case 'general':
+      return LeadIntent.GENERAL;
+    default:
+      return LeadIntent.GENERAL;
+  }
+}
+
 export function ServicesInquiryForm({ isOpen, onClose }: ServicesInquiryFormProps) {
-  const [step, setStep] = React.useState<'service' | 'details'>('service');
+  const [step, setStep] = React.useState<'service' | 'details' | 'success'>('service');
   const [serviceType, setServiceType] = React.useState<ServiceType>(null);
   const [formData, setFormData] = React.useState({
     name: '',
@@ -28,6 +54,9 @@ export function ServicesInquiryForm({ isOpen, onClose }: ServicesInquiryFormProp
     budget: '',
     message: '',
   });
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [generalError, setGeneralError] = React.useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = React.useState<Record<string, string>>({});
 
   // JOEY UPDATE: Reset form when modal closes
   React.useEffect(() => {
@@ -43,6 +72,9 @@ export function ServicesInquiryForm({ isOpen, onClose }: ServicesInquiryFormProp
           budget: '',
           message: '',
         });
+        setIsSubmitting(false);
+        setGeneralError(null);
+        setFieldErrors({});
       }, 300);
     }
   }, [isOpen]);
@@ -66,11 +98,33 @@ export function ServicesInquiryForm({ isOpen, onClose }: ServicesInquiryFormProp
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // JOEY UPDATE: Add form submission logic here (API call to /api/leads)
-    console.log('Form submitted:', { serviceType, ...formData });
-    // Show success message and close modal
-    alert('Thank you! Joey will be in touch soon.');
-    onClose();
+    
+    setIsSubmitting(true);
+    setGeneralError(null);
+    setFieldErrors({});
+
+    // Map form data to LeadSubmissionInput with intent mapping
+    const payload: LeadSubmissionInput = {
+      name: formData.name,
+      email: formData.email,
+      phone: formData.phone,
+      intent: mapServiceTypeToIntent(serviceType),
+      ...(formData.timeline && { timeline: formData.timeline }),
+      ...(formData.budget && { budget: formData.budget }),
+      ...(formData.message && { additionalNotes: formData.message }),
+    };
+
+    const result = await submitLead(payload);
+
+    setIsSubmitting(false);
+
+    if (result.ok) {
+      setStep('success');
+    } else if (result.fieldErrors) {
+      setFieldErrors(result.fieldErrors);
+    } else {
+      setGeneralError(result.message);
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -211,6 +265,31 @@ export function ServicesInquiryForm({ isOpen, onClose }: ServicesInquiryFormProp
 
                   {/* JOEY UPDATE: Dynamic form fields based on service type */}
                   <form onSubmit={handleSubmit} className="mt-8 space-y-6">
+                    {/* General error message */}
+                    {generalError && (
+                      <div
+                        role="alert"
+                        className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700"
+                      >
+                        <strong className="font-semibold">Error:</strong> {generalError}
+                      </div>
+                    )}
+
+                    {/* Field errors summary */}
+                    {Object.keys(fieldErrors).length > 0 && (
+                      <div
+                        role="alert"
+                        className="rounded-lg border border-yellow-200 bg-yellow-50 p-4 text-sm text-yellow-700"
+                      >
+                        <strong className="font-semibold">Please correct the following:</strong>
+                        <ul className="mt-2 list-disc list-inside space-y-1">
+                          {Object.entries(fieldErrors).map(([field, message]) => (
+                            <li key={field}>{message}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+
                     <div className="grid gap-6 sm:grid-cols-2">
                       <div>
                         <Label htmlFor="name">Full Name *</Label>
@@ -223,7 +302,12 @@ export function ServicesInquiryForm({ isOpen, onClose }: ServicesInquiryFormProp
                           onChange={handleChange}
                           placeholder="John Smith"
                           className="mt-2"
+                          aria-invalid={!!fieldErrors.name}
+                          disabled={isSubmitting}
                         />
+                        {fieldErrors.name && (
+                          <p className="mt-1 text-sm text-red-600">{fieldErrors.name}</p>
+                        )}
                       </div>
 
                       <div>
@@ -237,7 +321,12 @@ export function ServicesInquiryForm({ isOpen, onClose }: ServicesInquiryFormProp
                           onChange={handleChange}
                           placeholder="(555) 123-4567"
                           className="mt-2"
+                          aria-invalid={!!fieldErrors.phone}
+                          disabled={isSubmitting}
                         />
+                        {fieldErrors.phone && (
+                          <p className="mt-1 text-sm text-red-600">{fieldErrors.phone}</p>
+                        )}
                       </div>
                     </div>
 
@@ -252,7 +341,12 @@ export function ServicesInquiryForm({ isOpen, onClose }: ServicesInquiryFormProp
                         onChange={handleChange}
                         placeholder="john@example.com"
                         className="mt-2"
+                        aria-invalid={!!fieldErrors.email}
+                        disabled={isSubmitting}
                       />
+                      {fieldErrors.email && (
+                        <p className="mt-1 text-sm text-red-600">{fieldErrors.email}</p>
+                      )}
                     </div>
 
                     {(serviceType === 'buying' || serviceType === 'both') && (
@@ -267,6 +361,7 @@ export function ServicesInquiryForm({ isOpen, onClose }: ServicesInquiryFormProp
                             onChange={handleChange}
                             placeholder="$500K - $750K"
                             className="mt-2"
+                            disabled={isSubmitting}
                           />
                         </div>
 
@@ -280,6 +375,7 @@ export function ServicesInquiryForm({ isOpen, onClose }: ServicesInquiryFormProp
                             onChange={handleChange}
                             placeholder="Within 3 months"
                             className="mt-2"
+                            disabled={isSubmitting}
                           />
                         </div>
                       </>
@@ -296,6 +392,7 @@ export function ServicesInquiryForm({ isOpen, onClose }: ServicesInquiryFormProp
                           onChange={handleChange}
                           placeholder="Within 6 months"
                           className="mt-2"
+                          disabled={isSubmitting}
                         />
                       </div>
                     )}
@@ -310,15 +407,60 @@ export function ServicesInquiryForm({ isOpen, onClose }: ServicesInquiryFormProp
                         onChange={handleChange}
                         placeholder="Tell me more about what you're looking for..."
                         className="mt-2"
+                        disabled={isSubmitting}
                       />
                     </div>
 
                     <div className="flex gap-4">
-                      <Button type="submit" variant="primary" size="lg" className="flex-1">
-                        Send Message
+                      <Button 
+                        type="submit" 
+                        variant="primary" 
+                        size="lg" 
+                        className="flex-1"
+                        disabled={isSubmitting}
+                      >
+                        {isSubmitting ? (
+                          <span className="inline-flex items-center gap-2">
+                            <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            Sending...
+                          </span>
+                        ) : (
+                          'Send Message'
+                        )}
                       </Button>
                     </div>
                   </form>
+                </motion.div>
+              )}
+
+              {step === 'success' && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  transition={{ duration: 0.3 }}
+                  className="text-center py-8"
+                >
+                  <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
+                    <svg className="h-8 w-8 text-green-600" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <h2 className="mt-6 font-serif text-2xl text-navy">
+                    Thank you for reaching out!
+                  </h2>
+                  <p className="mt-4 font-sans text-base text-stone">
+                    I've received your information and will contact you shortly to discuss your real estate needs.
+                  </p>
+                  <button
+                    onClick={onClose}
+                    className="mt-8 inline-flex items-center gap-2 rounded-lg bg-navy px-6 py-3 font-sans text-sm font-medium text-white hover:bg-navy/90 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy"
+                  >
+                    Close
+                  </button>
                 </motion.div>
               )}
             </div>
@@ -329,4 +471,3 @@ export function ServicesInquiryForm({ isOpen, onClose }: ServicesInquiryFormProp
   );
 }
 
-// Made with Bob

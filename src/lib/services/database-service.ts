@@ -417,4 +417,3 @@ function calculateEngagementScore(metrics: {
   return Math.min(score, 100); // Cap at 100
 }
 
-// Made with Bob

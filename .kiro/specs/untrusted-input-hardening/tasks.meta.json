@@ -1,0 +1,72 @@
+{
+  "pbtResults": {},
+  "executionHistory": {
+    "1. Build the escaping helpers and apply them to outbound email": [
+      {
+        "executionId": "d4699255-b17d-48eb-8de3-cdc8bb899dca",
+        "chatSessionId": "sess_5668a6a0-ad1c-4a7b-b8c4-65034b11cbb1",
+        "timestamp": 1788311362563
+      },
+      {
+        "executionId": "d4699255-b17d-48eb-8de3-cdc8bb899dca",
+        "chatSessionId": "sess_5668a6a0-ad1c-4a7b-b8c4-65034b11cbb1",
+        "timestamp": 1788311368436
+      },
+      {
+        "executionId": "d4699255-b17d-48eb-8de3-cdc8bb899dca",
+        "chatSessionId": "sess_5668a6a0-ad1c-4a7b-b8c4-65034b11cbb1",
+        "timestamp": 1788311568563
+      }
+    ],
+    "2. Fix template substitution": [
+      {
+        "executionId": "d4699255-b17d-48eb-8de3-cdc8bb899dca",
+        "chatSessionId": "sess_5668a6a0-ad1c-4a7b-b8c4-65034b11cbb1",
+        "timestamp": 1788311362609
+      },
+      {
+        "executionId": "d4699255-b17d-48eb-8de3-cdc8bb899dca",
+        "chatSessionId": "sess_5668a6a0-ad1c-4a7b-b8c4-65034b11cbb1",
+        "timestamp": 1788311575062
+      },
+      {
+        "executionId": "d4699255-b17d-48eb-8de3-cdc8bb899dca",
+        "chatSessionId": "sess_5668a6a0-ad1c-4a7b-b8c4-65034b11cbb1",
+        "timestamp": 1788311977839
+      }
+    ],
+    "3. Contain prompt injection": [
+      {
+        "executionId": "d4699255-b17d-48eb-8de3-cdc8bb899dca",
+        "chatSessionId": "sess_5668a6a0-ad1c-4a7b-b8c4-65034b11cbb1",
+        "timestamp": 1788311362645
+      },
+      {
+        "executionId": "d4699255-b17d-48eb-8de3-cdc8bb899dca",
+        "chatSessionId": "sess_5668a6a0-ad1c-4a7b-b8c4-65034b11cbb1",
+        "timestamp": 1788311984668
+      }
+    ],
+    "4. Authenticate the SMS webhook": [
+      {
+        "executionId": "d4699255-b17d-48eb-8de3-cdc8bb899dca",
+        "chatSessionId": "sess_5668a6a0-ad1c-4a7b-b8c4-65034b11cbb1",
+        "timestamp": 1788311362688
+      }
+    ],
+    "5. Make missing configuration explicit": [
+      {
+        "executionId": "d4699255-b17d-48eb-8de3-cdc8bb899dca",
+        "chatSessionId": "sess_5668a6a0-ad1c-4a7b-b8c4-65034b11cbb1",
+        "timestamp": 1788311362734
+      }
+    ],
+    "6. Verify the spec": [
+      {
+        "executionId": "d4699255-b17d-48eb-8de3-cdc8bb899dca",
+        "chatSessionId": "sess_5668a6a0-ad1c-4a7b-b8c4-65034b11cbb1",
+        "timestamp": 1788311362771
+      }
+    ]
+  }
+}

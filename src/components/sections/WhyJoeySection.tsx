@@ -132,4 +132,3 @@ export function WhyJoeySection() {
   );
 }
 
-// Made with Bob

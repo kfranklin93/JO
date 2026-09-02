@@ -36,7 +36,7 @@ export default function RootLayout({
       lang="en"
       className={`${bellefair.variable} ${montserrat.variable} ${geistMono.variable} h-full scroll-smooth`}
     >
-      <body className="min-h-screen bg-mocha font-sans text-foreground antialiased">
+      <body className="min-h-screen font-sans antialiased">
         {children}
       </body>
     </html>

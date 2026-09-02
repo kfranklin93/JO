@@ -68,7 +68,6 @@ export function FormNavigation({
   isSubmitting = false,
   onPrevious,
   onNext,
-  onSubmit,
   nextLabel = 'Next',
   previousLabel = 'Previous',
   submitLabel = 'Submit',
@@ -117,7 +116,6 @@ export function FormNavigation({
         <Button
           type="submit"
           variant="primary"
-          onClick={onSubmit}
           disabled={!canProceed || isSubmitting}
           loading={isSubmitting}
           loadingLabel={submitLoadingLabel}
@@ -162,4 +160,3 @@ export function FormNavigation({
   );
 }
 
-// Made with Bob

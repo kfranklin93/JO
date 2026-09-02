@@ -118,4 +118,3 @@ export function SocialProofSection() {
   );
 }
 
-// Made with Bob

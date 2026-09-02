@@ -172,4 +172,3 @@ export function MarketStatsSection() {
   );
 }
 
-// Made with Bob

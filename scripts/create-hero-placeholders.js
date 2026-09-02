@@ -43,4 +43,3 @@ console.log('   - public/images/joey-hero.svg (1200x1600)');
 console.log('   - public/images/joey-office.svg (1920x1080)');
 console.log('\n📝 Note: Update component imports to use .svg instead of .jpg');
 
-// Made with Bob

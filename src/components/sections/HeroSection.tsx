@@ -156,4 +156,3 @@ export function HeroSection() {
   );
 }
 
-// Made with Bob

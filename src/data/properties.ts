@@ -38,4 +38,3 @@ export const featuredProperties: Property[] = [
   }
 ];
 
-// Made with Bob

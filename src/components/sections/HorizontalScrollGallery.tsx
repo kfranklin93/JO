@@ -211,4 +211,3 @@ export function HorizontalScrollGallery() {
   );
 }
 
-// Made with Bob

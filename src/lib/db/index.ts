@@ -73,4 +73,3 @@ export async function closeDatabaseConnection(): Promise<void> {
   }
 }
 
-// Made with Bob

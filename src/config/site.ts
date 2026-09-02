@@ -64,4 +64,3 @@ export const siteConfig = {
   },
 } as const;
 
-// Made with Bob

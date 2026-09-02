@@ -28,4 +28,3 @@ export function SocialProof() {
   );
 }
 
-// Made with Bob

@@ -205,4 +205,3 @@ export function EnhancedHeroSection() {
   );
 }
 
-// Made with Bob

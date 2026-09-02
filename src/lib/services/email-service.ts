@@ -1,5 +1,6 @@
 import { Resend } from 'resend';
 import { env } from '@/config/env';
+import { escapeHtml, escapeAttr, safeMailto, safeTel } from '@/lib/utils/escape';
 
 // Initialize Resend client
 let resendClient: Resend | null = null;
@@ -78,7 +79,9 @@ Helping families find their perfect home in the Atlanta metro area.`;
  * Convert plain text email to HTML
  */
 export function textToHtml(text: string): string {
-  return text
+  // Escape the text first, then apply markup
+  const escaped = escapeHtml(text);
+  return escaped
     .split('\n\n')
     .map((paragraph) => `<p>${paragraph.replace(/\n/g, '<br>')}</p>`)
     .join('\n');
@@ -116,18 +119,18 @@ export async function notifyJoeyOfNewLead(lead: {
   location?: string;
   additionalNotes?: string;
 }): Promise<boolean> {
-  const subject = `🎯 New ${lead.intent.toUpperCase()} Lead: ${lead.name}`;
+  const subject = `🎯 New ${escapeHtml(lead.intent).toUpperCase()} Lead: ${escapeHtml(lead.name)}`;
   
   const details = [
     `<h2>New Lead Submitted</h2>`,
-    `<p><strong>Name:</strong> ${lead.name}</p>`,
-    `<p><strong>Email:</strong> <a href="mailto:${lead.email}">${lead.email}</a></p>`,
-    lead.phone ? `<p><strong>Phone:</strong> <a href="tel:${lead.phone}">${lead.phone}</a></p>` : '',
-    `<p><strong>Intent:</strong> ${lead.intent}</p>`,
-    lead.location ? `<p><strong>Location:</strong> ${lead.location}</p>` : '',
-    lead.budget ? `<p><strong>Budget:</strong> ${lead.budget}</p>` : '',
-    lead.timeline ? `<p><strong>Timeline:</strong> ${lead.timeline}</p>` : '',
-    lead.additionalNotes ? `<p><strong>Notes:</strong> ${lead.additionalNotes}</p>` : '',
+    `<p><strong>Name:</strong> ${escapeHtml(lead.name)}</p>`,
+    `<p><strong>Email:</strong> <a href="mailto:${escapeAttr(safeMailto(lead.email))}">${escapeHtml(lead.email)}</a></p>`,
+    lead.phone ? `<p><strong>Phone:</strong> <a href="tel:${escapeAttr(safeTel(lead.phone))}">${escapeHtml(lead.phone)}</a></p>` : '',
+    `<p><strong>Intent:</strong> ${escapeHtml(lead.intent)}</p>`,
+    lead.location ? `<p><strong>Location:</strong> ${escapeHtml(lead.location)}</p>` : '',
+    lead.budget ? `<p><strong>Budget:</strong> ${escapeHtml(lead.budget)}</p>` : '',
+    lead.timeline ? `<p><strong>Timeline:</strong> ${escapeHtml(lead.timeline)}</p>` : '',
+    lead.additionalNotes ? `<p><strong>Notes:</strong> ${escapeHtml(lead.additionalNotes)}</p>` : '',
     `<hr>`,
     `<p><em>An immediate follow-up email has been sent to the lead.</em></p>`,
   ].filter(Boolean).join('\n');
@@ -189,19 +192,19 @@ export async function sendDailyLeadSummary(leads: Array<{
   const summaryRows = leads.map((lead, index) => `
     <tr style="border-bottom: 1px solid #eee;">
       <td style="padding: 12px 8px;">${index + 1}</td>
-      <td style="padding: 12px 8px;"><strong>${lead.name}</strong></td>
+      <td style="padding: 12px 8px;"><strong>${escapeHtml(lead.name)}</strong></td>
       <td style="padding: 12px 8px;">
-        <a href="mailto:${lead.email}">${lead.email}</a>
-        ${lead.phone ? `<br><a href="tel:${lead.phone}">${lead.phone}</a>` : ''}
+        <a href="mailto:${escapeAttr(safeMailto(lead.email))}">${escapeHtml(lead.email)}</a>
+        ${lead.phone ? `<br><a href="tel:${escapeAttr(safeTel(lead.phone))}">${escapeHtml(lead.phone)}</a>` : ''}
       </td>
       <td style="padding: 12px 8px;">
         <span style="background: #e3f2fd; padding: 4px 8px; border-radius: 4px; font-size: 12px;">
-          ${lead.intent.toUpperCase()}
+          ${escapeHtml(lead.intent).toUpperCase()}
         </span>
       </td>
       <td style="padding: 12px 8px;">
-        ${lead.location || '-'}<br>
-        ${lead.budget || '-'}
+        ${lead.location ? escapeHtml(lead.location) : '-'}<br>
+        ${lead.budget ? escapeHtml(lead.budget) : '-'}
       </td>
       <td style="padding: 12px 8px; font-size: 12px; color: #666;">
         ${new Date(lead.createdAt).toLocaleTimeString('en-US', {
@@ -215,7 +218,7 @@ export async function sendDailyLeadSummary(leads: Array<{
 
   const intentSummary = Object.entries(leadsByIntent)
     .map(([intent, intentLeads]) =>
-      `<li><strong>${intent.toUpperCase()}:</strong> ${intentLeads.length}</li>`
+      `<li><strong>${escapeHtml(intent).toUpperCase()}:</strong> ${intentLeads.length}</li>`
     )
     .join('');
 
@@ -273,4 +276,3 @@ export async function sendDailyLeadSummary(leads: Array<{
   });
 }
 
-// Made with Bob

@@ -61,4 +61,3 @@ export const atlantaNeighborhoods: Neighborhood[] = [
   },
 ];
 
-// Made with Bob

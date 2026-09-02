@@ -38,4 +38,3 @@ export function StructuredData({ data }: StructuredDataProps) {
   );
 }
 
-// Made with Bob

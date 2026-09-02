@@ -17,4 +17,3 @@ export type { FormNavigationProps } from './FormNavigation';
 export { LeadCaptureForm } from './LeadCaptureForm';
 export type { LeadCaptureFormProps } from './LeadCaptureForm';
 
-// Made with Bob

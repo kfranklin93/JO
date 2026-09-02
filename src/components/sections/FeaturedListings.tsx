@@ -50,4 +50,3 @@ export function FeaturedListings() {
   );
 }
 
-// Made with Bob

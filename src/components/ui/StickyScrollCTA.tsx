@@ -128,4 +128,3 @@ export function StickyScrollCTA() {
   );
 }
 
-// Made with Bob

@@ -61,4 +61,3 @@ export const clientTestimonials: Testimonial[] = [
   },
 ];
 
-// Made with Bob

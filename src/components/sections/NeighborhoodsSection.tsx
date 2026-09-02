@@ -122,4 +122,3 @@ export function NeighborhoodsSection() {
   );
 }
 
-// Made with Bob

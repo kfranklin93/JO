@@ -223,4 +223,3 @@ export default function PrivacyPage() {
   );
 }
 
-// Made with Bob
