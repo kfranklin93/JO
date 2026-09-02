@@ -84,7 +84,17 @@ vi.mock('@/lib/db', () => {
 /** The lead object the route hands to each integration. */
 type LeadArg = Record<string, unknown>;
 
-const sendImmediateFollowUp = vi.fn(async (_lead: LeadArg) => true);
+/**
+ * `sendImmediateFollowUp` returns a discriminated result rather than a boolean,
+ * so a failure can carry the reason through to the caller.
+ */
+type SendResult = { ok: true } | { ok: false; reason: string };
+const SEND_OK: SendResult = { ok: true };
+const SEND_FAILED: SendResult = { ok: false, reason: 'email: test failure' };
+
+const sendImmediateFollowUp = vi.fn(
+  async (_lead: LeadArg): Promise<SendResult> => SEND_OK
+);
 const sendLeadToLofty = vi.fn(async (_lead: LeadArg) => true);
 const notifyJoeyOfNewLead = vi.fn(async (_lead: LeadArg) => true);
 const sendSMSAlert = vi.fn(async (_subject: string, _body: string) => true);
@@ -133,7 +143,7 @@ beforeEach(() => {
   followUpInsertError = null;
   transactionRejected = false;
   vi.clearAllMocks();
-  sendImmediateFollowUp.mockResolvedValue(true);
+  sendImmediateFollowUp.mockResolvedValue(SEND_OK);
   sendLeadToLofty.mockResolvedValue(true);
   notifyJoeyOfNewLead.mockResolvedValue(true);
   sendSMSAlert.mockResolvedValue(true);

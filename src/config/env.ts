@@ -34,6 +34,14 @@ const envSchema = z.object({
   // default below is Resend's shared sender, which works without any domain
   // setup but is not suitable for client-facing mail long term.
   MAIL_FROM: z.string().email().default('onboarding@resend.dev'),
+
+  // Which source writes follow-up bodies.
+  //
+  // Defaults to templates so the drip runs without Bedrock. Every touchpoint
+  // used to call the model unconditionally, which meant unconfigured or failing
+  // Bedrock credentials stopped the entire sequence. Set to 'ai' only once
+  // Bedrock model access is granted and the AWS_* variables are present.
+  FOLLOW_UP_CONTENT_SOURCE: z.enum(['template', 'ai']).default('template'),
   
   // Twilio SMS Configuration
   TWILIO_ACCOUNT_SID: z.string().optional(),
@@ -82,6 +90,7 @@ export const env = envSchema.parse({
   JOEY_EMAIL: process.env.JOEY_EMAIL,
   JOEY_PHONE: process.env.JOEY_PHONE,
   MAIL_FROM: process.env.MAIL_FROM,
+  FOLLOW_UP_CONTENT_SOURCE: process.env.FOLLOW_UP_CONTENT_SOURCE,
   TWILIO_ACCOUNT_SID: process.env.TWILIO_ACCOUNT_SID,
   TWILIO_AUTH_TOKEN: process.env.TWILIO_AUTH_TOKEN,
   TWILIO_PHONE_NUMBER: process.env.TWILIO_PHONE_NUMBER,

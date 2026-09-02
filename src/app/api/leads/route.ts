@@ -142,7 +142,19 @@ export async function POST(request: NextRequest) {
     const [followUpResult] = await Promise.allSettled([
       sendImmediateFollowUp(lead),
     ]);
-    const immediateFollowUpSent = succeeded(followUpResult!);
+
+    const immediateFollowUpSent =
+      followUpResult!.status === 'fulfilled' && followUpResult!.value.ok;
+
+    if (!immediateFollowUpSent) {
+      const reason =
+        followUpResult!.status === 'rejected'
+          ? String(followUpResult!.reason)
+          : followUpResult!.value.ok
+            ? ''
+            : followUpResult!.value.reason;
+      console.error('❌ Immediate follow-up failed:', reason);
+    }
 
     const [loftyResult, emailResult, smsResult] = await Promise.allSettled([
       sendLeadToLofty(lead),
@@ -155,8 +167,6 @@ export async function POST(request: NextRequest) {
 
     if (immediateFollowUpSent) {
       console.log('✅ Immediate follow-up sent to:', lead.email);
-    } else {
-      console.error('❌ Failed to send immediate follow-up');
     }
 
     if (succeeded(loftyResult)) {

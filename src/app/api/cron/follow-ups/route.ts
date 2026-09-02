@@ -108,9 +108,9 @@ export async function GET(request: NextRequest) {
       };
 
       const templateType = fu.templateType as Parameters<typeof sendFollowUp>[1];
-      const success = await sendFollowUp(lead, templateType);
+      const result = await sendFollowUp(lead, templateType);
 
-      if (success) {
+      if (result.ok) {
         sent++;
         await db
           .update(followUps)
@@ -123,7 +123,10 @@ export async function GET(request: NextRequest) {
           .set({
             status: 'failed',
             failedAt: now,
-            failureReason: 'Send failed',
+            // The real reason, not the generic 'Send failed' this recorded
+            // before. Without it there was no way to tell a missing API key
+            // from a rejected address.
+            failureReason: result.reason,
             updatedAt: now,
           })
           .where(eq(followUps.id, fu.id));

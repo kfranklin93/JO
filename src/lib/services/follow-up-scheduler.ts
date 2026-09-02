@@ -1,12 +1,5 @@
-import { generateJoeyEmail } from '@/lib/api/bedrock';
 import { sendFollowUpEmail } from '@/lib/services/email-service';
-import {
-  JOEY_PERSONALITY,
-  FOLLOW_UP_PROMPTS,
-  fillPromptTemplate,
-  formatLeadContext,
-  stripPromptDelimiters,
-} from '@/lib/prompts/joey-voice';
+import { getContentSource, type FollowUpType } from '@/lib/services/follow-up-content';
 import type { LeadIntentValue } from '@/lib/validation/lead';
 
 export interface Lead {
@@ -38,170 +31,66 @@ export interface Lead {
 
 export interface FollowUpSchedule {
   leadId: string;
-  type: 'immediate' | 'day3' | 'day7' | 'day14' | 'day30' | 'pastClient60';
+  type: FollowUpType;
   scheduledFor: Date;
   sent: boolean;
 }
 
 /**
- * Calculate when follow-ups should be sent
+ * Outcome of a single send attempt.
+ *
+ * A bare boolean is why `failureReason` in the database was the generic
+ * 'Send failed' for every failure: the caller had no way to learn what went
+ * wrong. The reason travels with the result so it can be recorded.
  */
-export function calculateFollowUpSchedule(lead: Lead): FollowUpSchedule[] {
-  const now = new Date();
-  const createdAt = new Date(lead.createdAt);
-  
-  return [
-    {
-      leadId: lead.id,
-      type: 'immediate',
-      scheduledFor: createdAt,
-      sent: false,
-    },
-    {
-      leadId: lead.id,
-      type: 'day3',
-      scheduledFor: new Date(createdAt.getTime() + 3 * 24 * 60 * 60 * 1000),
-      sent: false,
-    },
-    {
-      leadId: lead.id,
-      type: 'day7',
-      scheduledFor: new Date(createdAt.getTime() + 7 * 24 * 60 * 60 * 1000),
-      sent: false,
-    },
-    {
-      leadId: lead.id,
-      type: 'day14',
-      scheduledFor: new Date(createdAt.getTime() + 14 * 24 * 60 * 60 * 1000),
-      sent: false,
-    },
-    {
-      leadId: lead.id,
-      type: 'day30',
-      scheduledFor: new Date(createdAt.getTime() + 30 * 24 * 60 * 60 * 1000),
-      sent: false,
-    },
-  ];
-}
+export type SendResult = { ok: true } | { ok: false; reason: string };
 
 /**
- * Generate and send a follow-up email
+ * Generate and send a follow-up email.
+ *
+ * Content comes from whichever source is configured — templates by default, so
+ * this no longer depends on Bedrock. Previously every touchpoint called the
+ * model directly, meaning absent AWS credentials stopped the whole sequence.
  */
 export async function sendFollowUp(
   lead: Lead,
-  type: FollowUpSchedule['type'],
-  previousMessage?: string
-): Promise<boolean> {
+  type: FollowUpType
+): Promise<SendResult> {
+  const source = getContentSource();
+
+  let subject: string;
+  let body: string;
+
+  // Content generation and delivery fail for different reasons and the
+  // distinction matters when deciding whether a retry is worthwhile, so they
+  // are reported separately.
   try {
-    // Get the appropriate prompt template
-    const promptTemplate = FOLLOW_UP_PROMPTS[type];
-    if (!promptTemplate) {
-      console.error(`Unknown follow-up type: ${type}`);
-      return false;
-    }
+    const content = await source.generate(lead, type);
+    subject = content.subject;
+    body = content.body;
+  } catch (error) {
+    const detail = error instanceof Error ? error.message : String(error);
+    return { ok: false, reason: `content:${source.name}: ${detail}` };
+  }
 
-    // Format lead context
-    const leadContext = formatLeadContext(lead);
-
-    // Fill in the prompt template
-    // `details` is already a delimited block. The remaining values are
-    // lead-derived and sit outside it, so strip delimiter tokens from them too.
-    const prompt = fillPromptTemplate(promptTemplate, {
-      name: stripPromptDelimiters(lead.name),
-      intent: stripPromptDelimiters(lead.intent),
-      details: leadContext,
-      area: stripPromptDelimiters(lead.location || 'Atlanta metro area'),
-      previousMessage: stripPromptDelimiters(previousMessage || 'N/A'),
-      history: 'Initial contact',
-    });
-
-    // Generate email content using AI
-    const emailContent = await generateJoeyEmail(prompt, JOEY_PERSONALITY);
-
-    // Extract subject line (first line) and body
-    const lines = emailContent.trim().split('\n');
-    const subject = getSubjectForFollowUpType(type, lead);
-    const body = emailContent;
-
-    // Send the email
+  try {
     const sent = await sendFollowUpEmail(lead.email, subject, body);
 
-    if (sent) {
-      console.log(`Follow-up sent to ${lead.email} (${type})`);
+    if (!sent) {
+      return { ok: false, reason: 'email: Resend rejected the message' };
     }
 
-    return sent;
+    console.log(`Follow-up sent to ${lead.email} (${type}, via ${source.name})`);
+    return { ok: true };
   } catch (error) {
-    console.error(`Failed to send follow-up to ${lead.email}:`, error);
-    return false;
+    const detail = error instanceof Error ? error.message : String(error);
+    return { ok: false, reason: `email: ${detail}` };
   }
 }
 
 /**
- * Get email subject based on follow-up type
+ * Send the immediate follow-up when a new lead is created.
  */
-function getSubjectForFollowUpType(
-  type: FollowUpSchedule['type'],
-  lead: Lead
-): string {
-  const subjects = {
-    immediate: `Thanks for reaching out, ${lead.name}!`,
-    day3: `Quick check-in, ${lead.name}`,
-    day7: `Market update for ${lead.location || 'your area'}`,
-    day14: `Let's find your perfect home, ${lead.name}`,
-    day30: `Still thinking about ${lead.intent === 'buy' ? 'buying' : 'selling'}?`,
-    pastClient60: `Hope you're loving the new place!`,
-  };
-
-  return subjects[type] || `Following up with you, ${lead.name}`;
-}
-
-/**
- * Process all pending follow-ups
- * This should be called by a cron job
- */
-export async function processPendingFollowUps(
-  leads: Lead[],
-  schedules: FollowUpSchedule[]
-): Promise<{ sent: number; failed: number }> {
-  const now = new Date();
-  let sent = 0;
-  let failed = 0;
-
-  for (const schedule of schedules) {
-    // Skip if already sent or not yet time
-    if (schedule.sent || schedule.scheduledFor > now) {
-      continue;
-    }
-
-    // Find the lead
-    const lead = leads.find((l) => l.id === schedule.leadId);
-    if (!lead) {
-      console.error(`Lead not found: ${schedule.leadId}`);
-      failed++;
-      continue;
-    }
-
-    // Send the follow-up
-    const success = await sendFollowUp(lead, schedule.type);
-    if (success) {
-      sent++;
-      schedule.sent = true;
-    } else {
-      failed++;
-    }
-
-    // Add a small delay between emails to avoid rate limiting
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-  }
-
-  return { sent, failed };
-}
-
-/**
- * Send immediate follow-up when a new lead is created
- */
-export async function sendImmediateFollowUp(lead: Lead): Promise<boolean> {
+export async function sendImmediateFollowUp(lead: Lead): Promise<SendResult> {
   return sendFollowUp(lead, 'immediate');
 }
-

@@ -25,6 +25,7 @@
  * mangled subject line.
  */
 
+import { env } from '@/config/env';
 import type { Lead } from '@/lib/services/follow-up-scheduler';
 
 /**
@@ -255,4 +256,96 @@ How's it going so far?
 ${SIGN_OFF}`,
       };
   }
+}
+
+/* ------------------------------------------------------------------ *
+ * Content sources
+ *
+ * A seam between "what the email says" and "how the email is written".
+ * Templates are the default so the drip does not depend on Bedrock; the AI
+ * path is preserved behind a flag rather than deleted.
+ * ------------------------------------------------------------------ */
+
+export interface FollowUpContentSource {
+  readonly name: 'template' | 'ai';
+  generate(lead: Lead, type: FollowUpType): Promise<FollowUpContent>;
+}
+
+/**
+ * The default. Deterministic, instant, and free.
+ */
+export const templateContentSource: FollowUpContentSource = {
+  name: 'template',
+  async generate(lead, type) {
+    return renderFollowUp(lead, type);
+  },
+};
+
+/**
+ * Bedrock-authored bodies.
+ *
+ * Only the body comes from the model. The subject still comes from the template
+ * so the nameless-lead handling and the single-line guarantee hold on this path
+ * too — the old code built subjects from a separate map that produced
+ * "Quick check-in, there".
+ *
+ * Imports are deferred to keep Bedrock and the prompt module out of the module
+ * graph when the flag is off, which is the normal case.
+ */
+export const aiContentSource: FollowUpContentSource = {
+  name: 'ai',
+  async generate(lead, type) {
+    const [{ generateJoeyEmail }, prompts] = await Promise.all([
+      import('@/lib/api/bedrock'),
+      import('@/lib/prompts/joey-voice'),
+    ]);
+
+    const {
+      JOEY_PERSONALITY,
+      FOLLOW_UP_PROMPTS,
+      fillPromptTemplate,
+      formatLeadContext,
+      stripPromptDelimiters,
+    } = prompts;
+
+    const promptTemplate =
+      FOLLOW_UP_PROMPTS[type as keyof typeof FOLLOW_UP_PROMPTS];
+
+    if (!promptTemplate) {
+      throw new Error(`No AI prompt defined for follow-up type: ${type}`);
+    }
+
+    const prompt = fillPromptTemplate(promptTemplate, {
+      name: stripPromptDelimiters(lead.name),
+      intent: stripPromptDelimiters(lead.intent),
+      details: formatLeadContext(lead),
+      area: stripPromptDelimiters(lead.location || 'Atlanta metro area'),
+      // Deliberately not claimed as a real prior message. The conversations
+      // table that would supply one is never written, so the prompt is told
+      // there is no history rather than being handed the string 'N/A'.
+      previousMessage: 'No previous message — this is an early touchpoint.',
+      history: 'Initial contact',
+    });
+
+    const body = await generateJoeyEmail(prompt, JOEY_PERSONALITY);
+
+    if (!body || !body.trim()) {
+      throw new Error('Bedrock returned an empty body');
+    }
+
+    return { subject: renderFollowUp(lead, type).subject, body };
+  },
+};
+
+/**
+ * The source in effect for this deployment.
+ *
+ * Templates unless `FOLLOW_UP_CONTENT_SOURCE=ai` is set explicitly, so a
+ * missing or misconfigured Bedrock setup degrades to a working email rather
+ * than to no email.
+ */
+export function getContentSource(): FollowUpContentSource {
+  return env.FOLLOW_UP_CONTENT_SOURCE === 'ai'
+    ? aiContentSource
+    : templateContentSource;
 }
