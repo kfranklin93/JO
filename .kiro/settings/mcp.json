@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "netlify": {
+      "command": "npx",
+      "args": ["-y", "@netlify/mcp"],
+      "disabled": false,
+      "autoApprove": []
+    }
+  }
+}
