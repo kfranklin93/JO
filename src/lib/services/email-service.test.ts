@@ -7,13 +7,22 @@ import { beforeEach, describe, it, expect, vi } from 'vitest';
 const testEnv: Record<string, unknown> = {};
 vi.mock('@/config/env', () => ({ env: testEnv }));
 
+/** A payload as handed to Resend. `from` and `replyTo` are asserted on below. */
+interface SentEmail {
+  to: string;
+  subject: string;
+  html: string;
+  from?: string;
+  replyTo?: string;
+}
+
 /** Every payload handed to Resend, so the rendered source can be inspected. */
-const sentEmails: Array<{ to: string; subject: string; html: string }> = [];
+const sentEmails: SentEmail[] = [];
 
 vi.mock('resend', () => ({
   Resend: class {
     emails = {
-      send: async (payload: { to: string; subject: string; html: string }) => {
+      send: async (payload: SentEmail) => {
         sentEmails.push(payload);
         return { data: { id: 'mock-email-id' }, error: null };
       },
@@ -21,15 +30,15 @@ vi.mock('resend', () => ({
   },
 }));
 
-const { textToHtml, notifyJoeyOfNewLead, sendDailyLeadSummary } = await import(
-  './email-service'
-);
+const { textToHtml, notifyJoeyOfNewLead, sendDailyLeadSummary, sendEmail } =
+  await import('./email-service');
 
 beforeEach(() => {
   sentEmails.length = 0;
   testEnv.RESEND_API_KEY = 're_test_key';
   testEnv.JOEY_EMAIL = 'joey@gowithjoeyo.com';
   testEnv.JOEY_PHONE = '(770) 555-0100';
+  testEnv.MAIL_FROM = 'onboarding@resend.dev';
   vi.spyOn(console, 'log').mockImplementation(() => {});
   vi.spyOn(console, 'error').mockImplementation(() => {});
 });
@@ -199,5 +208,62 @@ describe('email-service escaping integration', () => {
 
       expect(sentEmails).toHaveLength(0);
     });
+  });
+});
+
+/**
+ * Regression tests for the sending identity.
+ *
+ * Every outbound email previously failed in production with a Resend 403,
+ * because `from` was built from JOEY_EMAIL — a gmail.com address, which Resend
+ * will never let you send from. The sender now comes from MAIL_FROM, which is
+ * expected to be an address on a verified domain.
+ */
+describe('outbound sending identity', () => {
+  const lead = { name: 'Jane Doe', email: 'jane@example.com', intent: 'buy' };
+
+  it('sends from MAIL_FROM, not from JOEY_EMAIL', async () => {
+    await notifyJoeyOfNewLead(lead);
+
+    expect(sentEmails).toHaveLength(1);
+    expect(sentEmails[0]!.from).toBe('Joey Oberndorfer <onboarding@resend.dev>');
+    expect(sentEmails[0]!.from).not.toContain('joey@gowithjoeyo.com');
+  });
+
+  it('keeps the lead as Reply-To on the internal notification, so Joey replies to the lead', async () => {
+    await notifyJoeyOfNewLead(lead);
+
+    // Deliberate: the notification goes to Joey, but hitting reply reaches the
+    // lead rather than himself. Changing the `from` must not disturb this.
+    expect(sentEmails[0]!.to).toBe('joey@gowithjoeyo.com');
+    expect(sentEmails[0]!.replyTo).toBe('jane@example.com');
+  });
+
+  it('falls back to JOEY_EMAIL for Reply-To when a caller supplies none', async () => {
+    await sendEmail({
+      to: 'someone@example.com',
+      subject: 'no replyTo supplied',
+      html: '<p>body</p>',
+    });
+
+    expect(sentEmails[0]!.from).toBe('Joey Oberndorfer <onboarding@resend.dev>');
+    expect(sentEmails[0]!.replyTo).toBe('joey@gowithjoeyo.com');
+  });
+
+  it('honours a verified-domain MAIL_FROM once DNS is in place', async () => {
+    testEnv.MAIL_FROM = 'joey@gowithjoeyo.com';
+
+    await notifyJoeyOfNewLead(lead);
+
+    expect(sentEmails[0]!.from).toBe('Joey Oberndorfer <joey@gowithjoeyo.com>');
+  });
+
+  it('never sends from a gmail.com address, which Resend cannot verify', async () => {
+    testEnv.MAIL_FROM = 'onboarding@resend.dev';
+    testEnv.JOEY_EMAIL = 'kfranklin93@gmail.com';
+
+    await notifyJoeyOfNewLead(lead);
+
+    expect(sentEmails[0]!.from).not.toContain('gmail.com');
   });
 });

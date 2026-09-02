@@ -21,6 +21,19 @@ const envSchema = z.object({
   RESEND_API_KEY: z.string().optional(),
   JOEY_EMAIL: z.string().email().default('joey@example.com'),
   JOEY_PHONE: z.string().default('(770) 555-0100'),
+
+  // Outbound sending identity — deliberately separate from JOEY_EMAIL.
+  //
+  // Resend will only send from a domain you have verified. JOEY_EMAIL is a
+  // gmail.com address, which can never be verified, so using it as the `from`
+  // made every send fail with a 403. JOEY_EMAIL remains the *recipient* for
+  // internal notifications and the Reply-To on client mail.
+  //
+  // TODO (post-DNS): once gowithjoeyo.com is verified in Resend, set MAIL_FROM
+  // to an address on that domain (e.g. joey@gowithjoeyo.com) in Netlify. The
+  // default below is Resend's shared sender, which works without any domain
+  // setup but is not suitable for client-facing mail long term.
+  MAIL_FROM: z.string().email().default('onboarding@resend.dev'),
   
   // Twilio SMS Configuration
   TWILIO_ACCOUNT_SID: z.string().optional(),
@@ -68,6 +81,7 @@ export const env = envSchema.parse({
   RESEND_API_KEY: process.env.RESEND_API_KEY,
   JOEY_EMAIL: process.env.JOEY_EMAIL,
   JOEY_PHONE: process.env.JOEY_PHONE,
+  MAIL_FROM: process.env.MAIL_FROM,
   TWILIO_ACCOUNT_SID: process.env.TWILIO_ACCOUNT_SID,
   TWILIO_AUTH_TOKEN: process.env.TWILIO_AUTH_TOKEN,
   TWILIO_PHONE_NUMBER: process.env.TWILIO_PHONE_NUMBER,

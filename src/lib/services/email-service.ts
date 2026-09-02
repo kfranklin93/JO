@@ -37,7 +37,9 @@ export async function sendEmail(options: SendEmailOptions): Promise<boolean> {
     const resend = getResendClient();
     
     const emailData: any = {
-      from: `Joey Oberndorfer <${env.JOEY_EMAIL}>`,
+      // The sending identity must be on a Resend-verified domain, so it comes
+      // from MAIL_FROM rather than JOEY_EMAIL. Replies still route to Joey.
+      from: `Joey Oberndorfer <${env.MAIL_FROM}>`,
       to: options.to,
       subject: options.subject,
       html: options.html,
