@@ -18,7 +18,9 @@ vi.mock('@/lib/services/email-service', () => ({
 
 const { GET, POST } = await import('./route');
 
-const SECRET = 'NLonMXX18hoBQCB4gLCa77lp4yVlMWvR';
+// Deliberately fake. Never put a real secret here: Netlify's secret scanner
+// fails the build, and a public repo would publish it.
+const SECRET = 'test-cron-secret-do-not-use-in-any-environment';
 
 function cronRequest(authorization?: string): NextRequest {
   const headers = new Headers();
