@@ -126,8 +126,26 @@ export async function notifyJoeyOfNewLead(lead: {
   timeline?: string;
   location?: string;
   additionalNotes?: string;
+}, options?: {
+  /**
+   * Whether the immediate follow-up to the lead actually sent.
+   *
+   * Omit when the outcome is not known at the time of notification. This
+   * previously read as an unconditional claim that a follow-up had been sent,
+   * which was false whenever the send failed — and it fails whenever Bedrock is
+   * unconfigured. Joey would then chase a lead believing they had already been
+   * contacted, or leave them alone believing the drip had it covered.
+   */
+  immediateFollowUpSent?: boolean;
 }): Promise<boolean> {
   const subject = `🎯 New ${escapeHtml(lead.intent).toUpperCase()} Lead: ${escapeHtml(lead.name)}`;
+
+  const followUpNote =
+    options?.immediateFollowUpSent === true
+      ? `<p><em>An immediate follow-up email has been sent to the lead.</em></p>`
+      : options?.immediateFollowUpSent === false
+        ? `<p><strong>⚠️ The immediate follow-up email did NOT send.</strong> This lead has not heard from us — reach out manually.</p>`
+        : '';
   
   const details = [
     `<h2>New Lead Submitted</h2>`,
@@ -140,7 +158,7 @@ export async function notifyJoeyOfNewLead(lead: {
     lead.timeline ? `<p><strong>Timeline:</strong> ${escapeHtml(lead.timeline)}</p>` : '',
     lead.additionalNotes ? `<p><strong>Notes:</strong> ${escapeHtml(lead.additionalNotes)}</p>` : '',
     `<hr>`,
-    `<p><em>An immediate follow-up email has been sent to the lead.</em></p>`,
+    followUpNote,
   ].filter(Boolean).join('\n');
 
   const html = `

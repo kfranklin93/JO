@@ -128,23 +128,32 @@ export async function POST(request: NextRequest) {
       ...optionalDetails,
     };
 
-    // Integrations run outside the persistence path. A Resend or Twilio outage
-    // must not discard a lead that is already stored.
-    const [followUpResult, loftyResult, emailResult, smsResult] =
-      await Promise.allSettled([
-        sendImmediateFollowUp(lead),
-        sendLeadToLofty(lead),
-        notifyJoeyOfNewLead(lead),
-        sendSMSAlert(
-          `🔥 New ${lead.intent.toUpperCase()} Lead`,
-          `${lead.name}\n${lead.email}\n${lead.phone ?? 'No phone'}\n${lead.location ?? ''} | ${lead.budget ?? ''}`
-        ),
-      ]);
-
     const succeeded = (result: PromiseSettledResult<boolean>): boolean =>
       result.status === 'fulfilled' && result.value;
 
-    if (succeeded(followUpResult)) {
+    // Integrations run outside the persistence path. A Resend or Twilio outage
+    // must not discard a lead that is already stored.
+    //
+    // The immediate follow-up is awaited first, on its own, because Joey's
+    // notification states whether the lead has actually heard from us. Running
+    // it alongside the notification meant that claim could not be based on the
+    // real outcome, so it was hardcoded and became a lie whenever the send
+    // failed.
+    const [followUpResult] = await Promise.allSettled([
+      sendImmediateFollowUp(lead),
+    ]);
+    const immediateFollowUpSent = succeeded(followUpResult!);
+
+    const [loftyResult, emailResult, smsResult] = await Promise.allSettled([
+      sendLeadToLofty(lead),
+      notifyJoeyOfNewLead(lead, { immediateFollowUpSent }),
+      sendSMSAlert(
+        `🔥 New ${lead.intent.toUpperCase()} Lead`,
+        `${lead.name}\n${lead.email}\n${lead.phone ?? 'No phone'}\n${lead.location ?? ''} | ${lead.budget ?? ''}`
+      ),
+    ]);
+
+    if (immediateFollowUpSent) {
       console.log('✅ Immediate follow-up sent to:', lead.email);
     } else {
       console.error('❌ Failed to send immediate follow-up');
@@ -174,7 +183,7 @@ export async function POST(request: NextRequest) {
         leadId: savedLead.id,
         message: 'Lead submitted successfully',
         integrations: {
-          followUp: succeeded(followUpResult),
+          followUp: immediateFollowUpSent,
           loftyCRM: succeeded(loftyResult),
           emailNotification: succeeded(emailResult),
           smsAlert: succeeded(smsResult),

@@ -267,3 +267,38 @@ describe('outbound sending identity', () => {
     expect(sentEmails[0]!.from).not.toContain('gmail.com');
   });
 });
+
+/**
+ * The notification previously asserted "An immediate follow-up email has been
+ * sent to the lead" unconditionally, while the send ran in parallel and could
+ * fail. Joey acted on a claim the system had not verified.
+ */
+describe('immediate follow-up claim in the notification', () => {
+  const lead = { name: 'Jane Doe', email: 'jane@example.com', intent: 'buy' };
+
+  it('confirms the follow-up only when it actually sent', async () => {
+    await notifyJoeyOfNewLead(lead, { immediateFollowUpSent: true });
+
+    expect(sentEmails[0]!.html).toContain(
+      'An immediate follow-up email has been sent to the lead.'
+    );
+    expect(sentEmails[0]!.html).not.toContain('did NOT send');
+  });
+
+  it('warns Joey to reach out manually when the follow-up failed', async () => {
+    await notifyJoeyOfNewLead(lead, { immediateFollowUpSent: false });
+
+    expect(sentEmails[0]!.html).toContain('did NOT send');
+    expect(sentEmails[0]!.html).toContain('reach out manually');
+    expect(sentEmails[0]!.html).not.toContain(
+      'An immediate follow-up email has been sent to the lead.'
+    );
+  });
+
+  it('claims nothing when the outcome was not supplied', async () => {
+    await notifyJoeyOfNewLead(lead);
+
+    expect(sentEmails[0]!.html).not.toContain('has been sent to the lead');
+    expect(sentEmails[0]!.html).not.toContain('did NOT send');
+  });
+});
