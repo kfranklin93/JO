@@ -1,0 +1,97 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`templated follow-up content > renders a stable body and subject for day3 1`] = `
+{
+  "body": "Hey Jane!
+
+I wanted to follow up on your home search. I know these decisions take a while, and there's no rush on my end.
+
+If it's useful, I'm happy to answer specific questions by email — what things are actually selling for in Marietta, how the process works, whatever's on your mind. Sometimes that's easier than a call.
+
+Anything I can dig into for you?
+
+Talk soon,
+Joey",
+  "subject": "Quick question about your search, Jane",
+}
+`;
+
+exports[`templated follow-up content > renders a stable body and subject for day7 1`] = `
+{
+  "body": "Hey Jane!
+
+I keep a close eye on Marietta, and it's been moving in ways worth knowing about if you're still thinking through your home search.
+
+Rather than send you a generic market report, I'd rather tell you what's relevant to your situation specifically. That's a short conversation.
+
+Want me to pull the numbers for you?
+
+Talk soon,
+Joey",
+  "subject": "What's happening in Marietta",
+}
+`;
+
+exports[`templated follow-up content > renders a stable body and subject for day14 1`] = `
+{
+  "body": "Hey Jane!
+
+Checking in on your home search. Plans shift, and timing matters more than most people expect in this market.
+
+If you're ready to move, the next step is simple: we walk through what you're looking for and what your budget gets you right now. If you're not there yet, that's completely fine — I'd just rather you know I'm around than wonder.
+
+Either way, a quick reply tells me how to be useful.
+
+Talk soon,
+Joey",
+  "subject": "Still here when you need me, Jane",
+}
+`;
+
+exports[`templated follow-up content > renders a stable body and subject for day30 1`] = `
+{
+  "body": "Hey Jane!
+
+It's been about a month since you got in touch about your home search, so this is my last note unless you'd like me to keep in touch.
+
+If your timeline moved out, no problem at all. And if something changed and you want to pick this back up, just reply and we'll start where you left off.
+
+Either way, I hope it goes well.
+
+Talk soon,
+Joey",
+  "subject": "Checking in one more time, Jane",
+}
+`;
+
+exports[`templated follow-up content > renders a stable body and subject for immediate 1`] = `
+{
+  "body": "Hey Jane!
+
+Thanks for reaching out about finding a place. I got your details and I'm glad you did.
+
+I'd rather not guess at what you need, so here's my suggestion: a quick call, fifteen minutes or so, where we walk through what you're looking for and what your budget gets you right now. No pitch, and no obligation on your end.
+
+What does your schedule look like this week?
+
+Talk soon,
+Joey",
+  "subject": "Thanks for reaching out, Jane",
+}
+`;
+
+exports[`templated follow-up content > renders a stable body and subject for pastClient60 1`] = `
+{
+  "body": "Hey Jane!
+
+It's been a couple of months now, so I wanted to check in and see how the place is treating you.
+
+If anything's come up, or you need a recommendation for someone reliable, just ask. I'd rather you call me than hunt for someone on the internet.
+
+How's it going so far?
+
+Talk soon,
+Joey",
+  "subject": "Hope you're settling in, Jane",
+}
+`;
