@@ -7,7 +7,7 @@ import { siteConfig } from '@/config/site';
 
 export function ValueProposition() {
   return (
-    <section className="bg-[black] py-32 sm:py-40">
+    <section className="bg-onyx py-32 sm:py-40">
       <div className="mx-auto max-w-7xl px-8 lg:px-12">
         <div className="grid gap-20 lg:grid-cols-2 lg:gap-28">
           <motion.div
@@ -17,24 +17,24 @@ export function ValueProposition() {
             transition={{ duration: 0.8 }}
             className="flex flex-col justify-center"
           >
-            <span className="font-sans text-sm font-light uppercase tracking-[0.3em] text-[black]">
+            <span className="font-sans text-sm font-light uppercase tracking-[0.3em] text-champagne">
               Why Joey Oberndorfer
             </span>
-            <h2 className="mt-6 font-serif text-5xl text-[white] sm:text-6xl">
+            <h2 className="mt-6 font-serif text-5xl text-linen sm:text-6xl">
               One Tour.<br />One Decision.<br />
-              <span className="text-[black]">Zero Regrets.</span>
+              <span className="text-champagne">Zero Regrets.</span>
             </h2>
-            <div className="mt-8 space-y-6 font-sans text-lg font-light leading-relaxed text-[white]/80">
+            <div className="mt-8 space-y-6 font-sans text-lg font-light leading-relaxed text-linen/80">
               <p>
-                With a background in <strong className="font-normal text-[white]">law enforcement and competitive athletics</strong>,
+                With a background in <strong className="font-normal text-linen">law enforcement and competitive athletics</strong>,
                 Joey brings non-negotiable discipline and strategic thinking to every transaction.
               </p>
               <p>
-                His signature <strong className="font-normal text-[white]">'One-Tour' conversion mastery</strong> eliminates
+                His signature <strong className="font-normal text-linen">'One-Tour' conversion mastery</strong> eliminates
                 decision fatigue. You'll find your perfect property on the first showing—guaranteed.
               </p>
               <p>
-                The <strong className="font-normal text-[white]">'0-4-7 Month Inventory Guide'</strong> ensures your property
+                The <strong className="font-normal text-linen">'0-4-7 Month Inventory Guide'</strong> ensures your property
                 moves quickly with strategic pricing, professional staging, and targeted marketing.
               </p>
             </div>
@@ -42,7 +42,7 @@ export function ValueProposition() {
             <div className="mt-12">
               <Link
                 href="/about"
-                className="inline-flex items-center gap-2 font-sans text-base font-normal text-[black] transition-colors hover:text-[black]/80"
+                className="inline-flex items-center gap-2 font-sans text-base font-normal text-champagne transition-colors hover:text-champagne/80"
               >
                 <span>Learn More About Joey's Process</span>
                 <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -59,30 +59,30 @@ export function ValueProposition() {
             transition={{ duration: 0.8 }}
             className="relative"
           >
-            <div className="aspect-[4/5] overflow-hidden rounded-2xl border border-[black]/20">
+            <div className="aspect-[4/5] overflow-hidden rounded-2xl border border-linen/20">
               <img
                 src="/images/hero/joey-profile.jpg"
                 alt={siteConfig.fullName}
                 className="h-full w-full object-cover"
               />
             </div>
-            <div className="absolute -bottom-8 -right-8 h-40 w-40 rounded-2xl border border-[black]" />
-            
+            <div className="absolute -bottom-8 -right-8 h-40 w-40 rounded-2xl border border-champagne" />
+
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.8, delay: 0.3 }}
-              className="absolute -left-8 bottom-16 rounded-2xl border border-[black]/20 bg-[white] p-8 shadow-2xl"
+              className="absolute -left-8 bottom-16 rounded-2xl border border-navy/20 bg-linen p-8 shadow-2xl"
             >
               <div className="grid grid-cols-2 gap-8">
                 <div>
-                  <div className="font-serif text-3xl text-[black]">{siteConfig.stats.closedDeals}</div>
-                  <div className="mt-1 font-sans text-xs font-light text-[black]/60">Closed Deals</div>
+                  <div className="font-serif text-3xl text-navy">{siteConfig.stats.closedDeals}</div>
+                  <div className="mt-1 font-sans text-xs font-light text-stone">Closed Deals</div>
                 </div>
                 <div>
-                  <div className="font-serif text-3xl text-[black]">{siteConfig.stats.totalVolume}</div>
-                  <div className="mt-1 font-sans text-xs font-light text-[black]/60">Total Volume</div>
+                  <div className="font-serif text-3xl text-navy">{siteConfig.stats.totalVolume}</div>
+                  <div className="mt-1 font-sans text-xs font-light text-stone">Total Volume</div>
                 </div>
               </div>
             </motion.div>
@@ -92,4 +92,3 @@ export function ValueProposition() {
     </section>
   );
 }
-

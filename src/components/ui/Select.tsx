@@ -45,12 +45,12 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
             aria-invalid={error ? true : undefined}
             aria-describedby={describedBy}
             className={cn(
-              'flex min-h-11 w-full appearance-none rounded-xl border bg-[white] px-4 py-3 pr-12 text-sm text-[black] shadow-sm transition',
+              'flex min-h-11 w-full appearance-none rounded-xl border bg-linen px-4 py-3 pr-12 text-sm text-navy shadow-sm transition',
               'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2',
               error
                 ? 'border-red-600 focus-visible:outline-red-600'
-                : 'border-[black]/20 focus-visible:outline-[black]',
-              'disabled:cursor-not-allowed disabled:bg-[black]/5 disabled:text-[black]/40',
+                : 'border-navy/20 focus-visible:outline-navy',
+              'disabled:cursor-not-allowed disabled:bg-navy/5 disabled:text-stone',
               className
             )}
             {...props}
@@ -64,13 +64,13 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
           </select>
           <span
             aria-hidden="true"
-            className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-[black]/40"
+            className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-stone"
           >
             ▼
           </span>
         </div>
         {hint ? (
-          <p id={hintId} className="mt-2 text-sm text-[black]/60">
+          <p id={hintId} className="mt-2 text-sm text-stone">
             {hint}
           </p>
         ) : null}

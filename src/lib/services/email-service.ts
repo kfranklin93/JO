@@ -1,6 +1,7 @@
 import { Resend } from 'resend';
 import { env } from '@/config/env';
 import { escapeHtml, escapeAttr, safeMailto, safeTel } from '@/lib/utils/escape';
+import { requireEnv } from '@/lib/utils/require-env';
 
 // Initialize Resend client
 let resendClient: Resend | null = null;
@@ -27,6 +28,11 @@ export interface SendEmailOptions {
  * Send an email using Resend
  */
 export async function sendEmail(options: SendEmailOptions): Promise<boolean> {
+  // Asserted outside the try on purpose. A missing key is a configuration gap,
+  // not a send failure, so it propagates as a MissingEnvError naming the
+  // variable instead of being logged and reported as an ordinary `false`.
+  requireEnv('RESEND_API_KEY');
+
   try {
     const resend = getResendClient();
     

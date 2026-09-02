@@ -8,6 +8,14 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
  * no Neon connection, no Resend key, and no AWS credentials.
  */
 
+/**
+ * Configuration the handler asserts at request time. Mutable so a variable can
+ * be removed per test; the real module parses `process.env` once at import.
+ */
+const testEnv: Record<string, unknown> = {};
+
+vi.mock('@/config/env', () => ({ env: testEnv }));
+
 /** Rows returned by the mocked `leads` insert. */
 let insertedLeadRows: Array<{ id: string; createdAt: Date }>;
 /** Values passed to each mocked insert, keyed by table. */
@@ -117,6 +125,9 @@ function leadInsertValues(): Record<string, unknown> | undefined {
 }
 
 beforeEach(() => {
+  for (const key of Object.keys(testEnv)) delete testEnv[key];
+  testEnv.DATABASE_URL = 'postgres://user:pass@localhost:5432/db';
+  testEnv.RESEND_API_KEY = 're_test_key';
   insertedLeadRows = [{ id: LEAD_ID, createdAt: CREATED_AT }];
   recordedInserts = [];
   followUpInsertError = null;
@@ -434,5 +445,85 @@ describe('POST /api/leads — atomic persistence', () => {
 
     expect(response.status).toBe(201);
     expect(transactionRejected).toBe(false);
+  });
+});
+
+describe('POST /api/leads — missing configuration', () => {
+  it('returns 503 naming RESEND_API_KEY when it is absent', async () => {
+    delete testEnv.RESEND_API_KEY;
+
+    const response = await POST(postRequest(validPayload));
+
+    expect(response.status).toBe(503);
+    const body = await response.json();
+    expect(body.missing).toEqual(['RESEND_API_KEY']);
+    expect(body.message).toContain('RESEND_API_KEY');
+  });
+
+  it('returns 503 naming DATABASE_URL when it is absent', async () => {
+    delete testEnv.DATABASE_URL;
+
+    const response = await POST(postRequest(validPayload));
+
+    expect(response.status).toBe(503);
+    expect((await response.json()).missing).toEqual(['DATABASE_URL']);
+  });
+
+  it('names every missing variable in one response', async () => {
+    delete testEnv.DATABASE_URL;
+    delete testEnv.RESEND_API_KEY;
+
+    const response = await POST(postRequest(validPayload));
+
+    expect((await response.json()).missing).toEqual([
+      'DATABASE_URL',
+      'RESEND_API_KEY',
+    ]);
+  });
+
+  it('treats a blank value as absent', async () => {
+    // A cleared Netlify variable arrives as an empty string, which the schema
+    // accepts, so the check has to look at the value rather than the key.
+    testEnv.RESEND_API_KEY = '';
+
+    const response = await POST(postRequest(validPayload));
+
+    expect(response.status).toBe(503);
+  });
+
+  it('stores nothing and sends nothing when configuration is missing', async () => {
+    // The check runs before the transaction, so a retry after the variable is
+    // set cannot produce a duplicate lead.
+    delete testEnv.RESEND_API_KEY;
+
+    await POST(postRequest(validPayload));
+
+    expect(recordedInserts).toHaveLength(0);
+    expect(sendImmediateFollowUp).not.toHaveBeenCalled();
+    expect(notifyJoeyOfNewLead).not.toHaveBeenCalled();
+    expect(sendSMSAlert).not.toHaveBeenCalled();
+  });
+
+  it('validates the payload before reporting configuration, so a bad body still gets 422', async () => {
+    delete testEnv.RESEND_API_KEY;
+
+    const response = await POST(postRequest({ email: 'bad', intent: 'refinance' }));
+
+    expect(response.status).toBe(422);
+  });
+
+  it('proceeds normally once the variables are present', async () => {
+    const response = await POST(postRequest(validPayload));
+
+    expect(response.status).toBe(201);
+    expect(notifyJoeyOfNewLead).toHaveBeenCalledTimes(1);
+  });
+
+  it('still returns 500 for an unrelated failure rather than 503', async () => {
+    followUpInsertError = new Error('connection terminated');
+
+    const response = await POST(postRequest(validPayload));
+
+    expect(response.status).toBe(500);
   });
 });

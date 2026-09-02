@@ -55,7 +55,7 @@ export function FalseBottomHero({
   return (
     <div ref={containerRef} className="relative">
       {/* Main Hero Section */}
-      <section className="relative h-screen overflow-hidden bg-[black]">
+      <section className="relative h-screen overflow-hidden bg-onyx">
         {/* Background Media */}
         <motion.div
           style={{ scale }}
@@ -78,11 +78,11 @@ export function FalseBottomHero({
               className="h-full w-full object-cover"
             />
           ) : (
-            <div className="h-full w-full bg-gradient-to-br from-[black] via-[black] to-[black]" />
+            <div className="h-full w-full bg-gradient-to-br from-onyx via-onyx to-onyx" />
           )}
           
           {/* Overlay */}
-          <div className="absolute inset-0 bg-gradient-to-b from-[black]/60 via-[black]/40 to-[black]/70" />
+          <div className="absolute inset-0 bg-gradient-to-b from-onyx/60 via-onyx/40 to-onyx/70" />
         </motion.div>
 
         {/* Content */}
@@ -95,7 +95,7 @@ export function FalseBottomHero({
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
-            className="font-serif text-5xl text-[white] sm:text-6xl lg:text-7xl"
+            className="font-serif text-5xl text-linen sm:text-6xl lg:text-7xl"
           >
             {title}
           </motion.h1>
@@ -105,7 +105,7 @@ export function FalseBottomHero({
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.4 }}
-            className="mt-8 max-w-3xl font-sans text-xl font-light text-[white]/90 sm:text-2xl"
+            className="mt-8 max-w-3xl font-sans text-xl font-light text-linen/90 sm:text-2xl"
           >
             {subtitle}
           </motion.p>
@@ -135,14 +135,14 @@ export function FalseBottomHero({
             className="absolute bottom-12 left-1/2 -translate-x-1/2"
           >
             <div className="flex flex-col items-center gap-3">
-              <span className="font-sans text-sm font-light uppercase tracking-[0.3em] text-[white]/80">
+              <span className="font-sans text-sm font-light uppercase tracking-[0.3em] text-linen/80">
                 Scroll to unlock the $23.9M Strategy
               </span>
               <motion.div
                 animate={{ y: [0, 10, 0] }}
                 transition={{ duration: 1.5, repeat: Infinity }}
               >
-                <ChevronDown className="h-8 w-8 text-[white]/80" />
+                <ChevronDown className="h-8 w-8 text-linen/80" />
               </motion.div>
             </div>
           </motion.div>
@@ -156,13 +156,13 @@ export function FalseBottomHero({
           className="absolute bottom-0 left-0 right-0 h-32 overflow-hidden"
         >
           {/* Gradient Fade */}
-          <div className="absolute inset-0 bg-gradient-to-t from-transparent to-[black]/50" />
+          <div className="absolute inset-0 bg-gradient-to-t from-transparent to-onyx/50" />
           
           {/* Preview Content */}
           <div className="relative h-full">
             {nextSectionPreview || (
-              <div className="flex h-full items-center justify-center bg-[white]/10 backdrop-blur-sm">
-                <span className="font-sans text-sm font-light uppercase tracking-[0.3em] text-[white]/60">
+              <div className="flex h-full items-center justify-center bg-linen/10 backdrop-blur-sm">
+                <span className="font-sans text-sm font-light uppercase tracking-[0.3em] text-linen/80">
                   Continue scrolling to discover more
                 </span>
               </div>
@@ -172,7 +172,7 @@ export function FalseBottomHero({
       </section>
 
       {/* Curiosity Gap Transition */}
-      <div className="relative h-24 bg-gradient-to-b from-[black] to-[white]" />
+      <div className="relative h-24 bg-gradient-to-b from-onyx to-linen" />
     </div>
   );
 }
@@ -180,9 +180,9 @@ export function FalseBottomHero({
 // Optional: Preview component for next section
 export function NextSectionPreview({ title, icon }: { title: string; icon?: React.ReactNode }) {
   return (
-    <div className="flex h-full items-center justify-center gap-4 bg-[white]/10 backdrop-blur-sm">
-      {icon && <div className="text-[white]/60">{icon}</div>}
-      <span className="font-sans text-sm font-light uppercase tracking-[0.3em] text-[white]/60">
+    <div className="flex h-full items-center justify-center gap-4 bg-linen/10 backdrop-blur-sm">
+      {icon && <div className="text-linen/80">{icon}</div>}
+      <span className="font-sans text-sm font-light uppercase tracking-[0.3em] text-linen/80">
         {title}
       </span>
     </div>

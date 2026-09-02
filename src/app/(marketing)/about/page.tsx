@@ -56,31 +56,31 @@ export default function AboutPage() {
       </section>
 
       {/* By the Numbers */}
-      <section className="border-y border-[black]/10 bg-white py-24">
+      <section className="border-y border-navy/10 bg-white py-24">
         <div className="container mx-auto px-6">
           <div className="mx-auto max-w-6xl">
             <div className="grid gap-12 md:grid-cols-3 lg:gap-16">
               <div className="text-center">
-                <div className="font-serif text-6xl font-light text-[black] lg:text-7xl">
+                <div className="font-serif text-6xl font-light text-navy lg:text-7xl">
                   12+
                 </div>
-                <div className="mt-4 font-sans text-base font-light uppercase tracking-[0.2em] text-[black]/60">
+                <div className="mt-4 font-sans text-base font-light uppercase tracking-[0.2em] text-stone">
                   Years in Atlanta
                 </div>
               </div>
               <div className="text-center">
-                <div className="font-serif text-6xl font-light text-[black] lg:text-7xl">
+                <div className="font-serif text-6xl font-light text-navy lg:text-7xl">
                   $50M+
                 </div>
-                <div className="mt-4 font-sans text-base font-light uppercase tracking-[0.2em] text-[black]/60">
+                <div className="mt-4 font-sans text-base font-light uppercase tracking-[0.2em] text-stone">
                   In Transactions
                 </div>
               </div>
               <div className="text-center">
-                <div className="font-serif text-6xl font-light text-[black] lg:text-7xl">
+                <div className="font-serif text-6xl font-light text-navy lg:text-7xl">
                   98%
                 </div>
-                <div className="mt-4 font-sans text-base font-light uppercase tracking-[0.2em] text-[black]/60">
+                <div className="mt-4 font-sans text-base font-light uppercase tracking-[0.2em] text-stone">
                   Client Satisfaction
                 </div>
               </div>
@@ -93,17 +93,17 @@ export default function AboutPage() {
       <section className="py-24 lg:py-32">
         <div className="container mx-auto px-6">
           <div className="mx-auto max-w-4xl">
-            <h2 className="mb-12 font-serif text-4xl font-light text-[black] lg:text-5xl">
+            <h2 className="mb-12 font-serif text-4xl font-light text-navy lg:text-5xl">
               The Philosophy
             </h2>
             <div className="space-y-8">
-              <p className="font-sans text-xl font-light leading-relaxed text-[black]/80 lg:text-2xl">
+              <p className="font-sans text-xl font-light leading-relaxed text-stone lg:text-2xl">
                 In an era of algorithm-driven portals and automated valuations, what gets lost is context. The micro-market dynamics. The unspoken neighborhood codes. The timing that separates a good decision from a transformative one.
               </p>
-              <p className="font-sans text-xl font-light leading-relaxed text-[black]/80 lg:text-2xl">
+              <p className="font-sans text-xl font-light leading-relaxed text-stone lg:text-2xl">
                 I provide what technology cannot: strategic foresight shaped by years of local intelligence. Access to off-market opportunities before they're opportunities. The ability to read between the lines of a listing and see what others miss.
               </p>
-              <p className="font-sans text-xl font-light leading-relaxed text-[black]/80 lg:text-2xl">
+              <p className="font-sans text-xl font-light leading-relaxed text-stone lg:text-2xl">
                 This is real estate as it should be—a partnership where your goals become the blueprint, and my expertise becomes the execution.
               </p>
             </div>
@@ -112,20 +112,20 @@ export default function AboutPage() {
       </section>
 
       {/* The Personal Touch - "Off the Clock" */}
-      <section className="bg-[black] py-24 lg:py-32">
+      <section className="bg-navy py-24 lg:py-32">
         <div className="container mx-auto px-6">
           <div className="mx-auto max-w-4xl">
-            <h2 className="mb-12 font-serif text-4xl font-light text-[white] lg:text-5xl">
+            <h2 className="mb-12 font-serif text-4xl font-light text-linen lg:text-5xl">
               Off the Clock
             </h2>
             <div className="space-y-8">
-              <p className="font-sans text-xl font-light leading-relaxed text-[white]/80 lg:text-2xl">
+              <p className="font-sans text-xl font-light leading-relaxed text-linen/80 lg:text-2xl">
                 When I'm not orchestrating seamless transactions, you'll find me exploring Atlanta's evolving culinary scene—from the hidden omakase counter in Buckhead to the third-wave coffee roasters redefining Marietta Square.
               </p>
-              <p className="font-sans text-xl font-light leading-relaxed text-[white]/80 lg:text-2xl">
+              <p className="font-sans text-xl font-light leading-relaxed text-linen/80 lg:text-2xl">
                 I'm drawn to spaces that tell stories: mid-century modern architecture, the quiet trails of Kennesaw Mountain at dawn, the way light filters through historic homes on lazy Sunday afternoons.
               </p>
-              <p className="font-sans text-xl font-light leading-relaxed text-[white]/80 lg:text-2xl">
+              <p className="font-sans text-xl font-light leading-relaxed text-linen/80 lg:text-2xl">
                 These aren't just personal interests—they're the lens through which I understand what makes a house a home, a neighborhood a community, and a transaction a life chapter worth celebrating.
               </p>
             </div>
@@ -137,14 +137,14 @@ export default function AboutPage() {
       <section className="py-24 lg:py-32">
         <div className="container mx-auto px-6">
           <div className="mx-auto max-w-4xl">
-            <h2 className="mb-12 font-serif text-4xl font-light text-[black] lg:text-5xl">
+            <h2 className="mb-12 font-serif text-4xl font-light text-navy lg:text-5xl">
               The Insider's Edge
             </h2>
             <div className="space-y-8">
-              <p className="font-sans text-xl font-light leading-relaxed text-[black]/80 lg:text-2xl">
+              <p className="font-sans text-xl font-light leading-relaxed text-stone lg:text-2xl">
                 Metro Atlanta isn't one market—it's a constellation of micro-markets, each with its own rhythm and opportunity. While others see neighborhoods, I see the invisible patterns: the school district that's quietly becoming elite, the commercial corridor that signals residential appreciation, the historic pocket that's three years from its renaissance.
               </p>
-              <p className="font-sans text-xl font-light leading-relaxed text-[black]/80 lg:text-2xl">
+              <p className="font-sans text-xl font-light leading-relaxed text-stone lg:text-2xl">
                 This is the advantage of deep local roots. Not just knowing where to buy, but understanding why—and more importantly, when.
               </p>
             </div>
@@ -161,30 +161,30 @@ export default function AboutPage() {
           className="object-cover"
           priority
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-[black]/60 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-navy/60 to-transparent" />
       </section>
 
       {/* The Approach */}
       <section className="py-24 lg:py-32">
         <div className="container mx-auto px-6">
           <div className="mx-auto max-w-4xl">
-            <h2 className="mb-12 font-serif text-4xl font-light text-[black] lg:text-5xl">
+            <h2 className="mb-12 font-serif text-4xl font-light text-navy lg:text-5xl">
               The Approach
             </h2>
             <div className="grid gap-12 md:grid-cols-2">
               <div>
-                <h3 className="mb-4 font-sans text-xl font-medium text-[black]">
+                <h3 className="mb-4 font-sans text-xl font-medium text-navy">
                   For Buyers
                 </h3>
-                <p className="font-sans font-light leading-relaxed text-[black]/80">
+                <p className="font-sans font-light leading-relaxed text-stone">
                   Strategic property identification. Off-market access. Negotiation that protects your interests without sacrificing relationships. A process designed for clarity, not chaos.
                 </p>
               </div>
               <div>
-                <h3 className="mb-4 font-sans text-xl font-medium text-[black]">
+                <h3 className="mb-4 font-sans text-xl font-medium text-navy">
                   For Sellers
                 </h3>
-                <p className="font-sans font-light leading-relaxed text-[black]/80">
+                <p className="font-sans font-light leading-relaxed text-stone">
                   Precision pricing backed by data. Marketing that attracts qualified buyers, not tire-kickers. A sale strategy that maximizes value while minimizing time on market.
                 </p>
               </div>
@@ -194,18 +194,18 @@ export default function AboutPage() {
       </section>
 
       {/* CTA Section */}
-      <section className="border-t border-[black]/10 bg-white py-24">
+      <section className="border-t border-navy/10 bg-white py-24">
         <div className="container mx-auto px-6">
           <div className="mx-auto max-w-3xl text-center">
-            <h2 className="mb-6 font-serif text-4xl font-light text-[black] lg:text-5xl">
+            <h2 className="mb-6 font-serif text-4xl font-light text-navy lg:text-5xl">
               Let's Begin
             </h2>
-            <p className="mb-10 font-sans text-xl font-light leading-relaxed text-[black]/80">
+            <p className="mb-10 font-sans text-xl font-light leading-relaxed text-stone">
               Whether you're buying, selling, or simply exploring what's possible, the conversation starts here.
             </p>
             <Link
               href="/get-started"
-              className="inline-flex items-center justify-center gap-3 rounded-2xl bg-[black] px-10 py-5 font-sans text-lg font-normal text-[white] transition-all duration-300 hover:bg-[black]/90 hover:shadow-2xl hover:shadow-[black]/20"
+              className="inline-flex items-center justify-center gap-3 rounded-2xl bg-navy px-10 py-5 font-sans text-lg font-normal text-linen transition-all duration-300 hover:bg-navy/90 hover:shadow-2xl hover:shadow-navy/20"
             >
               Schedule a Consultation
               <svg

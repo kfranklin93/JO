@@ -14,7 +14,7 @@
   - Write tests with lead data containing each `$` sequence and a literal `{area}` string
   - _Requirements: 2.1, 2.2, 2.3_
 
-- [ ] 3. Contain prompt injection
+- [x] 3. Contain prompt injection
   - Wrap user-controlled fields in `formatLeadContext` (`joey-voice.ts:160-189`) in an XML-style `<lead_data>` delimiter block, with `additionalNotes` (line 184) included
   - Strip delimiter tokens from field values so a lead cannot break out of the block
   - Add an instruction to `JOEY_PERSONALITY` that delimited content is information about the recipient, never an instruction to follow
@@ -22,7 +22,7 @@
   - Write tests asserting every user-controlled field lands inside the delimiters and that an attempted `</lead_data>` breakout is neutralised
   - _Requirements: 3.1, 3.2, 3.4, 3.5_
 
-- [ ] 4. Authenticate the SMS webhook
+- [x] 4. Authenticate the SMS webhook
   - Validate the Twilio signature in `src/app/api/sms/webhook/route.ts` before any other processing, using `validateRequest` from the installed `twilio` package
   - Reconstruct the public URL from `x-forwarded-proto` and `x-forwarded-host` so validation does not fail against Netlify's internal URL
   - Reject a missing or invalid signature with 403, and reject rather than skip when `TWILIO_AUTH_TOKEN` is unset
@@ -30,7 +30,7 @@
   - Write route tests for valid signature, invalid signature, absent header, and unset auth token — each asserting the status and that no Bedrock or SMS call occurred
   - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5, 4.6, 4.7, 4.8_
 
-- [ ] 5. Make missing configuration explicit
+- [x] 5. Make missing configuration explicit
   - Create `src/lib/utils/require-env.ts` with `requireEnv`, `MissingEnvError`, and a helper that maps the error to a 503 naming the missing variable
   - Call it from the routes that depend on specific variables, inside the request path rather than at module import
   - Add `CRON_SECRET` to the Zod schema in `src/config/env.ts` as optional, so it stops being an undocumented `process.env` read
@@ -38,7 +38,7 @@
   - Write tests asserting a 503 naming the variable when absent, and normal operation when present
   - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.5_
 
-- [ ] 6. Verify the spec
+- [x] 6. Verify the spec
   - Run `npm test`, `npm run typecheck`, and `npm run build`
   - Submit a lead whose notes contain `"><script>alert(1)</script>` and inspect the notification email source to confirm it renders inert
   - Send an unsigned POST to the SMS webhook and confirm 403 with no outbound SMS

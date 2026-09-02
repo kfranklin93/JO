@@ -27,7 +27,7 @@
 - Never commit .env.local
 - All secrets go in Netlify environment variables
 - After adding any env var in Netlify, trigger a manual redeploy
-- The accent color system is a single source of truth in tailwind.config.ts — do not hardcode hex values
+- The accent color system is a single source of truth in the `@theme` block in src/app/globals.css — do not hardcode hex values, and do not use arbitrary escapes like `bg-[black]` or `text-[white]`
 - Dashboard auth uses a simple cookie — do not replace with an external auth provider
 
 ## Full details

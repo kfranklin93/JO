@@ -6,6 +6,7 @@ import { sendSMSAlert } from '@/lib/services/sms-service';
 import type { Lead } from '@/lib/services/follow-up-scheduler';
 import { db, leads, followUps } from '@/lib/db';
 import { formatFieldErrors, leadSubmissionSchema } from '@/lib/validation/lead';
+import { envErrorResponse, requireEnv } from '@/lib/utils/require-env';
 
 /**
  * Scheduled follow-up touchpoints created alongside every new lead.
@@ -51,6 +52,11 @@ export async function POST(request: NextRequest) {
   const submission = parsed.data;
 
   try {
+    // Checked before the write, not after. A 503 here means nothing was stored
+    // and nothing was sent, so the visitor's retry after configuration is fixed
+    // does not produce a duplicate lead with a second drip sequence.
+    requireEnv('DATABASE_URL', 'RESEND_API_KEY');
+
     // The lead and its follow-up schedule are written together. A partial write
     // previously left an orphaned lead behind while returning 500, so the
     // visitor retried and produced a duplicate with a second drip sequence.
@@ -177,6 +183,11 @@ export async function POST(request: NextRequest) {
       { status: 201 }
     );
   } catch (error) {
+    // Missing configuration is a deployment gap, not a request failure, so it
+    // gets a 503 naming the variable instead of an opaque 500.
+    const configError = envErrorResponse(error);
+    if (configError) return configError;
+
     console.error('Lead submission error:', error);
     return NextResponse.json({ error: 'Failed to submit lead' }, { status: 500 });
   }

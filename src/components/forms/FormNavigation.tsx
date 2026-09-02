@@ -10,47 +10,47 @@ export interface FormNavigationProps {
    * Current form progress state
    */
   progress: FormProgress;
-  
+
   /**
    * Whether the form is currently submitting
    */
   isSubmitting?: boolean;
-  
+
   /**
    * Handler for previous button click
    */
   onPrevious: () => void;
-  
+
   /**
    * Handler for next button click
    */
   onNext: () => void;
-  
+
   /**
    * Handler for submit button click
    */
   onSubmit: () => void;
-  
+
   /**
    * Custom label for the next button
    */
   nextLabel?: string;
-  
+
   /**
    * Custom label for the previous button
    */
   previousLabel?: string;
-  
+
   /**
    * Custom label for the submit button
    */
   submitLabel?: string;
-  
+
   /**
    * Custom loading label for submit button
    */
   submitLoadingLabel?: string;
-  
+
   /**
    * Additional CSS classes
    */
@@ -59,15 +59,22 @@ export interface FormNavigationProps {
 
 /**
  * FormNavigation Component
- * 
+ *
  * Navigation buttons for multi-step forms with proper disabled states and ARIA.
  * Handles previous, next, and submit actions with loading states.
+ *
+ * Every button here is `type="button"`. The multi-step form deliberately has no
+ * `type="submit"` control: the Next and Submit buttons occupy the same position
+ * in the DOM, so a native submit button would let a single keyboard or pointer
+ * activation both advance to the final step and submit the freshly rendered
+ * form. Submission is driven only by the explicit `onSubmit` callback.
  */
 export function FormNavigation({
   progress,
   isSubmitting = false,
   onPrevious,
   onNext,
+  onSubmit,
   nextLabel = 'Next',
   previousLabel = 'Previous',
   submitLabel = 'Submit',
@@ -81,7 +88,7 @@ export function FormNavigation({
   return (
     <div
       className={cn(
-        'flex items-center justify-between gap-4 border-t border-[black]/10 pt-6',
+        'flex items-center justify-between gap-4 border-t border-navy/10 pt-6',
         className
       )}
     >
@@ -114,8 +121,9 @@ export function FormNavigation({
       {/* Next/Submit Button */}
       {isLastStep ? (
         <Button
-          type="submit"
+          type="button"
           variant="primary"
+          onClick={onSubmit}
           disabled={!canProceed || isSubmitting}
           loading={isSubmitting}
           loadingLabel={submitLoadingLabel}
@@ -159,4 +167,3 @@ export function FormNavigation({
     </div>
   );
 }
-

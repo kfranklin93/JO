@@ -13,14 +13,14 @@ export const Label = React.forwardRef<HTMLLabelElement, LabelProps>(
     return (
       <label
         ref={ref}
-        className={cn('mb-2 block text-sm font-medium text-[black]', className)}
+        className={cn('mb-2 block text-sm font-medium text-navy', className)}
         {...props}
       >
         <span className="inline-flex items-center gap-1">
           <span>{children}</span>
           {required ? <span aria-hidden="true" className="text-red-600">*</span> : null}
           {!required && optionalText ? (
-            <span className="text-xs font-normal text-[black]/50">({optionalText})</span>
+            <span className="text-xs font-normal text-stone">({optionalText})</span>
           ) : null}
         </span>
       </label>

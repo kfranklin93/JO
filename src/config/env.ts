@@ -39,6 +39,19 @@ const envSchema = z.object({
   
   // Admin Dashboard
   ADMIN_PASSWORD: z.string().optional(),
+
+  // Dashboard Session Signing
+  // Optional here for the same reason as CRON_SECRET below: this file parses at
+  // module import. The session module treats an absent or blank value as fatal
+  // at request time, so a misconfigured deploy denies access rather than
+  // issuing an unsigned session.
+  SESSION_SECRET: z.string().optional(),
+  
+  // Scheduled Jobs
+  // Optional here on purpose: this file parses at module import, so a required
+  // variable would fail `next build` rather than the request. Handlers assert it
+  // at request time with requireEnv (src/lib/utils/require-env.ts).
+  CRON_SECRET: z.string().optional(),
 });
 
 export const env = envSchema.parse({
@@ -63,4 +76,6 @@ export const env = envSchema.parse({
   LOFTY_API_KEY: process.env.LOFTY_API_KEY,
   ANALYTICS_API_KEY: process.env.ANALYTICS_API_KEY,
   ADMIN_PASSWORD: process.env.ADMIN_PASSWORD,
+  SESSION_SECRET: process.env.SESSION_SECRET,
+  CRON_SECRET: process.env.CRON_SECRET,
 });

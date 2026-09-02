@@ -3,6 +3,16 @@
 import * as React from 'react';
 import { useRouter } from 'next/navigation';
 
+/**
+ * Sign-in page for the dashboard, served at `/dashboard/login`.
+ *
+ * It lives under a route group rather than in `src/app/dashboard/` on purpose.
+ * `src/app/dashboard/layout.tsx` verifies the session and redirects failures
+ * here; were this page a child of that layout, arriving unauthenticated would
+ * re-run the check and redirect again, which is a loop the browser gives up on.
+ * A route group is not a URL segment, so the path is unchanged and only the
+ * layout inheritance differs.
+ */
 export default function DashboardLoginPage() {
   const router = useRouter();
   const [password, setPassword] = React.useState('');

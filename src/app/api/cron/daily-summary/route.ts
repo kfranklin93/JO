@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { sendDailyLeadSummary } from '@/lib/services/email-service';
+import { env } from '@/config/env';
+import { envErrorResponse, requireEnv } from '@/lib/utils/require-env';
 
 /**
  * Daily Lead Summary Cron Job
@@ -17,9 +19,10 @@ import { sendDailyLeadSummary } from '@/lib/services/email-service';
  */
 export async function GET(request: NextRequest) {
   try {
-    // Verify cron secret to prevent unauthorized access
+    // Verify cron secret to prevent unauthorized access. Read from the
+    // validated schema rather than process.env.
     const authHeader = request.headers.get('authorization');
-    const cronSecret = process.env.CRON_SECRET;
+    const cronSecret = env.CRON_SECRET;
     
     if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
       return NextResponse.json(
@@ -27,6 +30,10 @@ export async function GET(request: NextRequest) {
         { status: 401 }
       );
     }
+
+    // Asserted after auth so an unauthenticated caller cannot probe which
+    // variables a deployment is missing.
+    requireEnv('RESEND_API_KEY');
 
     console.log('Starting daily lead summary...');
 
@@ -80,6 +87,9 @@ export async function GET(request: NextRequest) {
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
+    const configError = envErrorResponse(error);
+    if (configError) return configError;
+
     console.error('Daily summary cron error:', error);
     return NextResponse.json(
       { error: 'Failed to send daily summary' },

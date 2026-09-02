@@ -1,5 +1,38 @@
-import { describe, it, expect } from 'vitest';
-import { textToHtml } from './email-service';
+import { beforeEach, describe, it, expect, vi } from 'vitest';
+
+/**
+ * Configuration read at request time. Mutable so the missing-key case can be
+ * exercised; the real module parses `process.env` once at import.
+ */
+const testEnv: Record<string, unknown> = {};
+vi.mock('@/config/env', () => ({ env: testEnv }));
+
+/** Every payload handed to Resend, so the rendered source can be inspected. */
+const sentEmails: Array<{ to: string; subject: string; html: string }> = [];
+
+vi.mock('resend', () => ({
+  Resend: class {
+    emails = {
+      send: async (payload: { to: string; subject: string; html: string }) => {
+        sentEmails.push(payload);
+        return { data: { id: 'mock-email-id' }, error: null };
+      },
+    };
+  },
+}));
+
+const { textToHtml, notifyJoeyOfNewLead, sendDailyLeadSummary } = await import(
+  './email-service'
+);
+
+beforeEach(() => {
+  sentEmails.length = 0;
+  testEnv.RESEND_API_KEY = 're_test_key';
+  testEnv.JOEY_EMAIL = 'joey@gowithjoeyo.com';
+  testEnv.JOEY_PHONE = '(770) 555-0100';
+  vi.spyOn(console, 'log').mockImplementation(() => {});
+  vi.spyOn(console, 'error').mockImplementation(() => {});
+});
 
 describe('email-service escaping integration', () => {
   describe('textToHtml', () => {
@@ -48,8 +81,123 @@ describe('email-service escaping integration', () => {
     });
   });
 
-  // Note: Full integration tests for notifyJoeyOfNewLead and sendDailyLeadSummary
-  // would require mocking the Resend client, which is deferred to when those
-  // functions are actively used. The escaping logic itself is unit tested in
-  // escape.test.ts, and the textToHtml integration is verified here.
+  /**
+   * The end-to-end form of Requirement 1.3: rather than testing the escaping
+   * helpers in isolation, these assert against the exact HTML string handed to
+   * Resend. That string is the email source Joey would view, so an escaping
+   * call omitted at a single interpolation site fails here.
+   */
+  describe('notifyJoeyOfNewLead source (Requirement 1.3)', () => {
+    /** The payload from the spec's verification step. */
+    const PAYLOAD = '"><script>alert(1)</script>';
+
+    async function renderNotification(
+      overrides: Partial<Parameters<typeof notifyJoeyOfNewLead>[0]> = {}
+    ) {
+      await notifyJoeyOfNewLead({
+        name: 'Jane Doe',
+        email: 'jane@example.com',
+        phone: '(770) 555-0188',
+        intent: 'buy',
+        additionalNotes: PAYLOAD,
+        ...overrides,
+      });
+      expect(sentEmails).toHaveLength(1);
+      return sentEmails[0]!.html;
+    }
+
+    it('renders a script payload in the notes as inert text', async () => {
+      const html = await renderNotification();
+
+      expect(html).not.toContain('<script>');
+      expect(html).not.toContain('</script>');
+      expect(html).toContain('&quot;&gt;&lt;script&gt;alert(1)&lt;/script&gt;');
+    });
+
+    it('renders the payload inert in every lead-derived field', async () => {
+      const html = await renderNotification({
+        name: PAYLOAD,
+        intent: PAYLOAD,
+        location: PAYLOAD,
+        budget: PAYLOAD,
+        timeline: PAYLOAD,
+      });
+
+      expect(html).not.toContain('<script>');
+      expect(html).not.toContain(PAYLOAD);
+    });
+
+    it('leaves no unbalanced tag that a payload could have opened', async () => {
+      const html = await renderNotification({ name: PAYLOAD });
+
+      // The payload's leading `">` would otherwise close an attribute and an
+      // element. Counting delimiters proves no extra markup was produced.
+      const opens = html.split('<').length - 1;
+      const closes = html.split('>').length - 1;
+      expect(opens).toBe(closes);
+    });
+
+    it('produces no javascript: href from a hostile email or phone', async () => {
+      const html = await renderNotification({
+        email: 'javascript:alert(1)',
+        phone: 'javascript:alert(1)',
+      });
+
+      expect(html).not.toContain('href="javascript:');
+      expect(html).toContain('href="mailto:"');
+      expect(html).toContain('href="tel:"');
+    });
+
+    it('keeps an apostrophe in a name readable rather than as raw markup', async () => {
+      const html = await renderNotification({ name: "Siobhán O'Brien" });
+
+      // Entity-encoded, which an HTML mail client renders as the glyph.
+      expect(html).toContain('O&#39;Brien');
+    });
+
+    it('escapes the payload in the daily summary rows as well', async () => {
+      await sendDailyLeadSummary([
+        {
+          name: PAYLOAD,
+          email: 'jane@example.com',
+          phone: '(770) 555-0188',
+          intent: 'buy',
+          location: PAYLOAD,
+          budget: PAYLOAD,
+          createdAt: new Date('2026-03-01T12:00:00.000Z'),
+        },
+      ]);
+
+      const html = sentEmails[0]!.html;
+      expect(html).not.toContain('<script>');
+      expect(html).not.toContain(PAYLOAD);
+    });
+  });
+
+  /**
+   * Requirement 5.2 at the service boundary: an absent key surfaces as a thrown
+   * MissingEnvError naming the variable, which the route maps to a 503, rather
+   * than a logged `false` that reads as an ordinary send failure.
+   */
+  describe('missing RESEND_API_KEY (Requirement 5.1, 5.2)', () => {
+    it('throws an error naming the variable instead of returning false', async () => {
+      delete testEnv.RESEND_API_KEY;
+
+      await expect(
+        notifyJoeyOfNewLead({ name: 'Jane Doe', email: 'jane@example.com', intent: 'buy' })
+      ).rejects.toThrow('RESEND_API_KEY');
+    });
+
+    it('sends nothing when the key is absent', async () => {
+      delete testEnv.RESEND_API_KEY;
+
+      await notifyJoeyOfNewLead({
+        name: 'Jane Doe',
+        email: 'jane@example.com',
+        intent: 'buy',
+      }).catch(() => undefined);
+
+      expect(sentEmails).toHaveLength(0);
+    });
+  });
 });

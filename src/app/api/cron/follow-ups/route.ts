@@ -3,6 +3,8 @@ import { eq, lte, and, inArray } from 'drizzle-orm';
 import { db, leads, followUps } from '@/lib/db';
 import { sendFollowUp } from '@/lib/services/follow-up-scheduler';
 import type { Lead } from '@/lib/services/follow-up-scheduler';
+import { env } from '@/config/env';
+import { envErrorResponse, requireEnv } from '@/lib/utils/require-env';
 
 /**
  * Cron job endpoint for processing automated follow-ups.
@@ -18,13 +20,18 @@ import type { Lead } from '@/lib/services/follow-up-scheduler';
  */
 export async function GET(request: NextRequest) {
   try {
-    // Verify cron secret
+    // Verify cron secret. Read from the validated schema rather than
+    // process.env so the variable is documented in one place.
     const authHeader = request.headers.get('authorization');
-    const cronSecret = process.env.CRON_SECRET;
+    const cronSecret = env.CRON_SECRET;
 
     if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+
+    // Asserted after auth so an unauthenticated caller cannot probe which
+    // variables a deployment is missing.
+    requireEnv('DATABASE_URL', 'RESEND_API_KEY');
 
     console.log('Starting follow-up processing...');
 
@@ -135,6 +142,9 @@ export async function GET(request: NextRequest) {
       timestamp: now.toISOString(),
     });
   } catch (error) {
+    const configError = envErrorResponse(error);
+    if (configError) return configError;
+
     console.error('Cron job error:', error);
     return NextResponse.json({ error: 'Failed to process follow-ups' }, { status: 500 });
   }

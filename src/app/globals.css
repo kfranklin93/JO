@@ -1,4 +1,21 @@
-@import "tailwindcss";
+/*
+ * `source("../../src")` relocates Tailwind's automatic source-detection base
+ * to `src/`. Without it, v4 detects sources from the git root, so any
+ * non-gitignored file that merely *mentions* a class string — the root
+ * markdown plans, the spec documents under `.kiro/`, the steering file —
+ * generates a real rule. That is where the dead `.bg-\[black\]` and
+ * `.text-\[white\]` rules in the compiled CSS came from.
+ *
+ * A bare `@source "../../src"` would NOT fix this: `@source` *adds* to
+ * automatic detection rather than replacing it, so the git-root scan would
+ * continue and the dead rules would survive. `source(...)` on the import is
+ * the directive that moves the base.
+ *
+ * Every class string in this project lives under `src/`. The one exception is
+ * the compile fixture in `tests/design-tokens.test.ts`, which registers its
+ * own source at compile time rather than widening the production scope.
+ */
+@import "tailwindcss" source("../../src");
 
 @theme {
   /* Quiet Luxury Palette */

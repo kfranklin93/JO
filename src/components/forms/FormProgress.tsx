@@ -58,8 +58,8 @@ export function FormProgress({ progress, stepLabels, className }: FormProgressPr
                     className={cn(
                       'h-0.5 flex-1 transition-colors',
                       isPast || isCompleted
-                        ? 'bg-[black]'
-                        : 'bg-[black]/20'
+                        ? 'bg-navy'
+                        : 'bg-navy/20'
                     )}
                     aria-hidden="true"
                   />
@@ -69,9 +69,9 @@ export function FormProgress({ progress, stepLabels, className }: FormProgressPr
                 <div
                   className={cn(
                     'flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 text-sm font-semibold transition-colors',
-                    isCurrent && 'border-[black] bg-[black] text-white',
-                    (isPast || isCompleted) && !isCurrent && 'border-[black] bg-[black] text-white',
-                    !isCurrent && !isPast && !isCompleted && 'border-[black]/20 bg-[white] text-[black]/60'
+                    isCurrent && 'border-navy bg-navy text-white',
+                    (isPast || isCompleted) && !isCurrent && 'border-navy bg-navy text-white',
+                    !isCurrent && !isPast && !isCompleted && 'border-navy/20 bg-linen text-stone'
                   )}
                   aria-current={isCurrent ? 'step' : undefined}
                   aria-label={
@@ -108,8 +108,8 @@ export function FormProgress({ progress, stepLabels, className }: FormProgressPr
                     className={cn(
                       'h-0.5 flex-1 transition-colors',
                       isPast || isCompleted
-                        ? 'bg-[black]'
-                        : 'bg-[black]/20'
+                        ? 'bg-navy'
+                        : 'bg-navy/20'
                     )}
                     aria-hidden="true"
                   />
@@ -120,7 +120,7 @@ export function FormProgress({ progress, stepLabels, className }: FormProgressPr
               <span
                 className={cn(
                   'text-center text-xs font-medium transition-colors sm:text-sm',
-                  isCurrent ? 'text-[black]' : 'text-[black]/60'
+                  isCurrent ? 'text-navy' : 'text-stone'
                 )}
               >
                 {label}

@@ -48,13 +48,13 @@ export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
           aria-invalid={error ? true : undefined}
           aria-describedby={describedBy}
           className={cn(
-            'flex min-h-32 w-full rounded-xl border bg-[white] px-4 py-3 font-sans text-sm font-light text-[black] shadow-sm transition-all',
-            'placeholder:text-[black]/40',
-            'focus-visible:outline-none focus-visible:ring-1 focus-visible:border-[black]',
+            'flex min-h-32 w-full rounded-xl border bg-linen px-4 py-3 font-sans text-sm font-light text-navy shadow-sm transition-all',
+            'placeholder:text-stone',
+            'focus-visible:outline-none focus-visible:ring-1 focus-visible:border-cerulean',
             error
               ? 'border-red-600 focus-visible:ring-red-600 focus-visible:border-red-600'
-              : 'border-[black]/20 focus-visible:ring-[black]',
-            'disabled:cursor-not-allowed disabled:bg-[black]/5 disabled:text-[black]/40',
+              : 'border-navy/20 focus-visible:ring-cerulean',
+            'disabled:cursor-not-allowed disabled:bg-navy/5 disabled:text-stone',
             className
           )}
           {...props}
@@ -62,7 +62,7 @@ export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
         <div className="mt-2 flex items-start justify-between gap-4">
           <div className="space-y-2">
             {hint ? (
-              <p id={hintId} className="text-sm text-[black]/60">
+              <p id={hintId} className="text-sm text-stone">
                 {hint}
               </p>
             ) : null}
@@ -73,7 +73,7 @@ export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
             ) : null}
           </div>
           {showCharacterCount && maxLength ? (
-            <p id={countId} className="shrink-0 text-sm text-[black]/60" aria-live="polite">
+            <p id={countId} className="shrink-0 text-sm text-stone" aria-live="polite">
               {characterCount}/{maxLength}
             </p>
           ) : null}

@@ -36,7 +36,7 @@ export function FormField({
       </Label>
       {children}
       {!error && helpText ? (
-        <p id={`${id}-help`} className="mt-2 text-sm text-[black]/60">
+        <p id={`${id}-help`} className="mt-2 text-sm text-stone">
           {helpText}
         </p>
       ) : null}

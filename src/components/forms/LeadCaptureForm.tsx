@@ -18,27 +18,27 @@ export interface LeadCaptureFormProps {
    * Initial form data (optional)
    */
   initialData?: Partial<CreateLeadInput>;
-  
+
   /**
    * Lead source for tracking
    */
   source?: LeadSource;
-  
+
   /**
    * Form submission handler
    */
   onSubmit: (data: CreateLeadInput) => Promise<void>;
-  
+
   /**
    * Success callback after submission
    */
   onSuccess?: () => void;
-  
+
   /**
    * Error callback if submission fails
    */
   onError?: (error: Error) => void;
-  
+
   /**
    * Additional CSS classes
    */
@@ -47,13 +47,17 @@ export interface LeadCaptureFormProps {
 
 /**
  * LeadCaptureForm Component
- * 
+ *
  * Multi-step form for capturing real estate leads with:
  * - 3 steps: Contact Info, Lead Intent, Additional Details
  * - Form validation on each step
  * - LocalStorage persistence
  * - Accessibility features (ARIA, focus management)
  * - Loading states and error handling
+ *
+ * Submission is driven exclusively by `submitForm`, which takes no event. The
+ * form still registers an `onSubmit` handler, but only to cancel any native
+ * submission the browser attempts (for example implicit submission via Enter).
  */
 export function LeadCaptureForm({
   initialData = {},
@@ -79,6 +83,8 @@ export function LeadCaptureForm({
 
   const formRef = React.useRef<HTMLFormElement>(null);
   const errorAnnouncementRef = React.useRef<HTMLDivElement>(null);
+
+  const isLastStep = state.progress.currentStep === state.progress.totalSteps;
 
   // Focus management: focus on first field when step changes
   React.useEffect(() => {
@@ -109,73 +115,107 @@ export function LeadCaptureForm({
     [state.validation.errors, state.validation.touchedFields]
   );
 
-  const handleSubmit = React.useCallback(
-    async (e: React.FormEvent) => {
-      e.preventDefault();
+  /**
+   * Run the submission. Takes no event so it can be called from a plain button
+   * handler without fabricating a synthetic event.
+   */
+  const submitForm = React.useCallback(async () => {
+    if (state.submission.isSubmitting) {
+      return;
+    }
 
-      if (!state.validation.isValid) {
-        // Announce validation errors
-        if (errorAnnouncementRef.current) {
-          errorAnnouncementRef.current.textContent = 
-            `Form has ${state.validation.errors.length} error${state.validation.errors.length !== 1 ? 's' : ''}. Please review and correct.`;
-        }
+    if (!state.validation.isValid) {
+      if (errorAnnouncementRef.current) {
+        errorAnnouncementRef.current.textContent =
+          `Form has ${state.validation.errors.length} error${state.validation.errors.length !== 1 ? 's' : ''}. Please review and correct.`;
+      }
+      return;
+    }
+
+    setSubmissionState({
+      isSubmitting: true,
+      isSuccess: false,
+      isError: false,
+    });
+
+    try {
+      await onSubmit(state.data as CreateLeadInput);
+
+      setSubmissionState({
+        isSubmitting: false,
+        isSuccess: true,
+        isError: false,
+        submittedAt: new Date(),
+      });
+
+      if (errorAnnouncementRef.current) {
+        errorAnnouncementRef.current.textContent = 'Form submitted successfully!';
+      }
+
+      onSuccess?.();
+      resetForm();
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'An error occurred';
+
+      setSubmissionState({
+        isSubmitting: false,
+        isSuccess: false,
+        isError: true,
+        error: errorMessage,
+      });
+
+      if (errorAnnouncementRef.current) {
+        errorAnnouncementRef.current.textContent = `Error: ${errorMessage}`;
+      }
+
+      onError?.(error instanceof Error ? error : new Error(errorMessage));
+    }
+  }, [
+    state.data,
+    state.validation,
+    state.submission.isSubmitting,
+    onSubmit,
+    onSuccess,
+    onError,
+    setSubmissionState,
+    resetForm,
+  ]);
+
+  /**
+   * Cancel native submission. Nothing in this form is `type="submit"`, so a
+   * submit event here means the browser attempted implicit submission.
+   */
+  const handleFormSubmit = React.useCallback((e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+  }, []);
+
+  /**
+   * Enter inside a field should advance the form, never submit it, until the
+   * user is on the final step and has explicitly reached the Submit button.
+   */
+  const handleKeyDown = React.useCallback(
+    (e: React.KeyboardEvent<HTMLFormElement>) => {
+      if (e.key !== 'Enter') {
         return;
       }
 
-      setSubmissionState({
-        isSubmitting: true,
-        isSuccess: false,
-        isError: false,
-      });
+      // Let Enter insert newlines in the textarea.
+      if (e.target instanceof HTMLTextAreaElement) {
+        return;
+      }
 
-      try {
-        await onSubmit(state.data as CreateLeadInput);
-        
-        setSubmissionState({
-          isSubmitting: false,
-          isSuccess: true,
-          isError: false,
-          submittedAt: new Date(),
-        });
+      // Enter on a focused button is that button's own activation.
+      if (e.target instanceof HTMLButtonElement) {
+        return;
+      }
 
-        if (errorAnnouncementRef.current) {
-          errorAnnouncementRef.current.textContent = 'Form submitted successfully!';
-        }
+      e.preventDefault();
 
-        onSuccess?.();
-        resetForm();
-      } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : 'An error occurred';
-        
-        setSubmissionState({
-          isSubmitting: false,
-          isSuccess: false,
-          isError: true,
-          error: errorMessage,
-        });
-
-        if (errorAnnouncementRef.current) {
-          errorAnnouncementRef.current.textContent = `Error: ${errorMessage}`;
-        }
-
-        onError?.(error instanceof Error ? error : new Error(errorMessage));
+      if (!isLastStep) {
+        nextStep();
       }
     },
-    [state.data, state.validation, onSubmit, onSuccess, onError, setSubmissionState, resetForm]
-  );
-
-  // Prevent Enter key from submitting form on non-final steps
-  const handleKeyDown = React.useCallback(
-    (e: React.KeyboardEvent<HTMLFormElement>) => {
-      if (e.key === 'Enter' && e.target instanceof HTMLInputElement) {
-        const isLastStep = state.progress.currentStep === state.progress.totalSteps;
-        if (!isLastStep) {
-          e.preventDefault();
-          nextStep();
-        }
-      }
-    },
-    [state.progress.currentStep, state.progress.totalSteps, nextStep]
+    [isLastStep, nextStep]
   );
 
   const renderField = (field: FormFieldConfig) => {
@@ -233,7 +273,7 @@ export function LeadCaptureForm({
   return (
     <form
       ref={formRef}
-      onSubmit={handleSubmit}
+      onSubmit={handleFormSubmit}
       onKeyDown={handleKeyDown}
       className={cn('w-full space-y-8', className)}
       noValidate
@@ -270,7 +310,7 @@ export function LeadCaptureForm({
         isSubmitting={state.submission.isSubmitting}
         onPrevious={previousStep}
         onNext={nextStep}
-        onSubmit={() => handleSubmit({} as React.FormEvent)}
+        onSubmit={submitForm}
       />
 
       {/* Global Error Display */}

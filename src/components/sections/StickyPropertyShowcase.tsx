@@ -71,7 +71,7 @@ const propertySpecs: PropertySpec[] = [
 
 export function StickyPropertyShowcase() {
   return (
-    <section className="relative bg-[white] py-32 sm:py-40">
+    <section className="relative bg-linen py-32 sm:py-40">
       <div className="mx-auto max-w-7xl px-8 lg:px-12">
         <div className="grid gap-20 lg:grid-cols-2 lg:gap-28">
           {/* Left: Sticky Image */}
@@ -81,7 +81,7 @@ export function StickyPropertyShowcase() {
               whileInView={{ opacity: 1, scale: 1 }}
               viewport={{ once: true }}
               transition={{ duration: 0.8 }}
-              className="relative h-full overflow-hidden rounded-2xl border border-[black]/10 bg-[black]/5 shadow-2xl"
+              className="relative h-full overflow-hidden rounded-2xl border border-navy/10 bg-navy/5 shadow-2xl"
             >
               <img
                 src="/images/properties/flagship.jpg"
@@ -89,8 +89,8 @@ export function StickyPropertyShowcase() {
                 className="h-full w-full object-cover"
               />
               {/* Overlay Badge */}
-              <div className="absolute left-6 top-6 rounded-2xl bg-[black] px-4 py-2 shadow-lg">
-                <span className="font-sans text-sm font-light uppercase tracking-wider text-[white]">
+              <div className="absolute left-6 top-6 rounded-2xl bg-navy px-4 py-2 shadow-lg">
+                <span className="font-sans text-sm font-light uppercase tracking-wider text-linen">
                   Flagship Property
                 </span>
               </div>
@@ -101,13 +101,13 @@ export function StickyPropertyShowcase() {
           <div className="space-y-8">
             {/* Header */}
             <div>
-              <span className="font-sans text-sm font-light uppercase tracking-[0.3em] text-[black]">
+              <span className="font-sans text-sm font-light uppercase tracking-[0.3em] text-cerulean">
                 Featured Listing
               </span>
-              <h2 className="mt-4 font-serif text-5xl text-[black] sm:text-6xl">
+              <h2 className="mt-4 font-serif text-5xl text-navy sm:text-6xl">
                 Modern Luxury in East Cobb
               </h2>
-              <p className="mt-6 font-sans text-lg font-light text-[black]/70">
+              <p className="mt-6 font-sans text-lg font-light text-stone">
                 Experience Joey's signature one-tour conversion with this stunning
                 custom-built estate. Sold in just 4 days.
               </p>
@@ -160,16 +160,16 @@ function PropertySpecItem({ spec, index }: { spec: PropertySpec; index: number }
       initial={{ opacity: 0, x: -30 }}
       animate={isVisible ? { opacity: 1, x: 0 } : {}}
       transition={{ duration: 0.6, delay: index * 0.1 }}
-      className="flex items-start gap-4 border-l-4 border-[black] pl-6"
+      className="flex items-start gap-4 border-l-4 border-navy pl-6"
     >
-      <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl bg-[black]/10 text-[black]">
+      <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl bg-navy/10 text-navy">
         {spec.icon}
       </div>
       <div>
-        <div className="font-sans text-sm font-light uppercase tracking-wider text-[black]/60">
+        <div className="font-sans text-sm font-light uppercase tracking-wider text-stone">
           {spec.label}
         </div>
-        <div className="mt-1 font-serif text-2xl text-[black]">
+        <div className="mt-1 font-serif text-2xl text-navy">
           {spec.value}
         </div>
       </div>

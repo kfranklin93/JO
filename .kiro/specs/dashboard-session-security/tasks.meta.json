@@ -1,0 +1,107 @@
+{
+  "pbtResults": {},
+  "executionHistory": {
+    "1. Build the signed session module": [
+      {
+        "executionId": "3259ce70-0433-4bd9-be10-ed969b8f8671",
+        "chatSessionId": "sess_141afc35-ee6c-4ebf-8c80-da2dfc9436e7",
+        "timestamp": 1788364283533
+      },
+      {
+        "executionId": "3259ce70-0433-4bd9-be10-ed969b8f8671",
+        "chatSessionId": "sess_141afc35-ee6c-4ebf-8c80-da2dfc9436e7",
+        "timestamp": 1788364290674
+      },
+      {
+        "executionId": "3259ce70-0433-4bd9-be10-ed969b8f8671",
+        "chatSessionId": "sess_141afc35-ee6c-4ebf-8c80-da2dfc9436e7",
+        "timestamp": 1788364720802
+      }
+    ],
+    "2. Add the login rate limiter": [
+      {
+        "executionId": "3259ce70-0433-4bd9-be10-ed969b8f8671",
+        "chatSessionId": "sess_141afc35-ee6c-4ebf-8c80-da2dfc9436e7",
+        "timestamp": 1788364283583
+      },
+      {
+        "executionId": "3259ce70-0433-4bd9-be10-ed969b8f8671",
+        "chatSessionId": "sess_141afc35-ee6c-4ebf-8c80-da2dfc9436e7",
+        "timestamp": 1788364726107
+      },
+      {
+        "executionId": "3259ce70-0433-4bd9-be10-ed969b8f8671",
+        "chatSessionId": "sess_141afc35-ee6c-4ebf-8c80-da2dfc9436e7",
+        "timestamp": 1788365293825
+      }
+    ],
+    "3. Rewrite the login route": [
+      {
+        "executionId": "3259ce70-0433-4bd9-be10-ed969b8f8671",
+        "chatSessionId": "sess_141afc35-ee6c-4ebf-8c80-da2dfc9436e7",
+        "timestamp": 1788364283627
+      },
+      {
+        "executionId": "3259ce70-0433-4bd9-be10-ed969b8f8671",
+        "chatSessionId": "sess_141afc35-ee6c-4ebf-8c80-da2dfc9436e7",
+        "timestamp": 1788365299599
+      },
+      {
+        "executionId": "3259ce70-0433-4bd9-be10-ed969b8f8671",
+        "chatSessionId": "sess_141afc35-ee6c-4ebf-8c80-da2dfc9436e7",
+        "timestamp": 1788365717121
+      }
+    ],
+    "4. Enforce verification at both data boundaries": [
+      {
+        "executionId": "3259ce70-0433-4bd9-be10-ed969b8f8671",
+        "chatSessionId": "sess_141afc35-ee6c-4ebf-8c80-da2dfc9436e7",
+        "timestamp": 1788364283676
+      },
+      {
+        "executionId": "3259ce70-0433-4bd9-be10-ed969b8f8671",
+        "chatSessionId": "sess_141afc35-ee6c-4ebf-8c80-da2dfc9436e7",
+        "timestamp": 1788365723774
+      },
+      {
+        "executionId": "3259ce70-0433-4bd9-be10-ed969b8f8671",
+        "chatSessionId": "sess_141afc35-ee6c-4ebf-8c80-da2dfc9436e7",
+        "timestamp": 1788366305454
+      }
+    ],
+    "5. Migrate to the `proxy.ts` convention": [
+      {
+        "executionId": "3259ce70-0433-4bd9-be10-ed969b8f8671",
+        "chatSessionId": "sess_141afc35-ee6c-4ebf-8c80-da2dfc9436e7",
+        "timestamp": 1788364283711
+      },
+      {
+        "executionId": "3259ce70-0433-4bd9-be10-ed969b8f8671",
+        "chatSessionId": "sess_141afc35-ee6c-4ebf-8c80-da2dfc9436e7",
+        "timestamp": 1788366309712
+      },
+      {
+        "executionId": "3259ce70-0433-4bd9-be10-ed969b8f8671",
+        "chatSessionId": "sess_141afc35-ee6c-4ebf-8c80-da2dfc9436e7",
+        "timestamp": 1788367997198
+      }
+    ],
+    "6. Verify the spec": [
+      {
+        "executionId": "3259ce70-0433-4bd9-be10-ed969b8f8671",
+        "chatSessionId": "sess_141afc35-ee6c-4ebf-8c80-da2dfc9436e7",
+        "timestamp": 1788364283748
+      },
+      {
+        "executionId": "3259ce70-0433-4bd9-be10-ed969b8f8671",
+        "chatSessionId": "sess_141afc35-ee6c-4ebf-8c80-da2dfc9436e7",
+        "timestamp": 1788368000338
+      },
+      {
+        "executionId": "3259ce70-0433-4bd9-be10-ed969b8f8671",
+        "chatSessionId": "sess_141afc35-ee6c-4ebf-8c80-da2dfc9436e7",
+        "timestamp": 1788368557278
+      }
+    ]
+  }
+}

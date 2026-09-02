@@ -1,207 +1,168 @@
 import { describe, it, expect } from 'vitest';
-import { readFileSync, writeFileSync, unlinkSync, mkdirSync } from 'fs';
-import { join } from 'path';
-import { exec } from 'child_process';
-import { promisify } from 'util';
-
-const execAsync = promisify(exec);
+import { compile } from '@tailwindcss/node';
+import { Scanner } from '@tailwindcss/oxide';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 
 /**
  * Build assertion test for design tokens.
  *
- * Verifies that the @theme block in globals.css generates working utilities
- * by compiling a test fixture and asserting the output CSS contains the
- * expected declarations.
+ * Verifies that the @theme block in globals.css generates working utilities by
+ * compiling the real stylesheet and asserting the output CSS contains the
+ * expected declarations. This is the check that would have caught the original
+ * bug, where tailwind.config.ts was inert and custom utilities produced no CSS.
  *
- * This test would have caught the original bug where tailwind.config.ts
- * was inert and custom utilities produced no CSS.
+ * Two deliberate choices about how this compiles:
+ *
+ * 1. It goes through `@tailwindcss/node`, the same package `@tailwindcss/postcss`
+ *    uses, at the exact version in node_modules. An earlier version of this test
+ *    shelled out to `npx @tailwindcss/cli`, which is not a dependency of this
+ *    project — npx fetched a *different* Tailwind version from the network, so
+ *    the test was not measuring the compiler the build actually uses.
+ *
+ * 2. Candidates come from a fixture directory registered as an explicit source
+ *    here in the test, not from Tailwind's automatic detection. `globals.css`
+ *    scopes automatic detection to `src/` (see the comment at the top of that
+ *    file), and `tests/__fixtures__` sits outside `src/`. Registering the
+ *    fixture source in the test keeps the fixture scannable without widening
+ *    the production scope back over the repository's markdown.
  */
+
+const REPO = process.cwd();
+const ENTRY = resolve(REPO, 'src/app/globals.css');
+const FIXTURES = resolve(REPO, 'tests/__fixtures__');
+
+/** Compiles the real globals.css and returns CSS for the given candidates. */
+async function compileFor(candidates: string[]): Promise<string> {
+  const { build } = await compile(readFileSync(ENTRY, 'utf-8'), {
+    base: resolve(REPO, 'src/app'),
+    from: ENTRY,
+    onDependency: () => {},
+  });
+  return build(candidates);
+}
+
+/** Scans a fixture file for class candidates, as the build does for src/. */
+function candidatesFrom(file: string): string[] {
+  const scanner = new Scanner({
+    sources: [{ base: FIXTURES, pattern: file, negated: false }],
+  });
+  const found = scanner.scan();
+  // Guards against an assertion suite that passes because it scanned nothing.
+  expect(found.length).toBeGreaterThan(0);
+  return found;
+}
+
 describe('Design token CSS generation', () => {
-  it(
-    'should generate utilities for custom color tokens',
-    async () => {
-      // Create a test fixture using custom utilities
-      const fixtureHTML = `
-      <div class="bg-navy text-cerulean bg-linen text-navy">
-        <div class="bg-champagne text-stone bg-onyx text-silver"></div>
-        <div class="bg-mocha bg-surface text-foreground bg-primary"></div>
-        <div class="bg-accent text-accent-foreground hover:bg-accent-hover"></div>
-        <div class="bg-secondary text-secondary-foreground"></div>
-        <div class="bg-muted text-muted-foreground"></div>
-        <div class="border-border bg-bronze"></div>
-      </div>
-    `;
+  it('scopes automatic source detection to src/', async () => {
+    const { root, sources } = await compile(readFileSync(ENTRY, 'utf-8'), {
+      base: resolve(REPO, 'src/app'),
+      from: ENTRY,
+      onDependency: () => {},
+    });
 
-      const fixturePath = join(
-        process.cwd(),
-        'tests',
-        '__fixtures__',
-        'token-test.html'
-      );
-      const outputPath = join(
-        process.cwd(),
-        'tests',
-        '__fixtures__',
-        'token-test.css'
-      );
+    // `root: null` means automatic detection is running from the git root,
+    // which makes every markdown file that *mentions* a class generate a real
+    // rule. A bare `@source` does not change this — it only adds to detection.
+    // Only `source(...)` on the import relocates the base.
+    expect(root).not.toBeNull();
+    expect(root).not.toBe('none');
+    expect(root).toMatchObject({ pattern: '../../src' });
 
-      try {
-        // Ensure fixtures directory exists
-        mkdirSync(join(process.cwd(), 'tests', '__fixtures__'), {
-          recursive: true,
-        });
+    // Nothing outside src/ may be registered as a production source.
+    expect(sources).toEqual([]);
+  });
 
-        // Write fixture HTML
-        writeFileSync(fixturePath, fixtureHTML);
+  it('should generate utilities for custom color tokens', async () => {
+    const css = await compileFor(candidatesFrom('token-colors.html'));
 
-        // Compile with Tailwind using the real globals.css
-        const command = `npx @tailwindcss/cli --input src/app/globals.css --output "${outputPath}" --content "${fixturePath}"`;
-        await execAsync(command);
+    expect(css).toContain('.bg-navy');
+    expect(css).toContain('background-color: var(--color-navy');
 
-        // Read the compiled CSS
-        const css = readFileSync(outputPath, 'utf-8');
+    expect(css).toContain('.text-cerulean');
+    expect(css).toContain('color: var(--color-cerulean');
 
-        // Assert that custom color utilities are present
-        expect(css).toContain('.bg-navy');
-        expect(css).toContain('background-color: var(--color-navy');
+    expect(css).toContain('.bg-champagne');
+    expect(css).toContain('background-color: var(--color-champagne');
 
-        expect(css).toContain('.text-cerulean');
-        expect(css).toContain('color: var(--color-cerulean');
+    expect(css).toContain('.bg-mocha');
+    expect(css).toContain('background-color: var(--color-mocha');
 
-        expect(css).toContain('.bg-champagne');
-        expect(css).toContain('background-color: var(--color-champagne');
+    expect(css).toContain('.bg-linen');
+    expect(css).toContain('background-color: var(--color-linen');
 
-        expect(css).toContain('.bg-mocha');
-        expect(css).toContain('background-color: var(--color-mocha');
+    expect(css).toContain('.bg-accent-hover');
+    expect(css).toContain('background-color: var(--color-accent-hover');
 
-        expect(css).toContain('.bg-linen');
-        expect(css).toContain('background-color: var(--color-linen');
+    // Verify the CSS variables are defined in the output
+    expect(css).toContain('--color-navy: #1C2A39');
+    expect(css).toContain('--color-cerulean: #0A7EA4');
+    expect(css).toContain('--color-champagne: #C5A059');
+  });
 
-        expect(css).toContain('.bg-accent-hover');
-        expect(css).toContain('background-color: var(--color-accent-hover');
+  it('should generate utilities for non-color tokens', async () => {
+    const css = await compileFor(candidatesFrom('token-non-colors.html'));
 
-        // Verify the CSS variables are defined in the output
-        expect(css).toContain('--color-navy: #1C2A39');
-        expect(css).toContain('--color-cerulean: #0A7EA4');
-        expect(css).toContain('--color-champagne: #C5A059');
-      } finally {
-        // Cleanup
-        try {
-          unlinkSync(fixturePath);
-          unlinkSync(outputPath);
-        } catch {
-          // Ignore cleanup errors
-        }
-      }
-    },
-    15000
-  );
+    // Tailwind inlines the shadow value rather than referencing
+    // `var(--shadow-soft)`, so assert the resolved value from @theme. This is
+    // a stronger check than looking for the variable name: it fails if the
+    // token's value drifts, not just if the name disappears.
+    expect(css).toContain('.shadow-soft');
+    expect(css).toContain('0 10px 30px');
+    expect(css).toContain('rgba(15, 23, 42, 0.08)');
 
-  it(
-    'should generate utilities for non-color tokens',
-    async () => {
-      const fixtureHTML = `
-      <div class="shadow-soft max-w-content rounded-xl">
-        <div class="font-serif font-sans font-mono"></div>
-      </div>
-    `;
+    expect(css).toContain('.max-w-content');
+    expect(css).toContain('--container-content: 80rem');
+    expect(css).toContain('max-width: var(--container-content)');
 
-      const fixturePath = join(
-        process.cwd(),
-        'tests',
-        '__fixtures__',
-        'token-test-2.html'
-      );
-      const outputPath = join(
-        process.cwd(),
-        'tests',
-        '__fixtures__',
-        'token-test-2.css'
-      );
+    // Assert rounded-xl is overridden to 1rem
+    expect(css).toContain('.rounded-xl');
+    expect(css).toContain('--radius-xl: 1rem');
 
-      try {
-        writeFileSync(fixturePath, fixtureHTML);
+    expect(css).toContain('.font-serif');
+    expect(css).toContain('.font-sans');
+    expect(css).toContain('.font-mono');
+  });
 
-        const command = `npx @tailwindcss/cli --input src/app/globals.css --output "${outputPath}" --content "${fixturePath}"`;
-        await execAsync(command);
+  it('should generate neutral color ramp utilities', async () => {
+    const css = await compileFor(candidatesFrom('token-neutral-ramp.html'));
 
-        const css = readFileSync(outputPath, 'utf-8');
+    expect(css).toContain('--color-neutral-50');
+    expect(css).toContain('--color-neutral-100');
+    expect(css).toContain('--color-neutral-500');
+    expect(css).toContain('--color-neutral-900');
+    expect(css).toContain('--color-neutral-950');
 
-        // Assert shadow-soft utility is present
-        expect(css).toContain('.shadow-soft');
-        expect(css).toContain('--shadow-soft');
+    expect(css).toContain('.bg-neutral-50');
+    expect(css).toContain('.bg-neutral-950');
+  });
 
-        // Assert max-w-content utility is present
-        expect(css).toContain('.max-w-content');
-        expect(css).toContain('--container-content');
+  it('generates every utility the shipped components rely on', async () => {
+    // Over-scoping detection is the hazard this guards. If `source(...)` is
+    // ever narrowed past the component tree, these stop resolving.
+    const used = [
+      'bg-navy',
+      'bg-cerulean',
+      'bg-champagne',
+      'bg-onyx',
+      'bg-linen',
+      'bg-surface',
+      'bg-stone',
+      'text-navy',
+      'text-linen',
+      'text-champagne',
+      'text-stone',
+      'text-cerulean',
+      'border-navy',
+      'shadow-soft',
+      'max-w-content',
+      'rounded-xl',
+    ];
 
-        // Assert rounded-xl is overridden to 1rem
-        expect(css).toContain('.rounded-xl');
-        expect(css).toContain('--radius-xl: 1rem');
+    const css = await compileFor(used);
 
-        // Assert font families generate utilities
-        expect(css).toContain('.font-serif');
-        expect(css).toContain('.font-sans');
-        expect(css).toContain('.font-mono');
-      } finally {
-        try {
-          unlinkSync(fixturePath);
-          unlinkSync(outputPath);
-        } catch {
-          // Ignore cleanup errors
-        }
-      }
-    },
-    15000
-  );
-
-  it(
-    'should generate neutral color ramp utilities',
-    async () => {
-      const fixtureHTML = `
-      <div class="bg-neutral-50 bg-neutral-100 bg-neutral-200 bg-neutral-500 bg-neutral-900 bg-neutral-950">
-      </div>
-    `;
-
-      const fixturePath = join(
-        process.cwd(),
-        'tests',
-        '__fixtures__',
-        'token-test-3.html'
-      );
-      const outputPath = join(
-        process.cwd(),
-        'tests',
-        '__fixtures__',
-        'token-test-3.css'
-      );
-
-      try {
-        writeFileSync(fixturePath, fixtureHTML);
-
-        const command = `npx @tailwindcss/cli --input src/app/globals.css --output "${outputPath}" --content "${fixturePath}"`;
-        await execAsync(command);
-
-        const css = readFileSync(outputPath, 'utf-8');
-
-        // Assert neutral ramp utilities are present
-        expect(css).toContain('--color-neutral-50');
-        expect(css).toContain('--color-neutral-100');
-        expect(css).toContain('--color-neutral-500');
-        expect(css).toContain('--color-neutral-900');
-        expect(css).toContain('--color-neutral-950');
-
-        expect(css).toContain('.bg-neutral-50');
-        expect(css).toContain('.bg-neutral-950');
-      } finally {
-        try {
-          unlinkSync(fixturePath);
-          unlinkSync(outputPath);
-        } catch {
-          // Ignore cleanup errors
-        }
-      }
-    },
-    15000
-  );
+    for (const candidate of used) {
+      expect(css, `missing utility: ${candidate}`).toContain(`.${candidate}`);
+    }
+  });
 });

@@ -2,23 +2,37 @@ import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { db, leads, followUps } from '@/lib/db';
 import { desc } from 'drizzle-orm';
+import { SESSION_COOKIE_NAME, verifySession } from '@/lib/auth/session';
+import { envErrorResponse, requireEnv } from '@/lib/utils/require-env';
 
-// Must match AUTH_TOKEN in middleware.ts and login route
-const AUTH_TOKEN = 'joey_dashboard_authenticated';
-
-function isAuthenticated(cookieValue: string | undefined): boolean {
-  return cookieValue === AUTH_TOKEN;
-}
-
+/**
+ * GET /api/dashboard/data — every lead's name, email, and phone number.
+ *
+ * This is one of the two places where session verification is the authorization
+ * boundary; the other is `src/app/dashboard/layout.tsx`. Each verifies
+ * independently, so a forged cookie is rejected here whether or not it also got
+ * past the page render.
+ *
+ * What this replaces: a comparison against a fixed string that was committed to
+ * this repository, so reading the source was enough to read the lead table.
+ *
+ * `/api/*` is outside the request interceptor's matcher, so this handler cannot
+ * assume anything upstream has checked. Runs in the Node.js runtime (the default
+ * for route handlers), which is what makes the signing secret reliably readable.
+ */
 export async function GET(request: NextRequest) {
-  // Auth check
+  // Before anything else, and before any configuration is asserted, so an
+  // unauthenticated caller learns nothing beyond "no".
   const cookieStore = await cookies();
-  const authCookie = cookieStore.get('dashboard_auth');
-  if (!isAuthenticated(authCookie?.value)) {
+  if (!verifySession(cookieStore.get(SESSION_COOKIE_NAME)?.value)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
   try {
+    // Asserted after the auth check, so an unauthenticated caller cannot probe
+    // which variables a deployment is missing.
+    requireEnv('DATABASE_URL');
+
     // Fetch all leads, newest first
     const allLeads = await db
       .select()
@@ -112,6 +126,9 @@ export async function GET(request: NextRequest) {
       leads: leadRows,
     });
   } catch (error) {
+    const configError = envErrorResponse(error);
+    if (configError) return configError;
+
     console.error('Dashboard data error:', error);
     return NextResponse.json({ error: 'Failed to load data' }, { status: 500 });
   }

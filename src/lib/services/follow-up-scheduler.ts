@@ -5,6 +5,7 @@ import {
   FOLLOW_UP_PROMPTS,
   fillPromptTemplate,
   formatLeadContext,
+  stripPromptDelimiters,
 } from '@/lib/prompts/joey-voice';
 import type { LeadIntentValue } from '@/lib/validation/lead';
 
@@ -103,12 +104,14 @@ export async function sendFollowUp(
     const leadContext = formatLeadContext(lead);
 
     // Fill in the prompt template
+    // `details` is already a delimited block. The remaining values are
+    // lead-derived and sit outside it, so strip delimiter tokens from them too.
     const prompt = fillPromptTemplate(promptTemplate, {
-      name: lead.name,
-      intent: lead.intent,
+      name: stripPromptDelimiters(lead.name),
+      intent: stripPromptDelimiters(lead.intent),
       details: leadContext,
-      area: lead.location || 'Atlanta metro area',
-      previousMessage: previousMessage || 'N/A',
+      area: stripPromptDelimiters(lead.location || 'Atlanta metro area'),
+      previousMessage: stripPromptDelimiters(previousMessage || 'N/A'),
       history: 'Initial contact',
     });
 

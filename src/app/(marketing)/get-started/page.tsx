@@ -65,21 +65,21 @@ export default function GetStartedPage() {
   };
 
   return (
-    <div className="bg-gradient-to-b from-[white] to-[white] py-24 sm:py-32">
+    <div className="bg-gradient-to-b from-linen to-linen py-24 sm:py-32">
       <div className="mx-auto max-w-3xl px-8 lg:px-12">
         {/* Header */}
         <div className="text-center">
-          <h1 className="font-serif text-5xl tracking-tight text-[black] sm:text-6xl">
+          <h1 className="font-serif text-5xl tracking-tight text-navy sm:text-6xl">
             Get Started Today
           </h1>
-          <p className="mt-6 font-sans text-lg font-light text-[black]/70">
+          <p className="mt-6 font-sans text-lg font-light text-stone">
             Tell us about your real estate needs and we'll connect you with the right solutions.
           </p>
         </div>
 
         {/* Form */}
         <div className="mt-16">
-          <div className="rounded-2xl border border-[black]/10 bg-white p-10 shadow-lg sm:p-12">
+          <div className="rounded-2xl border border-navy/10 bg-white p-10 shadow-lg sm:p-12">
             {isSuccess ? (
               <div className="text-center py-8">
                 <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
@@ -87,15 +87,15 @@ export default function GetStartedPage() {
                     <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                 </div>
-                <h2 className="mt-6 font-serif text-2xl tracking-tight text-[black]">
+                <h2 className="mt-6 font-serif text-2xl tracking-tight text-navy">
                   Thank you for reaching out!
                 </h2>
-                <p className="mt-4 font-sans text-base font-light text-[black]/70">
+                <p className="mt-4 font-sans text-base font-light text-stone">
                   We've received your information and will contact you shortly to discuss your real estate needs.
                 </p>
                 <button
                   onClick={() => setIsSuccess(false)}
-                  className="mt-8 inline-flex items-center gap-2 rounded-lg bg-[black] px-6 py-3 font-sans text-sm font-medium text-white hover:bg-[black]/90 transition-colors"
+                  className="mt-8 inline-flex items-center gap-2 rounded-lg bg-navy px-6 py-3 font-sans text-sm font-medium text-white hover:bg-navy/90 transition-colors"
                 >
                   Submit another inquiry
                 </button>
@@ -131,7 +131,7 @@ export default function GetStartedPage() {
                 </div>
                 {isSubmitting && (
                   <div className="mt-4 text-center">
-                    <div className="inline-flex items-center gap-2 text-sm text-[black]/60">
+                    <div className="inline-flex items-center gap-2 text-sm text-stone">
                       <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
@@ -147,24 +147,24 @@ export default function GetStartedPage() {
 
         {/* Trust Indicators */}
         <div className="mt-16 text-center">
-          <p className="font-sans text-sm font-light text-[black]/60">
+          <p className="font-sans text-sm font-light text-stone">
             🔒 Your information is secure and will never be shared with third parties.
           </p>
-          <div className="mt-8 flex items-center justify-center gap-12 font-sans text-sm font-light text-[black]/70">
+          <div className="mt-8 flex items-center justify-center gap-12 font-sans text-sm font-light text-stone">
             <div className="flex items-center gap-2">
-              <svg className="h-5 w-5 text-[black]" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+              <svg className="h-5 w-5 text-cerulean" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
               <span>No obligation</span>
             </div>
             <div className="flex items-center gap-2">
-              <svg className="h-5 w-5 text-[black]" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+              <svg className="h-5 w-5 text-cerulean" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
               <span>Free consultation</span>
             </div>
             <div className="flex items-center gap-2">
-              <svg className="h-5 w-5 text-[black]" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+              <svg className="h-5 w-5 text-cerulean" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
               <span>Quick response</span>

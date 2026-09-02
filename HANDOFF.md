@@ -20,27 +20,27 @@ The AI layer uses **AWS Bedrock (Claude 4.5 Sonnet)** to write personalized foll
 
 ## Live URLs
 
-| Environment | URL |
-|---|---|
-| Production | https://gowithjoeyo.netlify.app |
-| Custom domain (pending DNS) | https://gowithjoeyo.com |
-| Dashboard | https://gowithjoeyo.netlify.app/dashboard |
+| Environment                 | URL                                       |
+| --------------------------- | ----------------------------------------- |
+| Production                  | https://gowithjoeyo.netlify.app           |
+| Custom domain (pending DNS) | https://gowithjoeyo.com                   |
+| Dashboard                   | https://gowithjoeyo.netlify.app/dashboard |
 
 ---
 
 ## Tech Stack
 
-| Layer | Technology |
-|---|---|
-| Framework | Next.js 16 (App Router), TypeScript |
-| Styling | Tailwind CSS v4 |
-| Database | Neon Serverless Postgres |
-| ORM | Drizzle ORM |
-| AI | AWS Bedrock — Claude 3.5 Sonnet (`anthropic.claude-3-5-sonnet-20241022-v2:0`) |
-| Email | Resend |
-| SMS | Twilio (configured, not yet activated) |
-| Hosting | Netlify |
-| Domain registrar | Namecheap |
+| Layer            | Technology                                                                    |
+| ---------------- | ----------------------------------------------------------------------------- |
+| Framework        | Next.js 16 (App Router), TypeScript                                           |
+| Styling          | Tailwind CSS v4                                                               |
+| Database         | Neon Serverless Postgres                                                      |
+| ORM              | Drizzle ORM                                                                   |
+| AI               | AWS Bedrock — Claude 3.5 Sonnet (`anthropic.claude-3-5-sonnet-20241022-v2:0`) |
+| Email            | Resend                                                                        |
+| SMS              | Twilio (configured, not yet activated)                                        |
+| Hosting          | Netlify                                                                       |
+| Domain registrar | Namecheap                                                                     |
 
 ---
 
@@ -86,10 +86,10 @@ The AI layer uses **AWS Bedrock (Claude 4.5 Sonnet)** to write personalized foll
 │   │   │   └── sms-service.ts         # Twilio SMS helpers
 │   │   └── prompts/
 │   │       └── joey-voice.ts   # All AI prompt templates in Joey's voice
-│   └── config/
-│       ├── env.ts              # Zod-validated env var schema
-│       └── site.ts             # Site-wide constants (name, stats, contact)
-├── middleware.ts               # Auth gate — redirects /dashboard to /login
+│   ├── config/
+│   │   ├── env.ts              # Zod-validated env var schema
+│   │   └── site.ts             # Site-wide constants (name, stats, contact)
+│   └── proxy.ts                # Redirect affordance — sends /dashboard to /login
 ├── tailwind.config.ts          # Color tokens (cerulean, bronze, navy, etc.)
 ├── next.config.ts              # Image config, security headers
 └── .env.local                  # Local dev secrets — NEVER commit this
@@ -101,14 +101,21 @@ The AI layer uses **AWS Bedrock (Claude 4.5 Sonnet)** to write personalized foll
 
 Dashboard is protected by a simple password cookie:
 
-1. User visits `/dashboard` → middleware checks for `dashboard_auth` cookie
-2. If missing/wrong → redirected to `/dashboard/login`
+1. User visits `/dashboard` → `src/proxy.ts` checks whether a `dashboard_auth` cookie is present
+2. If absent → redirected to `/dashboard/login`
 3. Login page POSTs password to `/api/auth/login`
 4. Route compares against `ADMIN_PASSWORD` env var
-5. On match → sets `dashboard_auth=joey_dashboard_authenticated` cookie (7 days)
-6. All subsequent `/dashboard` requests pass through middleware
+5. On match → sets a signed `dashboard_auth` cookie (7 days)
+6. Every `/dashboard` render and every `/api/dashboard/*` request verifies that signature
 
-No external auth provider. Cookie token is a fixed string, not the password itself.
+The proxy is a redirect affordance only — it checks presence, never validity. The
+real checks are in `src/app/dashboard/layout.tsx` and
+`src/app/api/dashboard/data/route.ts`, which both run in the Node runtime where the
+signing secret is reliably readable.
+
+No external auth provider. The cookie carries an HMAC-signed payload with an embedded
+expiry, so it cannot be fabricated from anything in this repository. `SESSION_SECRET`
+must be set in Netlify or login returns 503.
 
 ---
 
@@ -125,11 +132,13 @@ ab_tests        — A/B testing for message variants
 ```
 
 **To push schema to a fresh database:**
+
 ```bash
 npm run db:push
 ```
 
 **To open Drizzle Studio (visual DB browser):**
+
 ```bash
 npm run db:studio
 ```
@@ -154,6 +163,7 @@ Customer submits form
 ## Cron / Automated Follow-ups
 
 The cron endpoint at `/api/cron/follow-ups` runs daily and:
+
 1. Queries `follow_ups` where `status = 'scheduled'` AND `scheduledFor <= now`
 2. For each due follow-up, generates a personalized email via Claude
 3. Sends it via Resend
@@ -162,6 +172,7 @@ The cron endpoint at `/api/cron/follow-ups` runs daily and:
 **Must be triggered externally** — Netlify does not auto-schedule this.
 
 Set up a free cron at **[cron-job.org](https://cron-job.org)**:
+
 - URL: `https://gowithjoeyo.netlify.app/api/cron/follow-ups`
 - Method: `GET`
 - Schedule: `0 7 * * *` (7am daily)
@@ -176,22 +187,22 @@ For local dev, copy `.env.example` to `.env.local` and fill in real values.
 
 ### Required (site is broken without these)
 
-| Variable | Purpose | Where to get it |
-|---|---|---|
-| `DATABASE_URL` | Neon Postgres connection string | neon.tech → Project → Connection string |
-| `ADMIN_PASSWORD` | Dashboard login password | Choose a strong one |
-| `RESEND_API_KEY` | Email sending | resend.com → API Keys |
-| `JOEY_EMAIL` | Send-from address + notification target | Verified in Resend dashboard |
-| `JOEY_PHONE` | Joey's phone for SMS alerts | Joey's real number |
-| `NEXT_PUBLIC_SITE_URL` | Used in email links | `https://gowithjoeyo.com` (after DNS) |
+| Variable               | Purpose                                 | Where to get it                         |
+| ---------------------- | --------------------------------------- | --------------------------------------- |
+| `DATABASE_URL`         | Neon Postgres connection string         | neon.tech → Project → Connection string |
+| `ADMIN_PASSWORD`       | Dashboard login password                | Choose a strong one                     |
+| `RESEND_API_KEY`       | Email sending                           | resend.com → API Keys                   |
+| `JOEY_EMAIL`           | Send-from address + notification target | Verified in Resend dashboard            |
+| `JOEY_PHONE`           | Joey's phone for SMS alerts             | Joey's real number                      |
+| `NEXT_PUBLIC_SITE_URL` | Used in email links                     | `https://gowithjoeyo.com` (after DNS)   |
 
 ### Required for AI follow-ups
 
-| Variable | Purpose | Where to get it |
-|---|---|---|
-| `AWS_ACCESS_KEY_ID` | Bedrock auth | AWS IAM → User → Security credentials |
-| `AWS_SECRET_ACCESS_KEY` | Bedrock auth | Same as above |
-| `AWS_REGION` | Bedrock region | `us-east-1` |
+| Variable                | Purpose        | Where to get it                       |
+| ----------------------- | -------------- | ------------------------------------- |
+| `AWS_ACCESS_KEY_ID`     | Bedrock auth   | AWS IAM → User → Security credentials |
+| `AWS_SECRET_ACCESS_KEY` | Bedrock auth   | Same as above                         |
+| `AWS_REGION`            | Bedrock region | `us-east-1`                           |
 
 > ⚠️ Bedrock model access must be explicitly requested in the AWS console.
 > Go to **Bedrock → Model access → Manage** and enable `Claude 3.5 Sonnet`.
@@ -199,15 +210,15 @@ For local dev, copy `.env.example` to `.env.local` and fill in real values.
 
 ### Optional
 
-| Variable | Purpose |
-|---|---|
-| `TWILIO_ACCOUNT_SID` | SMS alerts to Joey |
-| `TWILIO_AUTH_TOKEN` | SMS alerts to Joey |
-| `TWILIO_PHONE_NUMBER` | SMS sender number |
-| `CALENDLY_LINK` | Booking link in email signatures |
-| `CRON_SECRET` | Secures the cron endpoint |
-| `LOFTY_API_KEY` | Lofty CRM sync |
-| `LOFTY_API_BASE_URL` | Lofty CRM base URL |
+| Variable              | Purpose                          |
+| --------------------- | -------------------------------- |
+| `TWILIO_ACCOUNT_SID`  | SMS alerts to Joey               |
+| `TWILIO_AUTH_TOKEN`   | SMS alerts to Joey               |
+| `TWILIO_PHONE_NUMBER` | SMS sender number                |
+| `CALENDLY_LINK`       | Booking link in email signatures |
+| `CRON_SECRET`         | Secures the cron endpoint        |
+| `LOFTY_API_KEY`       | Lofty CRM sync                   |
+| `LOFTY_API_BASE_URL`  | Lofty CRM base URL               |
 
 ---
 
@@ -239,31 +250,31 @@ Add the MX, TXT (SPF), and CNAME (DKIM) records Resend provides to Namecheap DNS
 
 ### 🔴 Blockers (app is incomplete without these)
 
-| Item | File | Notes |
-|---|---|---|
-| AWS Bedrock keys | Netlify env vars | AI emails won't generate without this |
-| DNS pointed to Netlify | Namecheap | `gowithjoeyo.com` not live yet |
-| Resend domain verified | resend.com | Emails send from generic address until this is done |
-| Cron job scheduled | cron-job.org | Follow-up sequence won't fire without external trigger |
+| Item                   | File             | Notes                                                  |
+| ---------------------- | ---------------- | ------------------------------------------------------ |
+| AWS Bedrock keys       | Netlify env vars | AI emails won't generate without this                  |
+| DNS pointed to Netlify | Namecheap        | `gowithjoeyo.com` not live yet                         |
+| Resend domain verified | resend.com       | Emails send from generic address until this is done    |
+| Cron job scheduled     | cron-job.org     | Follow-up sequence won't fire without external trigger |
 
 ### 🟡 Code stubs (not yet implemented)
 
-| Endpoint | File | What it should do |
-|---|---|---|
-| `POST /api/ai/chat` | `src/app/api/ai/chat/route.ts` | Accept a message + lead context, return Claude response |
-| `POST /api/ai/follow-up` | `src/app/api/ai/follow-up/route.ts` | Trigger a manual follow-up for a specific lead |
+| Endpoint                 | File                                | What it should do                                       |
+| ------------------------ | ----------------------------------- | ------------------------------------------------------- |
+| `POST /api/ai/chat`      | `src/app/api/ai/chat/route.ts`      | Accept a message + lead context, return Claude response |
+| `POST /api/ai/follow-up` | `src/app/api/ai/follow-up/route.ts` | Trigger a manual follow-up for a specific lead          |
 
 These power the AI Copilot panel in the dashboard (`src/components/dashboard/AiLogsPanel.tsx`). Currently the panel shows mock data from `src/data/mockBedrockLogs.ts`.
 
 ### ⚪ Nice to have
 
-| Item | Notes |
-|---|---|
-| Twilio SMS | Service is built, just needs keys |
-| Lofty CRM sync | Service is built, just needs API key from Lofty |
-| Real property listings | `src/data/properties.ts` has mock data |
-| Real testimonials | `src/data/testimonials.ts` has placeholder content |
-| Google Maps API | For neighborhood/property maps |
+| Item                   | Notes                                              |
+| ---------------------- | -------------------------------------------------- |
+| Twilio SMS             | Service is built, just needs keys                  |
+| Lofty CRM sync         | Service is built, just needs API key from Lofty    |
+| Real property listings | `src/data/properties.ts` has mock data             |
+| Real testimonials      | `src/data/testimonials.ts` has placeholder content |
+| Google Maps API        | For neighborhood/property maps                     |
 
 ---
 
@@ -308,10 +319,13 @@ The site uses a custom Tailwind palette. Accent color is a single source of trut
 
 ```ts
 // tailwind.config.ts
-accent: { DEFAULT: '#0A7EA4' }  // Cerulean — change here to update everywhere
+accent: {
+  DEFAULT: '#0A7EA4';
+} // Cerulean — change here to update everywhere
 ```
 
 Key tokens:
+
 - `cerulean` (`#0A7EA4`) — interactive elements, CTAs, focus rings
 - `bronze` (`#A0522D`) — decorative accents, ratings, identity elements
 - `navy` (`#1C2A39`) — primary dark color, headings
@@ -326,4 +340,4 @@ Key tokens:
 
 ---
 
-*Last updated: see git log*
+_Last updated: see git log_
