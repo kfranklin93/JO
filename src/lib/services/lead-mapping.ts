@@ -100,7 +100,7 @@ export function toSchedulerStatus(value: string | null | undefined): SchedulerSt
 /**
  * Fields the form stores in the `form_data` JSON blob rather than as columns.
  */
-interface LeadFormData {
+export interface LeadFormData {
   budget?: string | null;
   location?: string | null;
   bedrooms?: number | null;
@@ -109,7 +109,15 @@ interface LeadFormData {
   additionalNotes?: string | null;
 }
 
-function formDataOf(row: DbLead): LeadFormData {
+/**
+ * Read the `form_data` blob defensively.
+ *
+ * Exported for the daily digest, which shows budget and location and must read
+ * them from the same place the drip does. `jsonb` is typed as `unknown`, and rows
+ * written by earlier versions of the form may hold anything at all, so the shape
+ * is checked rather than asserted.
+ */
+export function readLeadFormData(row: DbLead): LeadFormData {
   const raw = (row as { formData?: unknown }).formData;
   return raw && typeof raw === 'object' ? (raw as LeadFormData) : {};
 }
@@ -121,8 +129,12 @@ function formDataOf(row: DbLead): LeadFormData {
  * substitute. Downstream, `resolveRecipient` decides how to greet someone with
  * no name; passing a placeholder here caused subjects like "Quick check-in,
  * there" because the placeholder was indistinguishable from a real name.
+ *
+ * Exported because the daily digest needs the same resolution: two places
+ * deciding independently which of three name columns wins would eventually
+ * disagree, and the digest is how Joey checks what the drip is doing.
  */
-function nameOf(row: DbLead): string | undefined {
+export function resolveLeadName(row: DbLead): string | undefined {
   const candidates = [
     row.fullName,
     [row.firstName, row.lastName].filter(Boolean).join(' '),
@@ -144,8 +156,8 @@ function nameOf(row: DbLead): string | undefined {
  * `exactOptionalPropertyTypes` requires.
  */
 export function toSchedulerLead(row: DbLead): Lead {
-  const form = formDataOf(row);
-  const name = nameOf(row);
+  const form = readLeadFormData(row);
+  const name = resolveLeadName(row);
 
   const lead: Lead = {
     id: row.id,
