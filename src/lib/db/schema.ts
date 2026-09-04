@@ -50,6 +50,12 @@ export const conversationDirectionEnum = pgEnum('conversation_direction', [
 
 export const followUpStatusEnum = pgEnum('follow_up_status', [
   'scheduled',
+  // Claimed by a cron run and in flight. Exists so two overlapping runs cannot
+  // both send the same follow-up: a run claims rows by moving them out of
+  // 'scheduled' in a single atomic UPDATE before any send I/O begins.
+  //
+  // Postgres cannot easily drop an enum value once added, so this is permanent.
+  'sending',
   'sent',
   'delivered',
   'opened',
@@ -173,7 +179,15 @@ export const followUps = pgTable('follow_ups', {
   repliedAt: timestamp('replied_at'),
   failedAt: timestamp('failed_at'),
   failureReason: text('failure_reason'),
-  
+
+  // Delivery attempts made so far.
+  //
+  // Bounds retry: a transient failure returns the row to 'scheduled' with this
+  // incremented, and it is marked 'failed' permanently once the budget is spent.
+  // Without a counter a persistently failing row would be retried on every run
+  // forever.
+  attempts: integer('attempts').notNull().default(0),
+
   // Content
   conversationId: uuid('conversation_id').references(() => conversations.id),
   

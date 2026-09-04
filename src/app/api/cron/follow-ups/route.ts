@@ -1,8 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { eq, lte, and, inArray } from 'drizzle-orm';
-import { db, leads, followUps } from '@/lib/db';
+import { inArray } from 'drizzle-orm';
+import { db, leads } from '@/lib/db';
 import { sendFollowUp } from '@/lib/services/follow-up-scheduler';
-import type { Lead } from '@/lib/services/follow-up-scheduler';
+import { toSchedulerLead } from '@/lib/services/lead-mapping';
+import {
+  claimDueFollowUps,
+  countRemainingDue,
+  markSent,
+  recordFailure,
+  DEFAULT_CLAIM_LIMIT,
+} from '@/lib/db/follow-up-queue';
+import type { FollowUpType } from '@/lib/services/follow-up-content';
 import { envErrorResponse, requireEnv } from '@/lib/utils/require-env';
 import { requireCronAuth } from '@/lib/api/cron-auth';
 
@@ -17,6 +25,9 @@ import { requireCronAuth } from '@/lib/api/cron-auth';
  * Netlify scheduled functions cannot drive this: they only target functions in
  * the Netlify functions directory and cannot be invoked by URL. `vercel.json` is
  * ignored by Netlify entirely, so an entry there schedules nothing.
+ *
+ * Rows are claimed in one atomic statement before any send I/O, so two
+ * overlapping runs cannot both send the same follow-up. See follow-up-queue.ts.
  */
 export async function GET(request: NextRequest) {
   try {
@@ -28,115 +39,91 @@ export async function GET(request: NextRequest) {
     // variables a deployment is missing.
     requireEnv('DATABASE_URL', 'RESEND_API_KEY');
 
-    console.log('Starting follow-up processing...');
-
     const now = new Date();
 
-    // Fetch all scheduled follow-ups that are due and not yet sent
-    const pendingFollowUps = await db
-      .select()
-      .from(followUps)
-      .where(
-        and(
-          eq(followUps.status, 'scheduled'),
-          lte(followUps.scheduledFor, now)
-        )
-      );
+    // Claim first. Every row returned here has already left 'scheduled', so no
+    // concurrent run will pick it up while this one is sending.
+    const claimed = await claimDueFollowUps(DEFAULT_CLAIM_LIMIT, now);
 
-    if (pendingFollowUps.length === 0) {
-      console.log('No pending follow-ups.');
+    if (claimed.length === 0) {
       return NextResponse.json({
         success: true,
+        claimed: 0,
         sent: 0,
         failed: 0,
+        requeued: 0,
+        remaining: 0,
         timestamp: now.toISOString(),
       });
     }
 
-    // Fetch all leads referenced by pending follow-ups (deduplicated)
-    const leadIds = [...new Set(pendingFollowUps.map((fu) => fu.leadId))];
+    // One query for every lead referenced by the batch, rather than per row.
+    const leadIds = [...new Set(claimed.map((row) => row.leadId))];
     const leadRows = await db
       .select()
       .from(leads)
       .where(inArray(leads.id, leadIds));
 
-    // Build lookup map by lead id
-    const leadsById = new Map(leadRows.map((l) => [l.id, l]));
+    const leadsById = new Map(leadRows.map((row) => [row.id, row]));
 
     let sent = 0;
     let failed = 0;
+    let requeued = 0;
 
-    for (const fu of pendingFollowUps) {
-      const leadRow = leadsById.get(fu.leadId);
+    for (const followUp of claimed) {
+      const leadRow = leadsById.get(followUp.leadId);
 
       if (!leadRow) {
-        console.error(`Lead not found for follow-up ${fu.id}`);
+        // The row references a lead that no longer exists. Retrying cannot help,
+        // so the attempt budget is spent immediately rather than requeuing.
+        await recordFailure(
+          followUp.id,
+          'Lead not found',
+          Number.MAX_SAFE_INTEGER - 1,
+          now
+        );
         failed++;
-        await db
-          .update(followUps)
-          .set({
-            status: 'failed',
-            failedAt: now,
-            failureReason: 'Lead not found',
-            updatedAt: now,
-          })
-          .where(eq(followUps.id, fu.id));
         continue;
       }
 
-      // Map DB lead row → scheduler Lead shape
-      const rawName = (
-        leadRow.fullName ??
-        `${leadRow.firstName ?? ''} ${leadRow.lastName ?? ''}`.trim()
-      ) || 'there';
-
-      const lead: Lead = {
-        id: leadRow.id,
-        name: rawName,
-        email: leadRow.email,
-        ...(leadRow.phone ? { phone: leadRow.phone } : {}),
-        intent: (leadRow.propertyInterest ?? 'general') as Lead['intent'],
-        ...(leadRow.timeline ? { timeline: leadRow.timeline } : {}),
-        createdAt: leadRow.createdAt,
-        ...(leadRow.lastContactedAt ? { lastContactedAt: leadRow.lastContactedAt } : {}),
-        status: leadRow.status as Lead['status'],
-      };
-
-      const templateType = fu.templateType as Parameters<typeof sendFollowUp>[1];
-      const result = await sendFollowUp(lead, templateType);
+      // Explicit mapping rather than a cast. See lead-mapping.ts.
+      const lead = toSchedulerLead(leadRow);
+      const result = await sendFollowUp(lead, followUp.templateType as FollowUpType);
 
       if (result.ok) {
+        await markSent(followUp.id, now);
         sent++;
-        await db
-          .update(followUps)
-          .set({ status: 'sent', sentAt: now, updatedAt: now })
-          .where(eq(followUps.id, fu.id));
-      } else {
-        failed++;
-        await db
-          .update(followUps)
-          .set({
-            status: 'failed',
-            failedAt: now,
-            // The real reason, not the generic 'Send failed' this recorded
-            // before. Without it there was no way to tell a missing API key
-            // from a rejected address.
-            failureReason: result.reason,
-            updatedAt: now,
-          })
-          .where(eq(followUps.id, fu.id));
+        continue;
       }
 
-      // Small delay to avoid rate limiting
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      const outcome = await recordFailure(
+        followUp.id,
+        result.reason,
+        followUp.attempts,
+        now
+      );
+
+      if (outcome.requeued) {
+        requeued++;
+      } else {
+        failed++;
+      }
     }
 
-    console.log(`Follow-up processing complete: ${sent} sent, ${failed} failed`);
+    // Reported so an operator can tell a cleared queue from a hit batch limit.
+    const remaining = await countRemainingDue(now);
+
+    console.log(
+      `Follow-ups: ${sent} sent, ${requeued} requeued, ${failed} failed, ${remaining} still due`
+    );
 
     return NextResponse.json({
       success: true,
+      claimed: claimed.length,
       sent,
       failed,
+      requeued,
+      remaining,
       timestamp: now.toISOString(),
     });
   } catch (error) {
@@ -148,8 +135,7 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// Support POST for manual triggering from dashboard
+// Support POST for manual triggering from the dashboard. Inherits the auth check.
 export async function POST(request: NextRequest) {
   return GET(request);
 }
-
