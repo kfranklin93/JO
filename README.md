@@ -29,8 +29,13 @@ To learn more about Next.js, take a look at the following resources:
 
 You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
 
-## Deploy on Vercel
+## Deployment
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+This project deploys to **Netlify**, at https://gowithjoeyo.netlify.app. It does not
+deploy to Vercel, so Vercel-specific configuration has no effect here — a `vercel.json`
+declaring cron schedules used to sit in this repository and Netlify ignored it entirely,
+which meant the scheduled follow-ups never ran.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+The scheduled jobs are therefore driven externally, by two cron-job.org jobs that call
+the cron route handlers with a bearer secret. See **[HANDOFF.md](./HANDOFF.md)** for the
+exact URLs, schedules, and header, along with environment variables and DNS setup.
