@@ -24,7 +24,7 @@
 
 - [x] 4. Add the claim mechanism and bounded batch
   - Add `'sending'` to the `follow_up_status` enum and an `attempts` integer column defaulting to 0 in `src/lib/db/schema.ts`, then `npm run db:push`
-  - Create `src/lib/db/follow-up-queue.ts` with `claimDueFollowUps`, `markSent`, `recordFailure`, and `countRemainingDue`
+  - Create `src/lib/db/follow-up-queue.ts` with `claimDueFollowUps`, `markSent`, `recordFailure`, `abandon`, and `countQueueBacklog`
   - Claim with a single atomic `UPDATE ... RETURNING` that also reclaims `'sending'` rows staler than a threshold well beyond any function time limit
   - Restructure the cron loop to claim a bounded batch before any send I/O, and remove the 500 ms sleep at line 131 which is unnecessary without the LLM call
   - Report sent, failed, and whether work remains in the response
@@ -32,25 +32,25 @@
   - Write a test running two claim-and-process passes against the same due rows asserting exactly one send each, plus stranded-row reclaim tests and lead-mapping tests
   - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5, 4.6, 4.7_
 
-- [ ] 5. Add bounded retry
+- [x] 5. Add bounded retry
   - Increment `attempts` on failure, returning the row to `scheduled` below the maximum and marking it `failed` at the maximum
   - Record the actual error as `failureReason` rather than the generic `'Send failed'`
   - Write tests for a transient failure requeuing with incremented attempts, and for exhausting the attempt budget
   - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.5_
 
-- [ ] 6. Record the immediate touchpoint
+- [x] 6. Record the immediate touchpoint
   - Insert a `follow_ups` row for the immediate touchpoint in `POST /api/leads`, alongside the four scheduled ones, inside the existing transaction
   - Mark it sent when the immediate send succeeds, and leave it eligible for retry when it fails
   - Write a test asserting a submission produces five rows with the immediate one reflecting its send outcome
   - _Requirements: 6.1, 6.2, 6.3, 6.4_
 
-- [ ] 7. Make the daily summary real
+- [x] 7. Make the daily summary real
   - Replace the hardcoded `yesterdayLeads = []` in `api/cron/daily-summary/route.ts` with a query over the previous day's leads
   - Delete the commented-out Prisma-style example
   - Write tests asserting seeded leads appear in the digest and that a genuinely empty day reports accurately
   - _Requirements: 7.1, 7.2, 7.3, 7.4_
 
-- [ ] 8. Give it a real schedule
+- [-] 8. Give it a real schedule
   - Delete `vercel.json`, which Netlify ignores entirely
   - Remove the stale `netlify.toml` guidance at `follow-ups/route.ts:16-18` and the `vercel.json` guidance at `daily-summary/route.ts:11-16`, replacing them with the mechanism actually in use
   - Record the cron-job.org configuration in this spec — URL, `GET`, `Authorization: Bearer <CRON_SECRET>`, and `0 11 * * *` UTC for roughly 7 AM Eastern — with the daily summary offset by 30 minutes

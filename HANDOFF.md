@@ -164,19 +164,42 @@ Customer submits form
 
 The cron endpoint at `/api/cron/follow-ups` runs daily and:
 
-1. Queries `follow_ups` where `status = 'scheduled'` AND `scheduledFor <= now`
-2. For each due follow-up, generates a personalized email via Claude
-3. Sends it via Resend
-4. Updates the DB row to `status = 'sent'` or `'failed'`
+1. Rejects the request with 401 unless it carries `Authorization: Bearer <CRON_SECRET>` — including when `CRON_SECRET` is unset on the server
+2. Claims a bounded batch of due `follow_ups` rows in one atomic statement, so two overlapping runs cannot send the same follow-up twice
+3. Renders each email from a template (AI generation sits behind a content-source flag and is off by default)
+4. Sends it via Resend
+5. Marks the row `sent`, or increments `attempts` and returns it to `scheduled` for a later run, or marks it `failed` with the real error once the attempt budget is spent
 
 **Must be triggered externally** — Netlify does not auto-schedule this.
 
-Set up a free cron at **[cron-job.org](https://cron-job.org)**:
+Netlify's own scheduled functions cannot do it either: they only target functions in the Netlify functions directory and, per Netlify's docs, cannot be invoked by URL, so they cannot drive a Next.js route handler. The repository used to carry a `vercel.json` with both crons in it; Netlify ignores that file entirely, so **no schedule ever actually existed.** It has been deleted.
 
-- URL: `https://gowithjoeyo.netlify.app/api/cron/follow-ups`
-- Method: `GET`
-- Schedule: `0 7 * * *` (7am daily)
-- Header: `Authorization: Bearer <CRON_SECRET value>`
+Set up two free jobs at **[cron-job.org](https://cron-job.org)**:
+
+**Job 1 — follow-up drip**
+
+| Setting  | Value                                                 |
+| -------- | ----------------------------------------------------- |
+| URL      | `https://gowithjoeyo.netlify.app/api/cron/follow-ups` |
+| Method   | `GET`                                                 |
+| Schedule | `0 11 * * *` (UTC)                                    |
+| Header   | `Authorization: Bearer <CRON_SECRET>`                 |
+
+**Job 2 — daily lead digest**
+
+| Setting  | Value                                                    |
+| -------- | -------------------------------------------------------- |
+| URL      | `https://gowithjoeyo.netlify.app/api/cron/daily-summary` |
+| Method   | `GET`                                                    |
+| Schedule | `30 11 * * *` (UTC)                                      |
+| Header   | `Authorization: Bearer <CRON_SECRET>`                    |
+
+Paste the actual `CRON_SECRET` value into the cron-job.org form only. Never put it in a file in this repo — Netlify secret-scans the whole repository on every build, and a match fails the build and forces the secret to be rotated.
+
+**Two things worth knowing about these times:**
+
+- **The schedule is UTC, so the Eastern hour moves with daylight saving.** `0 11 * * *` is 7 AM EDT in summer and 6 AM EST in winter. A UTC cron cannot follow a shifting local hour, so that one-hour drift is expected, not a bug. The digest is offset 30 minutes so the two runs do not overlap.
+- **The digest's reporting window is a separate concern from its trigger time.** The trigger is UTC; the "yesterday" it reports on is anchored to `America/New_York` in `src/lib/utils/report-day.ts`, so an 8 PM Eastern lead lands in the right day's email. Changing the cron expression changes when the mail arrives, not which leads it covers.
 
 ---
 
@@ -195,6 +218,12 @@ For local dev, copy `.env.example` to `.env.local` and fill in real values.
 | `JOEY_EMAIL`           | Send-from address + notification target | Verified in Resend dashboard            |
 | `JOEY_PHONE`           | Joey's phone for SMS alerts             | Joey's real number                      |
 | `NEXT_PUBLIC_SITE_URL` | Used in email links                     | `https://gowithjoeyo.com` (after DNS)   |
+| `CRON_SECRET`          | Bearer secret both cron endpoints check | Generate a long random string           |
+
+> ⚠️ `CRON_SECRET` fails **closed**. Until it is set in Netlify and the site is
+> redeployed, `/api/cron/follow-ups` and `/api/cron/daily-summary` return 401 to
+> everything — including cron-job.org. That is intended: the previous code let
+> every caller through whenever the variable was absent.
 
 ### Required for AI follow-ups
 
@@ -216,7 +245,6 @@ For local dev, copy `.env.example` to `.env.local` and fill in real values.
 | `TWILIO_AUTH_TOKEN`   | SMS alerts to Joey               |
 | `TWILIO_PHONE_NUMBER` | SMS sender number                |
 | `CALENDLY_LINK`       | Booking link in email signatures |
-| `CRON_SECRET`         | Secures the cron endpoint        |
 | `LOFTY_API_KEY`       | Lofty CRM sync                   |
 | `LOFTY_API_BASE_URL`  | Lofty CRM base URL               |
 

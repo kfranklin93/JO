@@ -135,15 +135,17 @@ It returns 401 when the header is absent, when it does not match, or when `CRON_
 
 `daily-summary` replaces its hardcoded `[]` with a real query over the previous day's leads, and the commented-out Prisma example is deleted.
 
-Stale doc comments go: the `netlify.toml` block at `follow-ups/route.ts:16-18` that was never valid for a Next route handler, and the `vercel.json` guidance at `daily-summary/route.ts:11-16`.
+Stale doc comments go: the `netlify.toml` block at `follow-ups/route.ts:16-18` that was never valid for a Next route handler, and the `vercel.json` guidance at `daily-summary/route.ts:11-16`. Each is replaced by the cron-job.org trigger the route actually expects — URL, method, header form, and schedule — so the mechanism is described where a reader of the handler will see it.
 
 ### Scheduling
 
-`vercel.json` is deleted. Netlify ignores it, so it is purely misleading.
+`vercel.json` is deleted. It declared both crons as `0 7 * * *`, and Netlify ignores the file entirely — so it never scheduled anything, and it advertised a platform the project does not deploy to. Its only effect was to make a reader believe a schedule existed.
 
-Netlify scheduled functions cannot replace it. They only target functions in the Netlify functions directory, and Netlify's documentation states they cannot be invoked by URL — so they cannot drive a Next.js App Router route handler. An adapter function that internally fetched the route would work but adds a dependency and an indirection for no gain over the simpler option.
+**Netlify scheduled functions cannot replace it.** They only target functions in the Netlify functions directory, and Netlify's documentation states they cannot be invoked by URL — so they cannot drive a Next.js App Router route handler, which is what both cron endpoints are. An adapter function that internally fetched the route would work, but it adds a deployment artefact and a layer of indirection for no gain over an external caller hitting the URL directly.
 
-The schedule therefore lives at cron-job.org, hitting the endpoint with the bearer secret, which is what the project handoff always specified. Configuration is documented in the spec rather than in a new root markdown file:
+The schedule therefore lives at cron-job.org, hitting the endpoints with the bearer secret, which is what the project handoff always specified. Configuration is documented here rather than in a new root markdown file — `HANDOFF.md` carries an operator-facing copy, since that is the document a new developer is told to read first.
+
+**Job 1 — follow-up drip**
 
 | Setting | Value |
 |---|---|
@@ -152,9 +154,22 @@ The schedule therefore lives at cron-job.org, hitting the endpoint with the bear
 | Header | `Authorization: Bearer <CRON_SECRET>` |
 | Schedule | `0 11 * * *` UTC |
 
-`0 11 * * *` UTC is 7 AM Eastern during daylight saving and 6 AM during standard time. A UTC cron cannot track a DST-shifting local hour; drifting an hour in winter is the accepted tradeoff, and it is a large improvement on the current `0 7 * * *` which fires at 2-3 AM local.
+**Job 2 — daily lead digest**
 
-The daily summary gets its own job at the same URL pattern, offset by 30 minutes so the two do not contend.
+| Setting | Value |
+|---|---|
+| URL | `https://gowithjoeyo.netlify.app/api/cron/daily-summary` |
+| Method | `GET` |
+| Header | `Authorization: Bearer <CRON_SECRET>` |
+| Schedule | `30 11 * * *` UTC |
+
+The header value is the `CRON_SECRET` set in Netlify. It is entered in the cron-job.org UI and appears in no tracked file — the repository is secret-scanned on every build, and a real value committed anywhere fails the build and forces a rotation.
+
+`0 11 * * *` UTC is 7 AM Eastern during daylight saving and 6 AM during standard time. **The trigger is a fixed UTC instant, so the local hour it lands at moves by one across each DST boundary.** That drift is expected behaviour, not a fault to be diagnosed later. A UTC cron cannot track a DST-shifting local hour, and accepting an hour of winter drift is a large improvement on the deleted `0 7 * * *`, which would have fired at 2–3 AM local.
+
+The digest job is offset by 30 minutes so the two runs do not contend for the same function capacity.
+
+**The trigger time and the reporting window are separate concerns.** The digest's *trigger* is UTC, as above. The *window it reports on* is anchored to `America/New_York` in `src/lib/utils/report-day.ts`, so "yesterday" means the calendar day Joey lived, computed from the zone's real DST rules rather than from a fixed offset. Shifting the cron expression changes when the mail arrives; it does not change which leads the mail covers.
 
 ## Error Handling
 

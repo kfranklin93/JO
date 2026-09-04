@@ -114,18 +114,17 @@ Joey's AI should sound like him - friendly, knowledgeable, Atlanta-focused, and 
 
 ## Step 6: Deploy
 
-### Vercel Setup:
-1. Add environment variables in Vercel dashboard
-2. Set up Vercel Cron for automated follow-ups:
-   ```json
-   {
-     "crons": [{
-       "path": "/api/cron/follow-ups",
-       "schedule": "0 9 * * *"
-     }]
-   }
-   ```
+### Netlify Setup:
+1. Add environment variables in Netlify → Site configuration → Environment variables, including `CRON_SECRET`, then trigger a redeploy
+2. Schedule the follow-up run externally. Netlify has no equivalent of a
+   `vercel.json` `crons` block, and its scheduled functions cannot be invoked by
+   URL, so they cannot drive a Next route handler. Create a cron-job.org job:
+   - `GET https://gowithjoeyo.netlify.app/api/cron/follow-ups`
+   - Header `Authorization: Bearer <CRON_SECRET>`
+   - Schedule `0 11 * * *` (UTC — about 7 AM Eastern)
 3. Deploy!
+
+Full cron configuration, including the daily digest job, is in the Cron section of [`HANDOFF.md`](HANDOFF.md).
 
 ---
 

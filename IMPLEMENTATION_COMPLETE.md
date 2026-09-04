@@ -37,16 +37,20 @@ Your automated follow-up system is now fully implemented with all the features y
 5. **`src/lib/services/follow-up-scheduler.ts`** - Automated follow-up logic
 6. **`src/app/api/leads/route.ts`** - Lead submission endpoint
 7. **`src/app/api/cron/follow-ups/route.ts`** - Daily cron job
-8. **`vercel.json`** - Cron configuration
+
+> **Note:** this list originally included a `vercel.json` holding the cron
+> schedules. The site deploys to Netlify, which ignores that file, so it never
+> scheduled anything. It has been deleted. The schedule now lives in two
+> cron-job.org jobs — see the Cron section of [`HANDOFF.md`](HANDOFF.md).
 
 ### Configuration:
-9. **`src/config/env.ts`** - Environment variables (updated)
-10. **`.env.example`** - Environment template
+8. **`src/config/env.ts`** - Environment variables (updated)
+9. **`.env.example`** - Environment template
 
 ### Documentation:
-11. **`JOEY_AI_SETUP.md`** - Detailed AWS/email setup
-12. **`AI_FOLLOW_UP_FLOW.md`** - Visual flow diagram
-13. **`SETUP_INSTRUCTIONS.md`** - Quick setup guide
+10. **`JOEY_AI_SETUP.md`** - Detailed AWS/email setup
+11. **`AI_FOLLOW_UP_FLOW.md`** - Visual flow diagram
+12. **`SETUP_INSTRUCTIONS.md`** - Quick setup guide
 
 ---
 
@@ -134,11 +138,11 @@ curl -X POST http://localhost:3000/api/leads \
   }'
 ```
 
-### 6. Deploy to Vercel
+### 6. Deploy to Netlify
 - Push to GitHub
-- Connect to Vercel
-- Add environment variables
-- Deploy!
+- Connect to Netlify
+- Add environment variables (including `CRON_SECRET`), then redeploy
+- Schedule the two cron-job.org jobs — see [`HANDOFF.md`](HANDOFF.md)
 
 ---
 
@@ -243,6 +247,7 @@ If you need help:
 Everything is built and ready to go. Just need to:
 1. Set up AWS Bedrock (30 min)
 2. Configure environment variables (10 min)
-3. Deploy to Vercel (5 min)
+3. Deploy to Netlify (5 min)
+4. Schedule the two cron-job.org jobs (5 min)
 
 Then Joey's AI assistant will be live and handling leads automatically! 🚀
