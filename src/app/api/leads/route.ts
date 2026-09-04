@@ -5,23 +5,70 @@ import { notifyJoeyOfNewLead } from '@/lib/services/email-service';
 import { sendSMSAlert } from '@/lib/services/sms-service';
 import type { Lead } from '@/lib/services/follow-up-scheduler';
 import { db, leads, followUps } from '@/lib/db';
+import { markSent, recordFailure } from '@/lib/db/follow-up-queue';
 import { formatFieldErrors, leadSubmissionSchema } from '@/lib/validation/lead';
 import { envErrorResponse, requireEnv } from '@/lib/utils/require-env';
 
+/** The touchpoint this request sends itself, rather than leaving to the cron. */
+const IMMEDIATE_TEMPLATE_TYPE = 'immediate';
+
 /**
- * Scheduled follow-up touchpoints created alongside every new lead.
+ * Every follow-up touchpoint created alongside a new lead.
  *
- * The immediate touchpoint is sent inline below and is not represented here;
- * recording it as a row is handled by the follow-up-automation spec.
+ * The immediate one is included even though this request sends it inline. It was
+ * previously sent with no row at all, which cost the dashboard a touchpoint per
+ * lead and — worse — left a failed immediate send with nothing to retry from.
+ *
+ * It is inserted as `sending`, not `scheduled`. The transaction commits before
+ * the inline send finishes, so for that window the row exists but the email does
+ * not. A cron run landing in that window would find a `scheduled` row that is
+ * already due and claim it, and the lead would get the same email twice.
+ * `sending` means the row arrives already claimed by this request, so the cron's
+ * claim predicate passes over it. The cost is that a request killed between the
+ * commit and the outcome update leaves the row in `sending` — which is exactly
+ * the stranded-row case the claim's STALE_CLAIM_MS reclaim exists for, so it
+ * self-heals on a later run instead of being lost.
  */
 const FOLLOW_UP_SCHEDULE = [
-  { templateType: 'day3', offsetDays: 3 },
-  { templateType: 'day7', offsetDays: 7 },
-  { templateType: 'day14', offsetDays: 14 },
-  { templateType: 'day30', offsetDays: 30 },
+  { templateType: IMMEDIATE_TEMPLATE_TYPE, offsetDays: 0, status: 'sending' },
+  { templateType: 'day3', offsetDays: 3, status: 'scheduled' },
+  { templateType: 'day7', offsetDays: 7, status: 'scheduled' },
+  { templateType: 'day14', offsetDays: 14, status: 'scheduled' },
+  { templateType: 'day30', offsetDays: 30, status: 'scheduled' },
 ] as const;
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
+
+/**
+ * Move the immediate follow-up's row out of `sending` to match what happened.
+ *
+ * Delegates to the queue rather than issuing its own UPDATE so the retry policy
+ * stays in one place: `recordFailure` is what decides that a first failure is
+ * worth another attempt, and it returns the row to `scheduled` so the next cron
+ * run picks it up (Requirement 6.3).
+ *
+ * `currentAttempts` is 0 because the row was created by this request and the
+ * inline send was its first delivery attempt.
+ *
+ * A failure to write the outcome is logged and swallowed. The lead is already
+ * committed and the email has already been sent or not; turning that into a 500
+ * would tell the visitor to submit again and duplicate the lead. The row stays
+ * in `sending` and is reclaimed after the queue's staleness threshold.
+ */
+async function recordImmediateOutcome(
+  followUpId: string,
+  failureReason: string | null
+): Promise<void> {
+  try {
+    if (failureReason === null) {
+      await markSent(followUpId);
+    } else {
+      await recordFailure(followUpId, failureReason, 0);
+    }
+  } catch (error) {
+    console.error('❌ Failed to record the immediate follow-up outcome:', error);
+  }
+}
 
 export async function POST(request: NextRequest) {
   // Malformed JSON is a client framing error, distinct from a payload that
@@ -63,7 +110,7 @@ export async function POST(request: NextRequest) {
     //
     // The WebSocket driver in src/lib/db/index.ts supports transactions; the
     // neon-http driver would not.
-    const savedLead = await db.transaction(async (tx) => {
+    const created = await db.transaction(async (tx) => {
       const rows = await tx
         .insert(leads)
         .values({
@@ -96,19 +143,35 @@ export async function POST(request: NextRequest) {
         throw new Error('Lead insert returned no row');
       }
 
-      await tx.insert(followUps).values(
-        FOLLOW_UP_SCHEDULE.map(({ templateType, offsetDays }) => ({
-          leadId: inserted.id,
-          templateType,
-          scheduledFor: new Date(
-            inserted.createdAt.getTime() + offsetDays * MS_PER_DAY
-          ),
-          status: 'scheduled' as const,
-        }))
-      );
+      const followUpRows = await tx
+        .insert(followUps)
+        .values(
+          FOLLOW_UP_SCHEDULE.map(({ templateType, offsetDays, status }) => ({
+            leadId: inserted.id,
+            templateType,
+            scheduledFor: new Date(
+              inserted.createdAt.getTime() + offsetDays * MS_PER_DAY
+            ),
+            status,
+          }))
+        )
+        .returning({ id: followUps.id, templateType: followUps.templateType });
 
-      return inserted;
+      const immediate = followUpRows.find(
+        (row) => row.templateType === IMMEDIATE_TEMPLATE_TYPE
+      );
+      if (!immediate) {
+        // Without this id the row cannot be moved out of `sending`, so it would
+        // sit there until the staleness reclaim and then be sent a second time.
+        // Rolling back and reporting failure lets the visitor retry into a clean
+        // record instead, matching how a missing lead row is handled above.
+        throw new Error('Immediate follow-up insert returned no row');
+      }
+
+      return { lead: inserted, immediateFollowUpId: immediate.id };
     });
+
+    const { lead: savedLead, immediateFollowUpId } = created;
 
     console.log('New lead saved to database:', savedLead.id);
 
@@ -146,15 +209,25 @@ export async function POST(request: NextRequest) {
     const immediateFollowUpSent =
       followUpResult!.status === 'fulfilled' && followUpResult!.value.ok;
 
-    if (!immediateFollowUpSent) {
-      const reason =
-        followUpResult!.status === 'rejected'
-          ? String(followUpResult!.reason)
-          : followUpResult!.value.ok
-            ? ''
-            : followUpResult!.value.reason;
-      console.error('❌ Immediate follow-up failed:', reason);
+    // Null on success. Otherwise the real reason — a thrown error stringified, or
+    // the reason the send result carried — so `failure_reason` on the row says
+    // what actually went wrong rather than a generic 'Send failed'.
+    const immediateFailureReason: string | null = immediateFollowUpSent
+      ? null
+      : followUpResult!.status === 'rejected'
+        ? String(followUpResult!.reason)
+        : followUpResult!.value.ok
+          ? null
+          : followUpResult!.value.reason;
+
+    if (immediateFailureReason !== null) {
+      console.error('❌ Immediate follow-up failed:', immediateFailureReason);
     }
+
+    // Before the notifications, because the row is the durable record of what
+    // happened. The notifications are advisory; this is what the dashboard reads
+    // and what the cron retries from.
+    await recordImmediateOutcome(immediateFollowUpId, immediateFailureReason);
 
     const [loftyResult, emailResult, smsResult] = await Promise.allSettled([
       sendLeadToLofty(lead),

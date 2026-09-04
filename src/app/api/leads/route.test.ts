@@ -1,11 +1,21 @@
 import { NextRequest } from 'next/server';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import type { FollowUp } from '@/lib/db/schema';
+import { fakeDb, resetFakeDb } from '@/lib/db/__fixtures__/fake-follow-up-db';
+import { claimDueFollowUps } from '@/lib/db/follow-up-queue';
 
 /**
  * Route handler tests for POST /api/leads.
  *
  * The database and all four outbound integrations are mocked, so these run with
  * no Neon connection, no Resend key, and no AWS credentials.
+ *
+ * `follow-up-queue.ts` is deliberately *not* mocked. The route drives the
+ * immediate touchpoint's status through it, and what matters is the row's end
+ * state, not that a function was called. So the mocked `db.execute` is the
+ * SQL-interpreting fake the queue's own tests use, and the follow-up insert
+ * seeds it. The queue's real statements then run against real in-memory rows,
+ * and these tests can assert what Joey's dashboard would actually read.
  */
 
 /**
@@ -22,6 +32,13 @@ let insertedLeadRows: Array<{ id: string; createdAt: Date }>;
 let recordedInserts: Array<{ table: string; values: unknown }>;
 /** Forces the follow-up insert to reject, for the rollback test. */
 let followUpInsertError: Error | null;
+/**
+ * Overrides what the follow-up insert's `RETURNING` yields. Null means the
+ * default: one row per inserted value, as Postgres would give.
+ */
+let followUpReturningOverride: Array<{ id: string; templateType: string }> | null;
+/** Forces every queue statement to reject, for the unrecordable-outcome test. */
+let queueWriteError: Error | null;
 
 const LEAD_ID = '11111111-2222-3333-4444-555555555555';
 const CREATED_AT = new Date('2026-03-01T12:00:00.000Z');
@@ -29,9 +46,31 @@ const CREATED_AT = new Date('2026-03-01T12:00:00.000Z');
 /** True once the mocked transaction callback has rejected. */
 let transactionRejected: boolean;
 
-vi.mock('@/lib/db', () => {
+/**
+ * The id the fake assigns to a touchpoint's row.
+ *
+ * Derived from the template type rather than random so an assertion failure
+ * names the touchpoint it is about.
+ */
+function followUpId(templateType: string): string {
+  return `follow-up-${templateType}`;
+}
+
+vi.mock('@/lib/db', async () => {
+  const { createFakeDb, fakeDb: store, makeFollowUp } = await import(
+    '@/lib/db/__fixtures__/fake-follow-up-db'
+  );
+  const fake = createFakeDb();
+
   const tableName = (table: unknown): string =>
     (table as { __name?: string }).__name ?? 'unknown';
+
+  type FollowUpInsertValue = {
+    leadId: string;
+    templateType: string;
+    scheduledFor: Date;
+    status: FollowUp['status'];
+  };
 
   const insert = (table: unknown) => ({
     values: (values: unknown) => {
@@ -39,7 +78,29 @@ vi.mock('@/lib/db', () => {
       recordedInserts.push({ table: name, values });
 
       if (name === 'followUps' && followUpInsertError) {
-        return Promise.reject(followUpInsertError);
+        // The route awaits the `returning` builder rather than the bare values
+        // promise, so both have to reject or the driver failure never surfaces.
+        const rejected = Promise.reject(followUpInsertError) as Promise<undefined> & {
+          returning: () => Promise<unknown[]>;
+        };
+        rejected.returning = () => Promise.reject(followUpInsertError);
+        // Whichever of the two the route does not await would otherwise be
+        // reported as an unhandled rejection.
+        void rejected.catch(() => {});
+        return rejected;
+      }
+
+      // The inserted rows become the queue's in-memory table, so the status
+      // transitions the route drives through follow-up-queue.ts act on the same
+      // rows this insert created. Seeding happens only on the success path: a
+      // rejected insert leaves the store empty, which is what rollback looks
+      // like from the outside.
+      if (name === 'followUps') {
+        for (const row of values as FollowUpInsertValue[]) {
+          store.followUps.push(
+            makeFollowUp({ ...row, id: followUpId(row.templateType) })
+          );
+        }
       }
 
       // Drizzle's builder is both awaitable and chainable, so the mock
@@ -47,15 +108,35 @@ vi.mock('@/lib/db', () => {
       const promise = Promise.resolve(undefined) as Promise<undefined> & {
         returning: () => Promise<unknown[]>;
       };
-      promise.returning = () => Promise.resolve(insertedLeadRows);
+      promise.returning = () => {
+        if (name === 'leads') return Promise.resolve(insertedLeadRows);
+        return Promise.resolve(
+          followUpReturningOverride ??
+            (values as FollowUpInsertValue[]).map((row) => ({
+              id: followUpId(row.templateType),
+              templateType: row.templateType,
+            }))
+        );
+      };
       return promise;
     },
   });
 
   return {
     leads: { __name: 'leads' },
-    followUps: { __name: 'followUps' },
+    followUps: {
+      __name: 'followUps',
+      id: 'follow_ups.id',
+      templateType: 'follow_ups.template_type',
+    },
     db: {
+      // The queue's statements run for real against the fake's store. Wrapped so
+      // a test can simulate the database going away between the send and the
+      // status update.
+      execute: (query: unknown) => {
+        if (queueWriteError) return Promise.reject(queueWriteError);
+        return fake.db.execute(query);
+      },
       // Any write issued outside a transaction is a defect, so the top-level
       // handle refuses. This is what makes the transaction tests meaningful
       // rather than tautological: if a future edit moves an insert back out of
@@ -66,13 +147,16 @@ vi.mock('@/lib/db', () => {
         );
       },
       transaction: async <T,>(callback: (tx: { insert: typeof insert }) => Promise<T>) => {
+        const before = [...store.followUps];
         try {
           return await callback({ insert });
         } catch (error) {
           // A real driver issues ROLLBACK here. The mock records that the
-          // callback rejected, which is the observable behaviour the route
-          // depends on; the rollback itself is a Postgres guarantee and is
-          // covered by the manual verification step against a live database.
+          // callback rejected and discards rows the callback seeded, so a test
+          // can assert nothing persisted; the rollback itself is a Postgres
+          // guarantee and is covered by the manual verification step against a
+          // live database.
+          store.followUps = before;
           transactionRejected = true;
           throw error;
         }
@@ -90,13 +174,18 @@ type LeadArg = Record<string, unknown>;
  */
 type SendResult = { ok: true } | { ok: false; reason: string };
 const SEND_OK: SendResult = { ok: true };
-const SEND_FAILED: SendResult = { ok: false, reason: 'email: test failure' };
+const SEND_FAILURE_REASON = 'email: test failure';
+const SEND_FAILED: SendResult = { ok: false, reason: SEND_FAILURE_REASON };
 
 const sendImmediateFollowUp = vi.fn(
   async (_lead: LeadArg): Promise<SendResult> => SEND_OK
 );
 const sendLeadToLofty = vi.fn(async (_lead: LeadArg) => true);
-const notifyJoeyOfNewLead = vi.fn(async (_lead: LeadArg) => true);
+/** Options carry whether the lead actually heard from us, so they are recorded. */
+type NotifyOptions = { immediateFollowUpSent?: boolean } | undefined;
+const notifyJoeyOfNewLead = vi.fn(
+  async (_lead: LeadArg, _options?: NotifyOptions) => true
+);
 const sendSMSAlert = vi.fn(async (_subject: string, _body: string) => true);
 
 vi.mock('@/lib/services/follow-up-scheduler', () => ({
@@ -106,7 +195,8 @@ vi.mock('@/lib/api/lofty', () => ({
   sendLeadToLofty: (lead: LeadArg) => sendLeadToLofty(lead),
 }));
 vi.mock('@/lib/services/email-service', () => ({
-  notifyJoeyOfNewLead: (lead: LeadArg) => notifyJoeyOfNewLead(lead),
+  notifyJoeyOfNewLead: (lead: LeadArg, options?: NotifyOptions) =>
+    notifyJoeyOfNewLead(lead, options),
 }));
 vi.mock('@/lib/services/sms-service', () => ({
   sendSMSAlert: (subject: string, body: string) => sendSMSAlert(subject, body),
@@ -134,13 +224,37 @@ function leadInsertValues(): Record<string, unknown> | undefined {
   return entry?.values as Record<string, unknown> | undefined;
 }
 
+/** The rows handed to the `follow_ups` insert, as inserted. */
+function followUpInsertValues(): Array<{
+  templateType: string;
+  scheduledFor: Date;
+  leadId: string;
+  status: string;
+}> {
+  const entry = recordedInserts.find((item) => item.table === 'followUps');
+  return (entry?.values ?? []) as Array<{
+    templateType: string;
+    scheduledFor: Date;
+    leadId: string;
+    status: string;
+  }>;
+}
+
+/** A stored follow-up row by touchpoint, after the request has finished. */
+function storedRow(templateType: string): FollowUp | undefined {
+  return fakeDb.followUps.find((row) => row.templateType === templateType);
+}
+
 beforeEach(() => {
+  resetFakeDb();
   for (const key of Object.keys(testEnv)) delete testEnv[key];
   testEnv.DATABASE_URL = 'postgres://user:pass@localhost:5432/db';
   testEnv.RESEND_API_KEY = 're_test_key';
   insertedLeadRows = [{ id: LEAD_ID, createdAt: CREATED_AT }];
   recordedInserts = [];
   followUpInsertError = null;
+  followUpReturningOverride = null;
+  queueWriteError = null;
   transactionRejected = false;
   vi.clearAllMocks();
   sendImmediateFollowUp.mockResolvedValue(SEND_OK);
@@ -232,19 +346,13 @@ describe('POST /api/leads — success', () => {
     });
   });
 
-  it('schedules the four follow-up touchpoints at the right offsets', async () => {
+  it('schedules all five follow-up touchpoints at the right offsets', async () => {
     await POST(postRequest(validPayload));
 
-    const followUpEntry = recordedInserts.find(
-      (item) => item.table === 'followUps'
-    );
-    const rows = followUpEntry?.values as Array<{
-      templateType: string;
-      scheduledFor: Date;
-      leadId: string;
-    }>;
+    const rows = followUpInsertValues();
 
     expect(rows.map((row) => row.templateType)).toEqual([
+      'immediate',
       'day3',
       'day7',
       'day14',
@@ -256,7 +364,9 @@ describe('POST /api/leads — success', () => {
       Math.round(
         (row.scheduledFor.getTime() - CREATED_AT.getTime()) / (24 * 60 * 60 * 1000)
       );
-    expect(rows.map(dayOffset)).toEqual([3, 7, 14, 30]);
+    // The immediate touchpoint carries offset zero, so it sits on the same
+    // timeline as the rest rather than needing a null `scheduled_for`.
+    expect(rows.map(dayOffset)).toEqual([0, 3, 7, 14, 30]);
   });
 
   it('passes the canonical intent through to the follow-up integration', async () => {
@@ -408,6 +518,7 @@ describe('POST /api/leads — atomic persistence', () => {
     expect(transactionRejected).toBe(true);
     expect(response.status).toBe(500);
     expect((await response.json()).error).toBe('Failed to submit lead');
+    expect(fakeDb.followUps).toHaveLength(0);
   });
 
   it('reports failure rather than false success when the write is rolled back', async () => {
@@ -455,6 +566,156 @@ describe('POST /api/leads — atomic persistence', () => {
 
     expect(response.status).toBe(201);
     expect(transactionRejected).toBe(false);
+  });
+
+  it('rolls back when the immediate follow-up insert yields no row', async () => {
+    // Without that id the row cannot be moved out of `sending`, so it would be
+    // reclaimed later and the lead would get the same email twice. Failing the
+    // submission lets the visitor retry into a clean record.
+    followUpReturningOverride = [];
+
+    const response = await POST(postRequest(validPayload));
+
+    expect(transactionRejected).toBe(true);
+    expect(response.status).toBe(500);
+    expect(fakeDb.followUps).toHaveLength(0);
+    expect(sendImmediateFollowUp).not.toHaveBeenCalled();
+  });
+});
+
+describe('POST /api/leads — the immediate touchpoint', () => {
+  const SCHEDULED = ['day3', 'day7', 'day14', 'day30'];
+
+  it('records a row for the immediate touchpoint alongside the scheduled ones', async () => {
+    // Requirement 6.1. It used to be sent with no row at all, so the dashboard
+    // undercounted by one per lead.
+    await POST(postRequest(validPayload));
+
+    expect(fakeDb.followUps).toHaveLength(5);
+    expect(storedRow('immediate')).toBeDefined();
+  });
+
+  it('produces five rows with the immediate one marked sent', async () => {
+    // Requirement 6.4, end to end: the counts the dashboard reads.
+    await POST(postRequest(validPayload));
+
+    const immediate = storedRow('immediate');
+    expect(immediate?.status).toBe('sent');
+    expect(immediate?.sentAt).toBeInstanceOf(Date);
+    expect(immediate?.attempts).toBe(1);
+    expect(immediate?.failureReason).toBeNull();
+
+    // Requirement 6.2 must not disturb the rest of the sequence.
+    expect(SCHEDULED.map((type) => storedRow(type)?.status)).toEqual([
+      'scheduled',
+      'scheduled',
+      'scheduled',
+      'scheduled',
+    ]);
+    expect(SCHEDULED.map((type) => storedRow(type)?.attempts)).toEqual([
+      0, 0, 0, 0,
+    ]);
+  });
+
+  it('inserts the immediate row as sending, already claimed', async () => {
+    await POST(postRequest(validPayload));
+
+    const inserted = followUpInsertValues();
+    expect(inserted[0]).toMatchObject({
+      templateType: 'immediate',
+      status: 'sending',
+    });
+    expect(inserted.slice(1).map((row) => row.status)).toEqual([
+      'scheduled',
+      'scheduled',
+      'scheduled',
+      'scheduled',
+    ]);
+  });
+
+  it('leaves nothing claimable for a cron run that lands mid-send', async () => {
+    // The transaction commits before the inline send finishes. Inserted as
+    // `scheduled` the row would be due the moment it existed, so a cron run in
+    // that window would claim it and send the same email again. Claiming it up
+    // front is what closes the window, and this asserts it from the cron's side.
+    let claimedMidSend: FollowUp[] = [];
+    sendImmediateFollowUp.mockImplementation(async () => {
+      claimedMidSend = await claimDueFollowUps(25, CREATED_AT);
+      return SEND_OK;
+    });
+
+    await POST(postRequest(validPayload));
+
+    expect(claimedMidSend).toEqual([]);
+    // And the request's own update still lands, rather than the row being left
+    // behind in `sending`.
+    expect(storedRow('immediate')?.status).toBe('sent');
+  });
+
+  it('returns the immediate row for retry when the send fails', async () => {
+    // Requirement 6.3. The failure used to leave no trace at all.
+    sendImmediateFollowUp.mockResolvedValue(SEND_FAILED);
+
+    const response = await POST(postRequest(validPayload));
+
+    expect(response.status).toBe(201);
+    const immediate = storedRow('immediate');
+    expect(immediate?.status).toBe('scheduled');
+    expect(immediate?.attempts).toBe(1);
+    expect(immediate?.failureReason).toBe(SEND_FAILURE_REASON);
+    expect(immediate?.sentAt).toBeNull();
+  });
+
+  it('makes a failed immediate touchpoint claimable by the next cron run', async () => {
+    // "Eligible for retry" means the cron actually picks it up, not just that
+    // the status string changed.
+    sendImmediateFollowUp.mockResolvedValue(SEND_FAILED);
+
+    await POST(postRequest(validPayload));
+    const claimed = await claimDueFollowUps(25, new Date(CREATED_AT.getTime() + 1000));
+
+    expect(claimed.map((row) => row.templateType)).toEqual(['immediate']);
+  });
+
+  it('records the real reason when the send throws rather than resolves', async () => {
+    sendImmediateFollowUp.mockRejectedValue(new Error('bedrock unavailable'));
+
+    await POST(postRequest(validPayload));
+
+    expect(storedRow('immediate')?.failureReason).toContain('bedrock unavailable');
+  });
+
+  it('tells Joey the lead heard from us when the immediate send succeeds', async () => {
+    await POST(postRequest(validPayload));
+
+    expect(notifyJoeyOfNewLead).toHaveBeenCalledWith(
+      expect.objectContaining({ id: LEAD_ID }),
+      { immediateFollowUpSent: true }
+    );
+  });
+
+  it('tells Joey the lead did not hear from us when the immediate send fails', async () => {
+    sendImmediateFollowUp.mockResolvedValue(SEND_FAILED);
+
+    await POST(postRequest(validPayload));
+
+    expect(notifyJoeyOfNewLead).toHaveBeenCalledWith(
+      expect.objectContaining({ id: LEAD_ID }),
+      { immediateFollowUpSent: false }
+    );
+  });
+
+  it('still returns 201 when the outcome cannot be recorded', async () => {
+    // The lead is committed and the email has gone. A 500 here would tell the
+    // visitor to submit again and duplicate the lead, which is worse than a row
+    // left in `sending` for the staleness reclaim to pick up.
+    queueWriteError = new Error('connection terminated');
+
+    const response = await POST(postRequest(validPayload));
+
+    expect(response.status).toBe(201);
+    expect((await response.json()).integrations.followUp).toBe(true);
+    expect(storedRow('immediate')?.status).toBe('sending');
   });
 });
 
