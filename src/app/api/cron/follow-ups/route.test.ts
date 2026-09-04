@@ -34,7 +34,7 @@ vi.mock('@/lib/db', async () => {
 const { fakeDb, resetFakeDb, makeFollowUp, makeDbLead } = await import(
   '@/lib/db/__fixtures__/fake-follow-up-db'
 );
-const { DEFAULT_CLAIM_LIMIT, MAX_SEND_ATTEMPTS } = await import(
+const { DEFAULT_CLAIM_LIMIT, MAX_SEND_ATTEMPTS, STALE_CLAIM_MS } = await import(
   '@/lib/db/follow-up-queue'
 );
 
@@ -311,7 +311,57 @@ describe('bounded batch', () => {
   it('reports nothing remaining once the queue is drained', async () => {
     const body = await (await GET(authorised())).json();
 
-    expect(body).toMatchObject({ claimed: 1, sent: 1, remaining: 0 });
+    expect(body).toMatchObject({ claimed: 1, sent: 1, remaining: 0, stranded: 0 });
+  });
+
+  /**
+   * `remaining` counts rows waiting their turn. Rows a killed run left in
+   * `sending` are outstanding work too, but they mean something different — a run
+   * died — so they get their own figure rather than being folded into a number an
+   * operator reads as routine.
+   *
+   * They only survive a run at all when the batch limit is reached, which is
+   * exactly the situation where a stalled queue needs to be visible.
+   */
+  it('reports rows a killed run stranded separately from rows still due', async () => {
+    fakeDb.followUps = [];
+    for (let index = 0; index < DEFAULT_CLAIM_LIMIT; index++) {
+      seedDue({
+        id: `follow-up-${index}`,
+        leadId: LEAD_ID,
+        // Oldest first, so these fill the batch ahead of the stranded rows.
+        scheduledFor: new Date(NOW_ISH.getTime() - (60 - index) * 60 * 1000),
+      });
+    }
+    for (let index = 0; index < 3; index++) {
+      fakeDb.followUps.push(
+        makeFollowUp({
+          id: `stranded-${index}`,
+          leadId: LEAD_ID,
+          status: 'sending',
+          scheduledFor: NOW_ISH,
+          // Well past the reclaim threshold, so these are genuinely orphaned.
+          updatedAt: new Date(NOW_ISH.getTime() - STALE_CLAIM_MS - 60_000),
+        })
+      );
+    }
+
+    const body = await (await GET(authorised())).json();
+
+    expect(body).toMatchObject({
+      claimed: DEFAULT_CLAIM_LIMIT,
+      sent: DEFAULT_CLAIM_LIMIT,
+      remaining: 0,
+      stranded: 3,
+    });
+  });
+
+  it('does not report rows this run is still working as stranded', async () => {
+    // Everything claimed reaches a terminal state inside the run, so a healthy
+    // run reports nothing stranded even though it passed through `sending`.
+    const body = await (await GET(authorised())).json();
+
+    expect(body).toMatchObject({ stranded: 0 });
   });
 
   it('reports an empty queue without querying leads or sending', async () => {
@@ -420,6 +470,80 @@ describe('failure handling', () => {
     });
     expect(body).toMatchObject({ claimed: 3, sent: 2, failed: 1 });
     expect(sendFollowUp).toHaveBeenCalledTimes(2);
+  });
+
+  /**
+   * The orphan path forces a permanent failure, and it used to do that by
+   * claiming the row had already made `Number.MAX_SAFE_INTEGER - 1` attempts —
+   * so the table recorded 9007199254740991 deliveries for a row nobody ever
+   * mailed. The status was right and the data was nonsense.
+   */
+  it('records a believable attempt count for an abandoned row', async () => {
+    fakeDb.followUps = [];
+    seedDue({ id: 'orphan', leadId: '99999999-9999-4999-8999-999999999999' });
+
+    await GET(authorised());
+
+    // Processed once, so one attempt. Nothing a dashboard has to apologise for.
+    expect(rowOf('orphan').attempts).toBe(1);
+    expect(rowOf('orphan').attempts).toBeLessThanOrEqual(MAX_SEND_ATTEMPTS);
+  });
+
+  /**
+   * A row's whole retry life, run by run, rather than the two endpoints tested
+   * separately above. This is the property that makes retry real: the row a
+   * failing run puts back has to be picked up by the following run.
+   */
+  it('retries a failing row on each run until the budget is spent', async () => {
+    fakeDb.followUps = [];
+    seedDue({ id: 'flaky', leadId: LEAD_ID });
+    sendFollowUp.mockResolvedValue({ ok: false, reason: 'email: connection reset' });
+
+    const bodies: Array<Record<string, unknown>> = [];
+    for (let run = 0; run < MAX_SEND_ATTEMPTS; run++) {
+      bodies.push(await (await GET(authorised())).json());
+    }
+
+    // Claimed and attempted on every run, not just the first.
+    expect(sendFollowUp).toHaveBeenCalledTimes(MAX_SEND_ATTEMPTS);
+    expect(bodies.map((body) => [body.requeued, body.failed])).toEqual([
+      [1, 0],
+      [1, 0],
+      [0, 1],
+    ]);
+    expect(rowOf('flaky')).toMatchObject({
+      status: 'failed',
+      attempts: MAX_SEND_ATTEMPTS,
+      failureReason: 'email: connection reset',
+    });
+
+    // And a fourth run leaves it alone rather than retrying forever.
+    const after = await (await GET(authorised())).json();
+    expect(after).toMatchObject({ claimed: 0 });
+    expect(sendFollowUp).toHaveBeenCalledTimes(MAX_SEND_ATTEMPTS);
+  });
+
+  it('sends a row that succeeds on a later run after transient failures', async () => {
+    fakeDb.followUps = [];
+    seedDue({ id: 'flaky', leadId: LEAD_ID });
+    sendFollowUp.mockResolvedValueOnce({
+      ok: false,
+      reason: 'email: connection reset',
+    });
+
+    await GET(authorised());
+    expect(rowOf('flaky')).toMatchObject({ status: 'scheduled', attempts: 1 });
+
+    await GET(authorised());
+
+    // The point of bounded retry: one bad moment costs a delay, not a touchpoint.
+    expect(rowOf('flaky')).toMatchObject({
+      status: 'sent',
+      failureReason: null,
+      // One failed attempt plus the successful one. `attempts` counts deliveries
+      // tried, not failures, so a row that recovered on its second run reads 2.
+      attempts: 2,
+    });
   });
 
   it('leaves no row stuck in sending after a mixed batch', async () => {

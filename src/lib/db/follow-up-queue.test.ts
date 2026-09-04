@@ -24,8 +24,9 @@ const { fakeDb, resetFakeDb, makeFollowUp } = await import(
 );
 
 const {
+  abandon,
   claimDueFollowUps,
-  countRemainingDue,
+  countQueueBacklog,
   markSent,
   recordFailure,
   MAX_SEND_ATTEMPTS,
@@ -198,6 +199,24 @@ describe('markSent', () => {
       failureReason: null,
     });
   });
+
+  /**
+   * What `attempts` counts, pinned deliberately, because two readings are
+   * plausible and the difference matters to the retry arithmetic.
+   *
+   * It counts delivery attempts including the successful one — a row that sent
+   * first time carries 1, not 0. The alternative reading, "failures so far",
+   * would leave a clean send at 0 and make a double-send indistinguishable from
+   * a single one in the data.
+   */
+  it('counts the successful attempt, so a first-time send lands on one', async () => {
+    const row = seedDue({ id: 'due-1', attempts: 0 });
+    await claimDueFollowUps(10, NOW);
+
+    await markSent(row.id, NOW);
+
+    expect(rowOf(row.id).attempts).toBe(1);
+  });
 });
 
 describe('recordFailure', () => {
@@ -234,9 +253,119 @@ describe('recordFailure', () => {
       failureReason: 'email: recipient domain rejected the message',
     });
   });
+
+  it('overwrites the previous reason so the record shows why it last failed', async () => {
+    const row = seedDue({ id: 'due-1', failureReason: 'email: connection reset' });
+    await claimDueFollowUps(10, NOW);
+
+    await recordFailure(row.id, 'email: mailbox full', 1, NOW);
+
+    expect(rowOf(row.id).failureReason).toBe('email: mailbox full');
+  });
+
+  /**
+   * The whole retry lifecycle in one pass, rather than only its two endpoints.
+   *
+   * Each iteration is a separate cron run: claim what is due, fail the send,
+   * record it. The two properties that make retry real only show up here —
+   * that a requeued row is genuinely claimable by the *next* run, and that the
+   * budget allows a full `MAX_SEND_ATTEMPTS` worth of failures rather than being
+   * quietly shortened by the increment `markSent` also performs.
+   */
+  it('walks a row from first failure to permanent failure across successive runs', async () => {
+    const row = seedDue({ id: 'due-1' });
+    const outcomes: Array<{ requeued: boolean; attempts: number }> = [];
+
+    for (let run = 0; run < MAX_SEND_ATTEMPTS; run++) {
+      const claimed = await claimDueFollowUps(10, NOW);
+
+      // The row a previous run requeued has to come back, or "retry" is a
+      // status change nobody ever acts on.
+      expect(idsOf(claimed)).toEqual(['due-1']);
+      expect(claimed[0]?.attempts).toBe(run);
+
+      outcomes.push(
+        await recordFailure(row.id, `email: connection reset (run ${run})`, run, NOW)
+      );
+    }
+
+    expect(outcomes).toEqual([
+      { requeued: true, attempts: 1 },
+      { requeued: true, attempts: 2 },
+      { requeued: false, attempts: MAX_SEND_ATTEMPTS },
+    ]);
+
+    // Three real failures were tolerated, which is what MAX_SEND_ATTEMPTS means.
+    expect(rowOf(row.id)).toMatchObject({
+      status: 'failed',
+      attempts: MAX_SEND_ATTEMPTS,
+      failureReason: 'email: connection reset (run 2)',
+      failedAt: NOW,
+    });
+
+    // And it stays out of the queue afterwards.
+    expect(await claimDueFollowUps(10, NOW)).toEqual([]);
+  });
+
+  it('requeues to a state the very next claim picks up', async () => {
+    const row = seedDue({ id: 'due-1' });
+    await claimDueFollowUps(10, NOW);
+    await recordFailure(row.id, 'email: connection reset', 0, NOW);
+
+    // Not waiting on the fifteen-minute stale reclaim: the row is back in
+    // `scheduled` with its original due time, so it is claimable immediately.
+    const reclaimed = await claimDueFollowUps(10, NOW);
+
+    expect(idsOf(reclaimed)).toEqual(['due-1']);
+    expect(reclaimed[0]?.attempts).toBe(1);
+  });
 });
 
-describe('countRemainingDue', () => {
+describe('abandon', () => {
+  /**
+   * The route needs a way to fail a row that no retry can save — a follow-up
+   * whose lead has been deleted. It used to force that through `recordFailure`
+   * by passing `Number.MAX_SAFE_INTEGER - 1`, which produced the right status
+   * and a stored attempt count of 9007199254740991.
+   */
+  it('fails the row immediately with a believable attempt count', async () => {
+    const row = seedDue({ id: 'orphan' });
+    await claimDueFollowUps(10, NOW);
+
+    const outcome = await abandon(row.id, 'Lead not found', NOW);
+
+    expect(outcome).toEqual({ requeued: false, attempts: 1 });
+    expect(rowOf(row.id)).toMatchObject({
+      status: 'failed',
+      attempts: 1,
+      failureReason: 'Lead not found',
+      failedAt: NOW,
+    });
+  });
+
+  it('counts on from whatever the row had already spent', async () => {
+    const row = seedDue({ id: 'orphan', attempts: 1 });
+    await claimDueFollowUps(10, NOW);
+
+    const outcome = await abandon(row.id, 'Lead not found', NOW);
+
+    expect(outcome.attempts).toBe(2);
+    expect(rowOf(row.id).attempts).toBe(2);
+  });
+
+  it('does not requeue, whatever the budget would have allowed', async () => {
+    const row = seedDue({ id: 'orphan', attempts: 0 });
+    await claimDueFollowUps(10, NOW);
+
+    await abandon(row.id, 'Lead not found', NOW);
+
+    // A fresh row has its whole budget left; abandoning it must still be final.
+    expect(await claimDueFollowUps(10, NOW)).toEqual([]);
+    expect(rowOf(row.id).status).toBe('failed');
+  });
+});
+
+describe('countQueueBacklog', () => {
   it('counts only rows still due, so a hit batch limit is distinguishable', async () => {
     seedDue({ id: 'due-1' });
     seedDue({ id: 'due-2', scheduledFor: minutesBeforeNow(59) });
@@ -247,10 +376,52 @@ describe('countRemainingDue', () => {
     await claimDueFollowUps(1, NOW);
 
     // One claimed and in flight, two still waiting, one not yet due, one done.
-    expect(await countRemainingDue(NOW)).toBe(2);
+    expect(await countQueueBacklog(NOW)).toEqual({ due: 2, stranded: 0 });
   });
 
   it('reports zero for a drained queue', async () => {
-    expect(await countRemainingDue(NOW)).toBe(0);
+    expect(await countQueueBacklog(NOW)).toEqual({ due: 0, stranded: 0 });
+  });
+
+  /**
+   * Why this is two numbers.
+   *
+   * A row a killed run left in `sending` is real outstanding work, but it is not
+   * the same kind of thing as a row waiting its turn: it is evidence a run died.
+   * Counting it in `due` would let `due` mean "waiting" on a healthy day and
+   * "waiting, plus some wreckage" on a bad one, which is exactly when an
+   * operator needs the number to be unambiguous.
+   */
+  it('reports a stranded row separately rather than inside the due count', async () => {
+    seedDue({ id: 'due-1' });
+    fakeDb.followUps.push(
+      makeFollowUp({
+        id: 'stranded',
+        status: 'sending',
+        scheduledFor: minutesBeforeNow(600),
+        updatedAt: new Date(NOW.getTime() - STALE_CLAIM_MS - 1000),
+      })
+    );
+
+    expect(await countQueueBacklog(NOW)).toEqual({ due: 1, stranded: 1 });
+  });
+
+  it('does not call a freshly claimed row stranded', async () => {
+    seedDue({ id: 'due-1' });
+
+    await claimDueFollowUps(10, NOW);
+
+    // The row is in `sending` because this run is working it. Reporting that as
+    // stranded would turn every normal run into an alarm.
+    expect(await countQueueBacklog(NOW)).toEqual({ due: 0, stranded: 0 });
+  });
+
+  it('ignores rows that already reached a terminal state', async () => {
+    fakeDb.followUps.push(
+      makeFollowUp({ id: 'sent', status: 'sent' }),
+      makeFollowUp({ id: 'failed', status: 'failed' })
+    );
+
+    expect(await countQueueBacklog(NOW)).toEqual({ due: 0, stranded: 0 });
   });
 });

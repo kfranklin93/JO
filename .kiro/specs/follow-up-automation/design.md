@@ -17,7 +17,7 @@ graph TD
     CRON["cron-job.org<br/>daily, UTC"] -->|"GET + Bearer CRON_SECRET"| EP["/api/cron/follow-ups"]
     EP --> AUTH["requireCronAuth()<br/>fail-closed"]
     AUTH -->|reject| E401["401, no side effects"]
-    AUTH -->|pass| CLAIM["claimDueFollowUps(limit)<br/>UPDATE ... WHERE status='scheduled'<br/>AND scheduled_for <= now<br/>RETURNING *"]
+    AUTH -->|pass| CLAIM["claimDueFollowUps(limit)<br/>UPDATE ... WHERE id IN (<br/>SELECT id ... LIMIT n<br/>FOR UPDATE SKIP LOCKED)<br/>RETURNING *"]
     CLAIM --> LOOP["for each claimed row"]
     LOOP --> SRC["content source"]
     SRC -->|default| TPL["templated body"]
@@ -28,7 +28,14 @@ graph TD
     SEND -->|fail| RT["attempts++<br/>below max → scheduled<br/>at max → failed + reason"]
 ```
 
-The claim is the load-bearing piece. A single `UPDATE ... WHERE status = 'scheduled' ... RETURNING *` is atomic in Postgres, so two concurrent runs cannot both claim the same row — the second finds nothing matching and returns an empty set. This is simpler and cheaper than `SELECT ... FOR UPDATE SKIP LOCKED` and needs no explicit transaction.
+The claim is the load-bearing piece. A single `UPDATE ... RETURNING *` is atomic in Postgres, so two concurrent runs cannot both claim the same row — the second finds nothing matching and returns an empty set, and no explicit transaction is needed.
+
+Two details of the statement are not optional, contrary to an earlier draft of this design which claimed the claim was "simpler and cheaper than `SELECT ... FOR UPDATE SKIP LOCKED`". The shipped claim uses `FOR UPDATE SKIP LOCKED`, and has to:
+
+- **Postgres has no `LIMIT` on `UPDATE`.** Bounding the batch (Requirement 4.4) therefore needs the ids chosen by an inner `SELECT ... ORDER BY scheduled_for LIMIT n`, and the `UPDATE` matches `WHERE id IN (...)`. There is no single-clause form of this.
+- **Without `SKIP LOCKED` a concurrent run blocks rather than skipping.** The inner select takes row locks; a second run whose candidate set overlaps waits for the first run's transaction instead of moving on to different work. `SKIP LOCKED` is what turns contention into disjoint batches, which is the behaviour the concurrency test asserts.
+
+So the shape is an `UPDATE` over an id subquery that locks and skips, not a bare predicate.
 
 ## Data Models
 
@@ -93,11 +100,18 @@ Isolates the queue's SQL so it can be tested and reasoned about separately from 
 ```ts
 export async function claimDueFollowUps(limit: number, now: Date): Promise<FollowUpRow[]>;
 export async function markSent(id: string, now: Date): Promise<void>;
-export async function recordFailure(id: string, reason: string, attempts: number, now: Date): Promise<void>;
-export async function countRemainingDue(now: Date): Promise<number>;
+export async function recordFailure(id: string, reason: string, attempts: number, now: Date): Promise<FailureOutcome>;
+export async function abandon(id: string, reason: string, now: Date): Promise<FailureOutcome>;
+export async function countQueueBacklog(now: Date): Promise<{ due: number; stranded: number }>;
 ```
 
-`recordFailure` decides between requeue and permanent failure based on the attempt count, keeping that policy in one place.
+`recordFailure` decides between requeue and permanent failure based on the attempt count, keeping that policy in one place, and returns which it chose so the route can report requeued and failed separately.
+
+`abandon` covers failures no retry can fix — principally a follow-up whose lead has been deleted (Requirement 4.6). Expressing that through `recordFailure` means passing an attempt count high enough to exceed the budget, which produces the right status and a meaningless number in the `attempts` column. A separate function keeps the stored data truthful.
+
+`countQueueBacklog` reports two figures rather than one. `due` counts `scheduled`-and-due rows, so it keeps the plain meaning "waiting to be picked up". Rows stranded in `sending` by a killed run are claimable too, once past the staleness threshold, but they indicate a crashed run rather than routine backlog, so they are reported separately instead of being blended into `due`. Rows in `sending` that are still fresh belong to a live run and are counted in neither.
+
+**What `attempts` counts.** Every delivery attempt, including a successful one — `markSent` increments it as well, so a row that sent first time reads 1. That makes a double-send visible in the data (`attempts = 2` on a `sent` row is unreachable by any legitimate path). It does not shorten the retry budget: `sent` is terminal, so `recordFailure` never reads a value a success contributed to, and `MAX_SEND_ATTEMPTS` still buys a full three failures.
 
 ### `src/lib/services/lead-mapping.ts` (new)
 
@@ -162,7 +176,7 @@ Other coverage:
 - Templates: a snapshot per touchpoint, a nameless lead producing a natural greeting and a name-free subject, and an escaped injection payload
 - Content source: templates by default with no Bedrock call, AI source when the flag is set
 - Cron auth: absent header, wrong secret, correct secret, unset `CRON_SECRET` — each asserting no send occurred on rejection
-- Retry: transient failure requeues with incremented attempts; reaching the maximum marks failed with a real reason
+- Retry: transient failure requeues with incremented attempts; reaching the maximum marks failed with a real reason; and a row walked run by run through its whole life — fail, requeue, fail, requeue, fail, abandoned — since the endpoints passing individually does not prove a requeued row is ever claimed again
 - Stranded rows: a `'sending'` row older than the threshold is reclaimed; a fresh one is not
 - Lead mapping: an out-of-union `propertyInterest` normalises rather than corrupting the type; each database status maps deliberately
 - Daily summary: seeded leads appear; a genuinely empty day reports accurately

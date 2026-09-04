@@ -34,7 +34,13 @@ import type { FollowUp, Lead as DbLead } from '@/lib/db/schema';
 const dialect = new PgDialect();
 
 /** The kinds of statement the queue is allowed to issue. */
-export type StatementKind = 'claim' | 'markSent' | 'requeue' | 'fail' | 'countRemaining';
+export type StatementKind =
+  | 'claim'
+  | 'markSent'
+  | 'requeue'
+  | 'fail'
+  | 'abandon'
+  | 'countBacklog';
 
 /**
  * Mutable state for one test. Reset between tests by {@link resetFakeDb}.
@@ -173,13 +179,27 @@ function rowById(id: string): FollowUp {
 
 /** Apply one rendered statement to the store and return its result rows. */
 function apply(text: string, params: unknown[]): { rows: unknown[] } {
-  if (/select\s+count\(\*\)/i.test(text)) {
-    fakeDb.statements.push('countRemaining');
+  // The only read the queue issues. Matched on the aggregate rather than on
+  // `SELECT count(...)` so wrapping the cast does not silently stop dispatching.
+  if (/count\(\*\)/i.test(text)) {
+    fakeDb.statements.push('countBacklog');
+
+    // Both figures have to come from one statement, or they could describe
+    // different instants. If the second aggregate goes missing the fake cannot
+    // find its parameter and the lookup below throws.
     const due = dateParam(text, params, /scheduled_for <= \$(\d+)/);
-    const count = fakeDb.followUps.filter(
+    const staleBefore = dateParam(text, params, /updated_at < \$(\d+)/);
+
+    const dueCount = fakeDb.followUps.filter(
       (row) => row.status === 'scheduled' && row.scheduledFor <= due
     ).length;
-    return { rows: [{ count }] };
+    // Only rows past the reclaim threshold. A freshly claimed row belongs to a
+    // live run, and counting it as stranded would read healthy overlap as a fault.
+    const strandedCount = fakeDb.followUps.filter(
+      (row) => row.status === 'sending' && row.updatedAt < staleBefore
+    ).length;
+
+    return { rows: [{ due: dueCount, stranded: strandedCount }] };
   }
 
   if (/set status = 'sending'/i.test(text)) {
@@ -246,13 +266,35 @@ function apply(text: string, params: unknown[]): { rows: unknown[] } {
   }
 
   if (/set status = 'failed'/i.test(text)) {
-    fakeDb.statements.push('fail');
+    // Two statements land here and they mean different things. `recordFailure`
+    // sets `attempts` to a value it computed from the claimed row; `abandon`
+    // increments relative to the stored value, because it is not spending a
+    // budget, just recording that the row was processed once and cannot succeed.
+    const abandoning = /attempts = attempts \+ 1/i.test(text);
+    fakeDb.statements.push(abandoning ? 'abandon' : 'fail');
+
     const row = rowById(stringParam(text, params, /where id = \$(\d+)/i));
     row.status = 'failed';
-    row.attempts = numberParam(text, params, /attempts = \$(\d+)/);
+    if (abandoning) {
+      row.attempts += 1;
+    } else {
+      row.attempts = numberParam(text, params, /attempts = \$(\d+)/);
+    }
     row.failedAt = dateParam(text, params, /failed_at = \$(\d+)/);
     row.failureReason = stringParam(text, params, /failure_reason = \$(\d+)/);
     row.updatedAt = dateParam(text, params, /updated_at = \$(\d+)/);
+
+    // `abandon` reads the stored count back rather than guessing it, so the
+    // returned outcome cannot disagree with the row.
+    if (abandoning) {
+      if (!/returning attempts/i.test(text)) {
+        throw new Error(
+          `fake db: abandon must RETURN the attempts it recorded:\n${text}`
+        );
+      }
+      return { rows: [{ attempts: row.attempts }] };
+    }
+
     return { rows: [] };
   }
 

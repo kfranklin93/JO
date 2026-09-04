@@ -4,8 +4,9 @@ import { db, leads } from '@/lib/db';
 import { sendFollowUp } from '@/lib/services/follow-up-scheduler';
 import { toSchedulerLead } from '@/lib/services/lead-mapping';
 import {
+  abandon,
   claimDueFollowUps,
-  countRemainingDue,
+  countQueueBacklog,
   markSent,
   recordFailure,
   DEFAULT_CLAIM_LIMIT,
@@ -46,6 +47,8 @@ export async function GET(request: NextRequest) {
     const claimed = await claimDueFollowUps(DEFAULT_CLAIM_LIMIT, now);
 
     if (claimed.length === 0) {
+      // Nothing claimable means nothing due and nothing reclaimable: the claim
+      // takes stranded rows too, so both figures are zero without asking.
       return NextResponse.json({
         success: true,
         claimed: 0,
@@ -53,6 +56,7 @@ export async function GET(request: NextRequest) {
         failed: 0,
         requeued: 0,
         remaining: 0,
+        stranded: 0,
         timestamp: now.toISOString(),
       });
     }
@@ -74,14 +78,10 @@ export async function GET(request: NextRequest) {
       const leadRow = leadsById.get(followUp.leadId);
 
       if (!leadRow) {
-        // The row references a lead that no longer exists. Retrying cannot help,
-        // so the attempt budget is spent immediately rather than requeuing.
-        await recordFailure(
-          followUp.id,
-          'Lead not found',
-          Number.MAX_SAFE_INTEGER - 1,
-          now
-        );
+        // The row references a lead that no longer exists, so there is nothing to
+        // send to and no retry that could help. `abandon` fails it outright
+        // rather than inflating the attempt count to force the same outcome.
+        await abandon(followUp.id, 'Lead not found', now);
         failed++;
         continue;
       }
@@ -111,10 +111,13 @@ export async function GET(request: NextRequest) {
     }
 
     // Reported so an operator can tell a cleared queue from a hit batch limit.
-    const remaining = await countRemainingDue(now);
+    // `stranded` is separate because it means something different: rows a killed
+    // run left in `sending`, which the next claim will reclaim.
+    const backlog = await countQueueBacklog(now);
 
     console.log(
-      `Follow-ups: ${sent} sent, ${requeued} requeued, ${failed} failed, ${remaining} still due`
+      `Follow-ups: ${sent} sent, ${requeued} requeued, ${failed} failed, ` +
+        `${backlog.due} still due, ${backlog.stranded} stranded`
     );
 
     return NextResponse.json({
@@ -123,7 +126,8 @@ export async function GET(request: NextRequest) {
       sent,
       failed,
       requeued,
-      remaining,
+      remaining: backlog.due,
+      stranded: backlog.stranded,
       timestamp: now.toISOString(),
     });
   } catch (error) {

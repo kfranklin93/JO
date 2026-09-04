@@ -1,6 +1,6 @@
 # Follow-Up Automation Reliability — Tasks
 
-- [ ] 1. Write the templated follow-up bodies
+- [x] 1. Write the templated follow-up bodies
   - Create `src/lib/services/follow-up-content.ts` with templates for `immediate`, `day3`, `day7`, `day14`, and `day30`
   - Keep the established voice: first-name greeting, conversational, one clear next step, signed simply
   - Do not reference prior conversations, shared resources, or client stories that do not exist — the current `day3` and `day14` prompts do this while `previousMessage` is hardcoded to `'N/A'`
@@ -9,20 +9,20 @@
   - Write a snapshot test per touchpoint, a nameless-lead test, and an injection-payload test
   - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7_
 
-- [ ] 2. Introduce the content-source seam
+- [x] 2. Introduce the content-source seam
   - Define `FollowUpContentSource` with `templateContentSource` and `aiContentSource`, and a `getContentSource()` that returns templates unless an env flag selects AI
   - Refactor `sendFollowUp` in `follow-up-scheduler.ts` to obtain content from the source and to return a result object carrying a failure reason instead of a bare boolean
   - Delete the unused `lines` variable at line 109, plus `calculateFollowUpSchedule` and `processPendingFollowUps`, which are dead and contradict the live route logic
   - Write tests asserting templates are used by default with no Bedrock call, and that the AI source is selected when the flag is set
   - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 2.6_
 
-- [ ] 3. Make cron authentication fail closed
+- [x] 3. Make cron authentication fail closed
   - Create `src/lib/api/cron-auth.ts` with `requireCronAuth` returning 401 for an absent header, a mismatched secret, or an unset `CRON_SECRET`
   - Apply it to both cron routes and their `POST` aliases, replacing the fail-open `if (cronSecret && ...)` at `follow-ups/route.ts:25` and `daily-summary/route.ts:24`
   - Write tests for absent header, wrong secret, correct secret, and unset secret — each asserting no email was sent and no row modified on rejection
   - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 3.6_
 
-- [ ] 4. Add the claim mechanism and bounded batch
+- [x] 4. Add the claim mechanism and bounded batch
   - Add `'sending'` to the `follow_up_status` enum and an `attempts` integer column defaulting to 0 in `src/lib/db/schema.ts`, then `npm run db:push`
   - Create `src/lib/db/follow-up-queue.ts` with `claimDueFollowUps`, `markSent`, `recordFailure`, and `countRemainingDue`
   - Claim with a single atomic `UPDATE ... RETURNING` that also reclaims `'sending'` rows staler than a threshold well beyond any function time limit
