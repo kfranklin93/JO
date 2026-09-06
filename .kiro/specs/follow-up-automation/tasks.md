@@ -50,14 +50,14 @@
   - Write tests asserting seeded leads appear in the digest and that a genuinely empty day reports accurately
   - _Requirements: 7.1, 7.2, 7.3, 7.4_
 
-- [-] 8. Give it a real schedule
+- [x] 8. Give it a real schedule
   - Delete `vercel.json`, which Netlify ignores entirely
   - Remove the stale `netlify.toml` guidance at `follow-ups/route.ts:16-18` and the `vercel.json` guidance at `daily-summary/route.ts:11-16`, replacing them with the mechanism actually in use
   - Record the cron-job.org configuration in this spec — URL, `GET`, `Authorization: Bearer <CRON_SECRET>`, and `0 11 * * *` UTC for roughly 7 AM Eastern — with the daily summary offset by 30 minutes
   - Note why Netlify scheduled functions cannot be used: they only target functions in the Netlify functions directory and cannot be invoked by URL
   - _Requirements: 8.1, 8.2, 8.3, 8.4, 8.5_
 
-- [ ] 9. Verify the spec
+- [-] 9. Verify the spec
   - Run `npm test`, `npm run typecheck`, and `npm run build`
   - Hit the endpoint with no `Authorization` header and confirm 401 where it previously returned 200 and sent email
   - Seed due follow-ups, trigger twice in quick succession, and confirm one email per row

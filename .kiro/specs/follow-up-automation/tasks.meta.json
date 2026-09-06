@@ -1,0 +1,93 @@
+{
+  "pbtResults": {},
+  "executionHistory": {
+    "1. Write the templated follow-up bodies": [
+      {
+        "executionId": "e6724f53-7d72-4c5f-a029-5eaae6101c8e",
+        "chatSessionId": "sess_f13b7bf2-6625-463a-bfec-f050f1f35c2e",
+        "timestamp": 1788547370317
+      }
+    ],
+    "2. Introduce the content-source seam": [
+      {
+        "executionId": "e6724f53-7d72-4c5f-a029-5eaae6101c8e",
+        "chatSessionId": "sess_f13b7bf2-6625-463a-bfec-f050f1f35c2e",
+        "timestamp": 1788547375333
+      }
+    ],
+    "3. Make cron authentication fail closed": [
+      {
+        "executionId": "e6724f53-7d72-4c5f-a029-5eaae6101c8e",
+        "chatSessionId": "sess_f13b7bf2-6625-463a-bfec-f050f1f35c2e",
+        "timestamp": 1788547379177
+      }
+    ],
+    "4. Add the claim mechanism and bounded batch": [
+      {
+        "executionId": "e6724f53-7d72-4c5f-a029-5eaae6101c8e",
+        "chatSessionId": "sess_f13b7bf2-6625-463a-bfec-f050f1f35c2e",
+        "timestamp": 1788547390391
+      },
+      {
+        "executionId": "e6724f53-7d72-4c5f-a029-5eaae6101c8e",
+        "chatSessionId": "sess_f13b7bf2-6625-463a-bfec-f050f1f35c2e",
+        "timestamp": 1788548223835
+      }
+    ],
+    "5. Add bounded retry": [
+      {
+        "executionId": "e6724f53-7d72-4c5f-a029-5eaae6101c8e",
+        "chatSessionId": "sess_f13b7bf2-6625-463a-bfec-f050f1f35c2e",
+        "timestamp": 1788548227491
+      },
+      {
+        "executionId": "da69a0de-0a1f-44a7-ae60-b80d8fac5d36",
+        "chatSessionId": "sess_f13b7bf2-6625-463a-bfec-f050f1f35c2e",
+        "timestamp": 1788550516253
+      }
+    ],
+    "6. Record the immediate touchpoint": [
+      {
+        "executionId": "da69a0de-0a1f-44a7-ae60-b80d8fac5d36",
+        "chatSessionId": "sess_f13b7bf2-6625-463a-bfec-f050f1f35c2e",
+        "timestamp": 1788550519859
+      },
+      {
+        "executionId": "da69a0de-0a1f-44a7-ae60-b80d8fac5d36",
+        "chatSessionId": "sess_f13b7bf2-6625-463a-bfec-f050f1f35c2e",
+        "timestamp": 1788551087352
+      }
+    ],
+    "7. Make the daily summary real": [
+      {
+        "executionId": "da69a0de-0a1f-44a7-ae60-b80d8fac5d36",
+        "chatSessionId": "sess_f13b7bf2-6625-463a-bfec-f050f1f35c2e",
+        "timestamp": 1788551092292
+      },
+      {
+        "executionId": "da69a0de-0a1f-44a7-ae60-b80d8fac5d36",
+        "chatSessionId": "sess_f13b7bf2-6625-463a-bfec-f050f1f35c2e",
+        "timestamp": 1788551634429
+      }
+    ],
+    "8. Give it a real schedule": [
+      {
+        "executionId": "da69a0de-0a1f-44a7-ae60-b80d8fac5d36",
+        "chatSessionId": "sess_f13b7bf2-6625-463a-bfec-f050f1f35c2e",
+        "timestamp": 1788551637898
+      },
+      {
+        "executionId": "da69a0de-0a1f-44a7-ae60-b80d8fac5d36",
+        "chatSessionId": "sess_f13b7bf2-6625-463a-bfec-f050f1f35c2e",
+        "timestamp": 1788552429561
+      }
+    ],
+    "9. Verify the spec": [
+      {
+        "executionId": "da69a0de-0a1f-44a7-ae60-b80d8fac5d36",
+        "chatSessionId": "sess_f13b7bf2-6625-463a-bfec-f050f1f35c2e",
+        "timestamp": 1788552433629
+      }
+    ]
+  }
+}
