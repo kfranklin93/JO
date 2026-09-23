@@ -2,8 +2,14 @@
 #
 # One-shot AWS-side setup for the Bedrock integration.
 #
-#   ./scripts/setup-bedrock-aws.sh              # do it
-#   ./scripts/setup-bedrock-aws.sh --dry-run    # show what it would do, change nothing
+#   ./scripts/setup-bedrock-aws.sh                      # do it
+#   ./scripts/setup-bedrock-aws.sh --dry-run            # show what it would do, change nothing
+#   ./scripts/setup-bedrock-aws.sh --profile joeyo      # pick a named credential profile
+#
+# Flags may appear in any order. Without --profile the default credential chain
+# is used, so AWS_PROFILE=… ./scripts/setup-bedrock-aws.sh still works; --profile
+# wins if both are given. Check the account id printed in step 1 before letting
+# it create anything — it is easy to point this at the wrong account.
 #
 # Prerequisite: `aws sts get-caller-identity` must already return an identity
 # with permission to manage IAM and Bedrock. Create that credential in the
@@ -11,15 +17,17 @@
 # passed as an argument and never printed.
 #
 # What it changes in your AWS account:
-#   - grants model access for the Claude model below (accepts the EULA via API)
 #   - creates an IAM policy scoped to invoking that one model
 #   - creates an IAM user, attaches that policy, and issues one access key
+#
+# It no longer grants model access: AWS retired the Model access page and
+# enables serverless foundation models on first invocation.
 #
 # What it changes locally:
 #   - rewrites the four AWS_* lines in .env.local (a timestamped backup is kept)
 #
-# Idempotent: existing policy, user, and model agreement are detected and reused
-# rather than duplicated. Safe to re-run.
+# Idempotent: an existing policy and user are detected and reused rather than
+# duplicated. Safe to re-run.
 
 set -euo pipefail
 
@@ -30,16 +38,41 @@ IAM_POLICY="JoeyOBedrockInvoke"
 # cover the underlying foundation model in each, not just the profile itself.
 CRIS_REGIONS=(us-east-1 us-east-2 us-west-2)
 
-DRY_RUN=false
-[[ "${1:-}" == "--dry-run" ]] && DRY_RUN=true
-
 GREEN=$'\e[32m'; RED=$'\e[31m'; YELLOW=$'\e[33m'; DIM=$'\e[2m'; BOLD=$'\e[1m'; OFF=$'\e[0m'
 ok()   { printf '%s  ok  %s%s\n'   "$GREEN"  "$OFF" "$1"; }
 bad()  { printf '%s fail %s%s\n'   "$RED"    "$OFF" "$1"; }
 warn() { printf '%s warn %s%s\n'   "$YELLOW" "$OFF" "$1"; }
 info() { printf '%s      %s%s\n'   "$DIM"    "$1"  "$OFF"; }
 step() { printf '\n%s%s%s\n'       "$BOLD"   "$1"  "$OFF"; }
-run()  { if $DRY_RUN; then info "would run: $*"; else "$@"; fi; }
+# Swallows command output itself, so callers must not add >/dev/null — doing that
+# hid the "would run:" line and made dry runs look like real work.
+run()  { if $DRY_RUN; then info "would run: $*"; else "$@" >/dev/null; fi; }
+
+DRY_RUN=false
+PROFILE=""
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --dry-run)   DRY_RUN=true; shift ;;
+    --profile)   PROFILE="${2:-}"; shift 2 || true
+                 [[ -n "$PROFILE" ]] || { bad "--profile needs a profile name"; exit 1; } ;;
+    --profile=*) PROFILE="${1#*=}"; shift
+                 [[ -n "$PROFILE" ]] || { bad "--profile needs a profile name"; exit 1; } ;;
+    *)           bad "Unknown argument: $1"
+                 info "Usage: $(basename "${BASH_SOURCE[0]}") [--dry-run] [--profile <name>]"
+                 exit 1 ;;
+  esac
+done
+
+# Every AWS call goes through this wrapper so --profile reaches all of them and
+# call sites stay readable. `command aws` avoids recursing into this function.
+aws() {
+  if [[ -n "$PROFILE" ]]; then
+    command aws --profile "$PROFILE" "$@"
+  else
+    command aws "$@"
+  fi
+}
 
 export AWS_PAGER=""
 
@@ -67,6 +100,7 @@ REGION="${AWS_REGION:-$(aws configure get region || echo us-east-1)}"
 
 ok "Account $ACCOUNT_ID"
 info "Caller: $CALLER_ARN"
+[[ -n "$PROFILE" ]] && info "Profile: $PROFILE (passed to every aws call)"
 ok "Region $REGION"
 
 if [[ "$CALLER_ARN" == *":root" ]]; then
@@ -77,45 +111,14 @@ fi
 # ─── 2. Model access ─────────────────────────────────────────────────────────
 step "2. Model access for $MODEL_ID"
 
-AVAILABILITY=$(aws bedrock get-foundation-model-availability \
-  --model-id "$MODEL_ID" --region "$REGION" --output json 2>&1 || true)
-
-if printf '%s' "$AVAILABILITY" | grep -q '"agreementAvailability"'; then
-  AGREEMENT_STATUS=$(printf '%s' "$AVAILABILITY" \
-    | tr -d ' \n' | sed -n 's/.*"agreementAvailability":{"status":"\([A-Z_]*\)".*/\1/p')
-  ENTITLED=$(printf '%s' "$AVAILABILITY" \
-    | sed -n 's/.*"entitlementAvailability": *"\([A-Z_]*\)".*/\1/p')
-  info "agreement: ${AGREEMENT_STATUS:-unknown}   entitlement: ${ENTITLED:-unknown}"
-else
-  warn "Could not read availability in $REGION."
-  info "$(printf '%s' "$AVAILABILITY" | tr -d '\n' | cut -c1-200)"
-  AGREEMENT_STATUS=""
-  ENTITLED=""
-fi
-
-if [[ "$ENTITLED" == "AVAILABLE" && "$AGREEMENT_STATUS" == "AVAILABLE" ]]; then
-  ok "Already entitled — nothing to accept."
-else
-  info "Requesting access (this accepts the model EULA on your behalf)..."
-  OFFERS=$(aws bedrock list-foundation-model-agreement-offers \
-    --model-id "$MODEL_ID" --region "$REGION" --output json 2>&1 || true)
-  OFFER_TOKEN=$(printf '%s' "$OFFERS" \
-    | sed -n 's/.*"offerToken": *"\([^"]*\)".*/\1/p' | head -1)
-
-  if [[ -n "$OFFER_TOKEN" ]]; then
-    if run aws bedrock create-foundation-model-agreement \
-         --model-id "$MODEL_ID" --offer-token "$OFFER_TOKEN" --region "$REGION" >/dev/null 2>&1; then
-      ok "Model agreement created."
-    else
-      warn "Agreement call did not succeed. It may already exist, or need console approval."
-      info "Check: Bedrock console → Model access, in $REGION."
-    fi
-  else
-    warn "No offer token returned."
-    info "Enable it manually: Bedrock console → Model access → Manage → Claude 3.5 Sonnet v2."
-    info "$(printf '%s' "$OFFERS" | tr -d '\n' | cut -c1-200)"
-  fi
-fi
+# Nothing to do here any more. This step used to call
+# get-foundation-model-availability / list-foundation-model-agreement-offers /
+# create-foundation-model-agreement; those are legacy, they report confusing
+# statuses for current models, and it printed "Model agreement created" for an
+# operation that no longer means anything.
+info "Nothing to grant: AWS retired the Model access page, and serverless"
+info "foundation models are enabled on the first invocation."
+info "A first-time Anthropic user may be asked for use-case details in the console."
 
 # ─── 3. Resolve the id to actually invoke ────────────────────────────────────
 step "3. Invocation id"
@@ -183,12 +186,14 @@ if aws iam get-user --user-name "$IAM_USER" >/dev/null 2>&1; then
   ok "User already exists."
 else
   run aws iam create-user --user-name "$IAM_USER" \
-    --tags Key=project,Value=joeyo-real-estate >/dev/null
-  ok "User created (no console access)."
+    --tags Key=project,Value=joeyo-real-estate
+  # Only claim it when it happened. In a dry run `run` printed "would run:" and
+  # this said "User created" directly underneath it.
+  $DRY_RUN || ok "User created (no console access)."
 fi
 
 run aws iam attach-user-policy --user-name "$IAM_USER" --policy-arn "$POLICY_ARN"
-ok "Policy attached."
+$DRY_RUN || ok "Policy attached."
 
 # ─── 6. Access key ───────────────────────────────────────────────────────────
 step "6. Access key"

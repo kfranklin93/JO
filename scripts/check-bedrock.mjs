@@ -20,6 +20,7 @@
 import {
   BedrockRuntimeClient,
   ConverseCommand,
+  InvokeModelCommand,
 } from '@aws-sdk/client-bedrock-runtime';
 
 const GREEN = '\x1b[32m';
@@ -34,6 +35,11 @@ const bad = (m) => console.log(`${RED}  FAIL${OFF}  ${m}`);
 const warn = (m) => console.log(`${YELLOW}  WARN${OFF}  ${m}`);
 const info = (m) => console.log(`${DIM}        ${m}${OFF}`);
 const heading = (m) => console.log(`\n${BOLD}${m}${OFF}`);
+
+// Steps are numbered at run time: the retry step only exists when the first
+// invocation fails, so the count is not known up front.
+let stepNumber = 0;
+const step = (title) => heading(`${++stepNumber}. ${title}`);
 
 /** Turn a base model id into its US cross-region inference profile id. */
 function toInferenceProfile(modelId) {
@@ -102,10 +108,45 @@ async function tryConverse(client, modelId) {
   }
 }
 
+/**
+ * One minimal InvokeModel round trip, using the same Anthropic Messages payload
+ * src/lib/api/bedrock.ts builds. Converse and InvokeModel are separate Bedrock
+ * operations: a Converse pass does not prove the follow-up drip works, because
+ * that code path calls InvokeModel. Same discriminated result as tryConverse.
+ */
+async function tryInvokeModel(client, modelId) {
+  try {
+    const response = await client.send(
+      new InvokeModelCommand({
+        modelId,
+        contentType: 'application/json',
+        accept: 'application/json',
+        body: JSON.stringify({
+          anthropic_version: 'bedrock-2023-05-31',
+          max_tokens: 16,
+          temperature: 0,
+          messages: [{ role: 'user', content: 'Reply with the single word OK.' }],
+        }),
+      }),
+    );
+
+    const body = JSON.parse(new TextDecoder().decode(response.body));
+    return { ok: true, text: body.content?.[0]?.text?.trim() ?? '', usage: body.usage };
+  } catch (error) {
+    return {
+      ok: false,
+      name: error?.name ?? 'UnknownError',
+      message: error?.message ?? String(error),
+      status: error?.$metadata?.httpStatusCode,
+    };
+  }
+}
+
 /** Map an AWS exception onto a specific, actionable next step. */
 function explain(failure, modelId, region) {
   const { name, message } = failure;
   const onDemandUnsupported = /on-demand throughput isn.?t supported/i.test(message);
+  const accountBeingVerified = /account is currently being verified/i.test(message);
 
   if (onDemandUnsupported) {
     return {
@@ -116,14 +157,30 @@ function explain(failure, modelId, region) {
     };
   }
 
+  // AWS returns this as AccessDeniedException, which reads as a permissions
+  // problem. It is not: the account is new and has not cleared verification, so
+  // there is nothing in the configuration to change.
+  if (accountBeingVerified) {
+    return {
+      cause: 'The AWS account is still being verified. Nothing here is misconfigured.',
+      fix:
+        'Wait — this clears on the AWS side, usually within a couple of hours.\n' +
+        '        Credentials, IAM, and the model id are not implicated; do not rotate keys over this.\n' +
+        '        If it has been more than two hours since the account was created, email\n' +
+        '        aws-verification@amazon.com with the account id.',
+    };
+  }
+
   switch (name) {
     case 'AccessDeniedException':
       return {
         cause: 'Credentials are valid but not allowed to invoke this model.',
         fix:
-          'Two things to check, in this order:\n' +
-          `        1. Bedrock console → Model access → confirm this model shows "Access granted" in ${region}\n` +
-          '        2. The IAM user/role needs bedrock:InvokeModel on this model resource',
+          'Not model access — serverless foundation models are enabled automatically on first\n' +
+          '        invocation now that AWS has retired the Model access page. So check, in this order:\n' +
+          '        1. The IAM user/role needs bedrock:InvokeModel on this model resource\n' +
+          '        2. A Service Control Policy on the organisation can deny it regardless of IAM\n' +
+          '        3. For Anthropic models, a first-time user may be asked to submit use-case details',
       };
     case 'UnrecognizedClientException':
     case 'InvalidSignatureException':
@@ -144,6 +201,24 @@ function explain(failure, modelId, region) {
         fix: `Check the exact id in the Bedrock console for ${region}.`,
       };
     case 'ThrottlingException':
+      // Per-day token exhaustion on an account that has never invoked anything
+      // is not throttling in the usual sense. On a new account every on-demand
+      // Claude quota reads 0.0 until AWS provisions it, and a daily allowance of
+      // zero does not reset into anything usable — so "retry shortly" is wrong,
+      // and "Model invocation max tokens per day" is not adjustable, so there is
+      // no increase to ask for either.
+      if (/tokens? per day/i.test(message)) {
+        return {
+          cause: 'Daily token quota is exhausted — on a new account this is a verification hold.',
+          fix:
+            'Check Service Quotas → Amazon Bedrock. If the on-demand quotas for this model read 0.0,\n' +
+            '        the account has not been provisioned yet; AWS sets them when verification completes.\n' +
+            '        Retrying will not help, and "Model invocation max tokens per day" is non-adjustable,\n' +
+            '        so there is no quota increase to request.\n' +
+            '        If it has been more than two hours since the account was created, email\n' +
+            '        aws-verification@amazon.com with the account id.',
+        };
+      }
       return {
         cause: 'Rate limited.',
         fix: 'Credentials and access are fine. Retry shortly; consider a quota increase for sustained load.',
@@ -171,7 +246,7 @@ async function main() {
   console.log(`${BOLD}Bedrock readiness check${OFF}`);
 
   // ── Configuration ────────────────────────────────────────────────────────
-  heading('1. Configuration');
+  step('Configuration');
 
   const region = process.env.AWS_REGION;
   const keyId = process.env.AWS_ACCESS_KEY_ID;
@@ -268,7 +343,7 @@ async function main() {
   }
 
   // ── Live call ────────────────────────────────────────────────────────────
-  heading('2. Live model invocation (Converse API)');
+  step('Live model invocation (Converse API)');
   info(`Calling ${modelId} in ${region}...`);
 
   const client = new BedrockRuntimeClient({
@@ -296,7 +371,7 @@ async function main() {
     // rather than leaving the operator to guess at the next attempt.
     const profileId = toInferenceProfile(modelId);
     if (profileId) {
-      heading('3. Retrying with the inference profile id');
+      step('Retrying with the inference profile id');
       info(`Calling ${profileId} in ${region}...`);
       const retry = await tryConverse(client, profileId);
 
@@ -323,7 +398,7 @@ async function main() {
   const invocationWorked = result.ok || workingModelId !== modelId;
 
   if (invocationWorked) {
-    heading(`${result.ok ? '3' : '4'}. Tool use support`);
+    step('Tool use support');
     try {
       const response = await client.send(
         new ConverseCommand({
@@ -369,15 +444,47 @@ async function main() {
     }
   }
 
+  // ── InvokeModel path ─────────────────────────────────────────────────────
+  // src/lib/api/bedrock.ts uses InvokeModel with the Anthropic Messages payload,
+  // and that is the path the follow-up drip runs on. Covered separately so a
+  // green Converse result is never mistaken for the drip being ready.
+  let invokeModelWorked = false;
+
+  if (invocationWorked) {
+    step('InvokeModel path (used by src/lib/api/bedrock.ts)');
+    info(`Calling ${workingModelId} with the Anthropic Messages payload...`);
+
+    const invoke = await tryInvokeModel(client, workingModelId);
+
+    if (invoke.ok) {
+      invokeModelWorked = true;
+      ok(`Model responded: "${invoke.text}"`);
+      if (invoke.usage) {
+        info(`Tokens — in: ${invoke.usage.input_tokens}, out: ${invoke.usage.output_tokens}`);
+      }
+    } else {
+      bad(`${invoke.name}${invoke.status ? ` (HTTP ${invoke.status})` : ''}`);
+      info(invoke.message);
+      const { cause, fix } = explain(invoke, workingModelId, region);
+      console.log(`\n${YELLOW}  Cause${OFF}  ${cause}`);
+      console.log(`${GREEN}  Fix${OFF}    ${fix}`);
+      info('Converse works, so the AI chat route is fine; the follow-up drip is not.');
+    }
+  }
+
   // ── Summary ──────────────────────────────────────────────────────────────
   heading('Result');
-  if (invocationWorked) {
-    ok('Bedrock is reachable and this model is usable.');
+  if (invocationWorked && invokeModelWorked) {
+    ok('Bedrock is reachable and this model is usable on both Converse and InvokeModel.');
     if (workingModelId !== modelId) {
       warn(`But update AWS_BEDROCK_MODEL_ID to ${workingModelId} first.`);
     }
     info('Local only. Netlify needs the same variables set, plus a redeploy.');
     process.exit(0);
+  } else if (invocationWorked) {
+    bad('Converse works but InvokeModel does not, so the follow-up drip cannot run.');
+    info('See the fix above.');
+    process.exit(1);
   } else {
     bad('Bedrock is not usable yet. See the fix above.');
     process.exit(1);
