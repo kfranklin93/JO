@@ -25,6 +25,23 @@
  *
  * Anything the fake does not recognise throws. A test that stops exercising the
  * queue fails loudly instead of quietly passing against a no-op.
+ *
+ * ## Why returned rows are snake_case
+ *
+ * This fake stands in for the *driver*, not for the ORM. `db.execute` bypasses
+ * Drizzle's column mapping, so a real `RETURNING *` on `follow_ups` yields
+ * `lead_id` and `template_type` — database column names. The fake used to return
+ * its own camelCase store rows straight out, which modelled the mapped shape the
+ * queue *wanted* instead of the raw shape it actually gets.
+ *
+ * That single convenience hid a total outage behind 666 passing tests: the cron
+ * route read `leadId` off every claimed row, got `undefined` in production and a
+ * real id here, and abandoned an entire batch as `'Lead not found'` against
+ * leads that all existed.
+ *
+ * So the store stays camelCase, because mutating it is the readable part, but
+ * everything handed back through `db.execute` goes through {@link toRawRow}
+ * first. A fake that is easier to satisfy than reality is not a test.
  */
 
 import type { SQL } from 'drizzle-orm';
@@ -69,10 +86,14 @@ export function resetFakeDb(): void {
 const FIXED_DATE = new Date('2026-03-01T12:00:00.000Z');
 
 /**
- * Build a complete `follow_ups` row.
+ * Build a complete row for the fake's internal store.
  *
- * Every column is present because the claim uses `RETURNING *`, and the route
- * reads `attempts` and `templateType` off whatever comes back.
+ * camelCase, because tests read and mutate these directly and matching the
+ * schema type keeps that honest. This is *not* the shape the queue observes —
+ * {@link toRawRow} converts on the way out through `db.execute`.
+ *
+ * Every column is present because the claim uses `RETURNING *`, so a missing one
+ * would make the mapper's absent-column error unreachable from a test.
  */
 export function makeFollowUp(overrides: Partial<FollowUp> = {}): FollowUp {
   const base: FollowUp = {
@@ -131,6 +152,47 @@ export function makeDbLead(overrides: Partial<DbLead> = {}): DbLead {
   };
 
   return { ...base, ...overrides };
+}
+
+/**
+ * Render a stored row the way Postgres returns it from `RETURNING *`.
+ *
+ * Database column names, and a fresh object each time because a real `RETURNING`
+ * hands back a snapshot — the caller must not observe later writes through the
+ * rows it claimed.
+ *
+ * Timestamps stay `Date` because `pg` parses `timestamp` columns into `Date`.
+ * Listed exhaustively and keyed off the schema type, so adding a column to
+ * `follow_ups` without teaching the fake about it fails to compile here rather
+ * than producing a row that is quietly missing a field.
+ */
+export function toRawRow(row: FollowUp): Record<string, unknown> {
+  const columns: Record<keyof FollowUp, string> = {
+    id: 'id',
+    leadId: 'lead_id',
+    scheduledFor: 'scheduled_for',
+    templateType: 'template_type',
+    status: 'status',
+    sentAt: 'sent_at',
+    deliveredAt: 'delivered_at',
+    openedAt: 'opened_at',
+    clickedAt: 'clicked_at',
+    repliedAt: 'replied_at',
+    failedAt: 'failed_at',
+    failureReason: 'failure_reason',
+    attempts: 'attempts',
+    conversationId: 'conversation_id',
+    abTestId: 'ab_test_id',
+    variant: 'variant',
+    createdAt: 'created_at',
+    updatedAt: 'updated_at',
+  };
+
+  const raw: Record<string, unknown> = {};
+  for (const [property, column] of Object.entries(columns)) {
+    raw[column] = row[property as keyof FollowUp];
+  }
+  return raw;
 }
 
 /** Locate the parameter belonging to a specific clause. */
@@ -235,9 +297,10 @@ function apply(text: string, params: unknown[]): { rows: unknown[] } {
       row.updatedAt = now;
     }
 
-    // Copies, because a real RETURNING hands back a snapshot. The route must not
-    // observe later writes through the rows it claimed.
-    return { rows: claimable.map((row) => ({ ...row })) };
+    // Driver-shaped snapshots: snake_case column names, as `RETURNING *` gives.
+    // Returning the store's camelCase rows here is what let the claim's `as
+    // FollowUp[]` cast pass 666 tests and abandon every row in production.
+    return { rows: claimable.map(toRawRow) };
   }
 
   if (/set status = 'sent'/i.test(text)) {

@@ -20,10 +20,20 @@
  * Claiming closes the window: a single atomic UPDATE moves rows out of
  * `scheduled` and returns them, all before any network I/O. A concurrent run
  * either claims different rows or claims nothing.
+ *
+ * ## Reading rows back
+ *
+ * Every statement here goes through `db.execute`, which bypasses Drizzle's
+ * column mapping and hands back raw driver rows keyed by database column name.
+ * Anything returning whole rows must therefore be mapped, not cast — see
+ * {@link toFollowUp}. The statements that return a single aliased scalar
+ * (`RETURNING attempts`, `AS due`, `AS stranded`) are safe as they stand because
+ * those names are one lowercase word in both vocabularies.
  */
 
 import { sql } from 'drizzle-orm';
 import { db } from '@/lib/db';
+import { toFollowUp } from '@/lib/db/follow-up-mapping';
 import type { FollowUp } from '@/lib/db/schema';
 
 /**
@@ -60,6 +70,11 @@ export const DEFAULT_CLAIM_LIMIT = 25;
  *
  * Rows stuck in `sending` beyond {@link STALE_CLAIM_MS} are reclaimed here too,
  * so a process that died mid-send does not strand a follow-up forever.
+ *
+ * `RETURNING *` gives snake_case column names, so the rows are mapped through
+ * {@link toFollowUp} rather than asserted to be `FollowUp`. The assertion this
+ * replaces made `leadId` and `templateType` `undefined` on every claimed row,
+ * and the route abandoned the whole batch as `'Lead not found'`.
  */
 export async function claimDueFollowUps(
   limit: number = DEFAULT_CLAIM_LIMIT,
@@ -81,7 +96,7 @@ export async function claimDueFollowUps(
     RETURNING *
   `);
 
-  return rowsOf(result) as FollowUp[];
+  return rowsOf(result).map(toFollowUp);
 }
 
 /**
@@ -194,8 +209,11 @@ export async function abandon(
     RETURNING attempts
   `);
 
-  const rows = rowsOf(result) as Array<{ attempts: number }>;
-  return { requeued: false, attempts: rows[0]?.attempts ?? 0 };
+  // `attempts` is one lowercase word, so the driver's key and the schema's
+  // property name coincide and no mapping is needed. Read rather than asserted
+  // all the same: the count reaches the response body, and a silently absent
+  // value reporting as 0 is how the claim's shape bug stayed hidden.
+  return { requeued: false, attempts: integerColumn(rowsOf(result)[0], 'attempts') };
 }
 
 /** What is left in the queue once a run finishes. */
@@ -240,8 +258,29 @@ export async function countQueueBacklog(now: Date = new Date()): Promise<QueueBa
     WHERE status IN ('scheduled', 'sending')
   `);
 
-  const rows = rowsOf(result) as Array<{ due: number; stranded: number }>;
-  return { due: rows[0]?.due ?? 0, stranded: rows[0]?.stranded ?? 0 };
+  // Both figures are explicitly aliased to single lowercase words, so the raw
+  // keys are already the ones this code reads. Nothing to map.
+  const row = rowsOf(result)[0];
+  return { due: integerColumn(row, 'due'), stranded: integerColumn(row, 'stranded') };
+}
+
+/**
+ * Read one integer column off a raw driver row.
+ *
+ * `count(*)` is `bigint`, which `pg` returns as a *string* to avoid precision
+ * loss — hence the `::int` casts in the statement above, and hence this coercing
+ * rather than trusting the type. An aggregate that lost its cast would otherwise
+ * arrive as `'8'` and be reported to the dashboard as a string.
+ */
+function integerColumn(row: unknown, column: string): number {
+  if (!row || typeof row !== 'object') return 0;
+  const value = (row as Record<string, unknown>)[column];
+  if (value === null || value === undefined) return 0;
+  const parsed = typeof value === 'string' ? Number(value) : value;
+  if (typeof parsed !== 'number' || !Number.isFinite(parsed)) {
+    throw new Error(`follow_ups.${column}: expected an integer, got ${String(value)}`);
+  }
+  return parsed;
 }
 
 /**

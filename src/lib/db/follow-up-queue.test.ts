@@ -19,7 +19,7 @@ vi.mock('@/lib/db', async () => {
   return createFakeDb();
 });
 
-const { fakeDb, resetFakeDb, makeFollowUp } = await import(
+const { fakeDb, resetFakeDb, makeFollowUp, toRawRow } = await import(
   '@/lib/db/__fixtures__/fake-follow-up-db'
 );
 
@@ -76,6 +76,38 @@ describe('claimDueFollowUps', () => {
     // The status change is what closes the double-send window: the row has left
     // `scheduled` before the caller has done any network I/O.
     expect(statusOf(row.id)).toBe('sending');
+  });
+
+  /**
+   * The regression this pairing exists for.
+   *
+   * `db.execute` bypasses Drizzle's column mapping, so `RETURNING *` yields
+   * `lead_id` and `template_type`. The claim used to assert those rows were
+   * `FollowUp` and hand them to the route, which read `leadId` — `undefined` on
+   * every row — and abandoned the entire batch as `'Lead not found'` against
+   * leads that all existed. Production: `{"claimed":25,"sent":0,"failed":25}`.
+   *
+   * Two assertions, because either alone is satisfiable by the bug. The first
+   * pins the fake to the driver's shape; the second pins the queue to translating
+   * it. A fake returning camelCase makes the cast look correct, which is exactly
+   * how this passed 666 tests.
+   */
+  it('returns rows the route can read, not raw database column names', async () => {
+    seedDue({ id: 'due-1', leadId: 'lead-9', templateType: 'day7' });
+
+    // What the driver hands back.
+    const raw = toRawRow(rowOf('due-1'));
+    expect(Object.keys(raw)).toContain('lead_id');
+    expect(Object.keys(raw)).toContain('template_type');
+    expect('leadId' in raw).toBe(false);
+    expect('templateType' in raw).toBe(false);
+
+    // What the queue must hand on.
+    const claimed = await claimDueFollowUps(10, NOW);
+
+    expect(claimed[0]?.leadId).toBe('lead-9');
+    expect(claimed[0]?.templateType).toBe('day7');
+    expect(claimed[0]?.attempts).toBe(0);
   });
 
   it('leaves a follow-up scheduled for later alone', async () => {

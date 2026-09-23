@@ -423,6 +423,75 @@ describe('lead mapping', () => {
   });
 });
 
+/**
+ * The route reads claimed rows by property name, and `db.execute` returns raw
+ * driver rows keyed by database column name. When the queue asserted those rows
+ * were `FollowUp` instead of mapping them, `followUp.leadId` was `undefined` on
+ * every row, the lead lookup was issued for `[undefined]`, and every row took the
+ * deleted-lead branch. The live run reported
+ * `{"claimed":25,"sent":0,"failed":25,"requeued":0,"remaining":8}` with all 25
+ * stamped `'Lead not found'` — against a table with no orphaned follow-ups at
+ * all. Twenty-five touchpoints destroyed, nobody mailed, HTTP 200.
+ *
+ * The tests above happened to cover the behaviour and still passed, because the
+ * fake returned its own camelCase rows. These name the defect directly so the
+ * next reader knows why the shape matters.
+ */
+describe('claimed rows are read through the typed boundary', () => {
+  it('sends a follow-up whose lead exists rather than abandoning it', async () => {
+    const body = await (await GET(authorised())).json();
+
+    const row = rowOf('follow-up-1');
+    expect(row.status).toBe('sent');
+    // The specific production symptom. A row whose lead is present must never
+    // carry this reason.
+    expect(row.failureReason).not.toBe('Lead not found');
+    expect(body).toMatchObject({ claimed: 1, sent: 1, failed: 0 });
+  });
+
+  it('never abandons a whole batch whose leads all exist', async () => {
+    fakeDb.followUps = [];
+    for (let index = 0; index < DEFAULT_CLAIM_LIMIT; index++) {
+      seedDue({ id: `follow-up-${index}`, leadId: LEAD_ID, templateType: 'day3' });
+    }
+
+    const body = await (await GET(authorised())).json();
+
+    expect(body).toMatchObject({
+      claimed: DEFAULT_CLAIM_LIMIT,
+      sent: DEFAULT_CLAIM_LIMIT,
+      failed: 0,
+    });
+    expect(
+      fakeDb.followUps.filter((row) => row.failureReason === 'Lead not found')
+    ).toEqual([]);
+  });
+
+  it('looks leads up by real ids rather than by undefined', async () => {
+    seedDue({ id: 'follow-up-2', leadId: LEAD_ID });
+
+    await GET(authorised());
+
+    // Every send received the lead the row pointed at. A row read with the wrong
+    // key resolves to no lead and never reaches the scheduler at all.
+    expect(sendFollowUp).toHaveBeenCalledTimes(2);
+    for (const [lead] of sendFollowUp.mock.calls) {
+      expect(lead?.id).toBe(LEAD_ID);
+    }
+  });
+
+  it('passes the row template type through, not undefined', async () => {
+    fakeDb.followUps = [];
+    seedDue({ id: 'follow-up-day7', leadId: LEAD_ID, templateType: 'day7' });
+
+    await GET(authorised());
+
+    // `templateType` was the second `undefined`. It selects the email, so even a
+    // correct lead lookup would have sent the wrong content.
+    expect(sendFollowUp.mock.calls[0]?.[1]).toBe('day7');
+  });
+});
+
 describe('failure handling', () => {
   it('records the real reason rather than a generic string', async () => {
     sendFollowUp.mockResolvedValue({
