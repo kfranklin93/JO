@@ -1,6 +1,5 @@
 import { createHmac, timingSafeEqual } from 'node:crypto';
-import { env } from '@/config/env';
-import { MissingEnvError, requireEnv } from '@/lib/utils/require-env';
+import { deriveSigningKey } from '@/lib/auth/signing-key';
 
 /**
  * Signed dashboard session tokens.
@@ -12,9 +11,19 @@ import { MissingEnvError, requireEnv } from '@/lib/utils/require-env';
  *
  * Token format:
  *
- *   base64url(payload) "." base64url(hmacSha256(SESSION_SECRET, payload))
+ *   base64url(payload) "." base64url(hmacSha256(dashboardKey, payload))
  *
- * where payload is the JSON document `{"exp": <unix seconds>}`.
+ * where payload is the JSON document `{"typ":"dashboard","exp":<unix seconds>}`
+ * and `dashboardKey` is derived from SESSION_SECRET for this purpose alone.
+ *
+ * Two things stop a token minted elsewhere from passing as a dashboard session,
+ * because the same secret will soon sign chat sessions issued to anonymous
+ * visitors and a separate cookie name stops nothing — the value is copyable:
+ *
+ *  1. The signing key is purpose-derived, so a chat token cannot verify here at
+ *     all. See `signing-key.ts` for why derivation is the real boundary.
+ *  2. The payload names its own type, so even a token signed with *this* key is
+ *     rejected unless it was minted as a dashboard session.
  *
  * Node `crypto` rather than Web Crypto: both verification sites (the dashboard
  * layout and the dashboard data route) run in the Node runtime, so `createHmac`
@@ -31,6 +40,22 @@ export const SESSION_MAX_AGE_SECONDS = 60 * 60 * 24 * 7;
 /** Separator between the payload and signature segments. */
 const SEGMENT_SEPARATOR = '.';
 
+/**
+ * Purpose label this module's signing key is derived under.
+ *
+ * Changing it invalidates every session in flight, which means one extra login.
+ * The `v1` suffix is there so that is a deliberate act rather than a surprise.
+ */
+const DASHBOARD_SESSION_PURPOSE = 'joeyo:dashboard-session:v1';
+
+/**
+ * Value of the `typ` claim in a dashboard payload.
+ *
+ * Checked on verification, so a payload carrying another type — or none — is
+ * refused even if it somehow arrived signed with the dashboard key.
+ */
+const DASHBOARD_TOKEN_TYPE = 'dashboard';
+
 /** Cookie attributes for the session cookie. */
 export interface SessionCookieOptions {
   httpOnly: true;
@@ -41,29 +66,19 @@ export interface SessionCookieOptions {
 }
 
 /**
- * Read the signing secret, throwing `MissingEnvError` when it is not usable.
+ * The dashboard signing key, or `MissingEnvError` when SESSION_SECRET is unusable.
  *
- * `requireEnv` does the real check, including treating an empty or
- * whitespace-only value as missing. That case matters here more than elsewhere:
- * Netlify stores a cleared variable as an empty string, `z.string().optional()`
- * accepts it, and an empty HMAC key would happily produce signatures that
- * verify — a signed session whose key everyone knows. Better to fail loudly.
- *
- * The narrowing below is redundant at runtime and exists only because
- * TypeScript cannot see that `requireEnv` throws.
+ * Derived per call rather than cached at module scope so that rotating the
+ * secret takes effect on the next request, and so importing this module never
+ * requires configuration — the dashboard layout imports it at build time.
  */
-function sessionSecret(): string {
-  requireEnv('SESSION_SECRET');
-
-  const secret = env.SESSION_SECRET;
-  if (secret === undefined) throw new MissingEnvError(['SESSION_SECRET']);
-
-  return secret;
+function dashboardKey(): Buffer {
+  return deriveSigningKey(DASHBOARD_SESSION_PURPOSE);
 }
 
-/** HMAC-SHA256 of the payload JSON under the given secret. */
-function signPayload(payload: string, secret: string): Buffer {
-  return createHmac('sha256', secret).update(payload, 'utf8').digest();
+/** HMAC-SHA256 of the payload JSON under the given key. */
+function signPayload(payload: string, key: Buffer): Buffer {
+  return createHmac('sha256', key).update(payload, 'utf8').digest();
 }
 
 /** Current time in whole unix seconds, the unit `exp` is expressed in. */
@@ -85,14 +100,17 @@ function unixSeconds(date: Date): number {
  *
  * @example
  * const value = createSession();
- * // 'eyJleHAiOjE3NjQ1MDAwMDB9.qFh...'
+ * // 'eyJ0eXAiOiJkYXNoYm9hcmQiLCJleHAiOjE3NjQ1MDAwMDB9.qFh...'
  */
 export function createSession(now: Date = new Date()): string {
-  const secret = sessionSecret();
+  const key = dashboardKey();
 
-  const payload = JSON.stringify({ exp: unixSeconds(now) + SESSION_MAX_AGE_SECONDS });
+  const payload = JSON.stringify({
+    typ: DASHBOARD_TOKEN_TYPE,
+    exp: unixSeconds(now) + SESSION_MAX_AGE_SECONDS,
+  });
   const payloadSegment = Buffer.from(payload, 'utf8').toString('base64url');
-  const signatureSegment = signPayload(payload, secret).toString('base64url');
+  const signatureSegment = signPayload(payload, key).toString('base64url');
 
   return `${payloadSegment}${SEGMENT_SEPARATOR}${signatureSegment}`;
 }
@@ -101,7 +119,7 @@ export function createSession(now: Date = new Date()): string {
  * The verification proper, which is allowed to throw. `verifySession` wraps it.
  */
 function verifyOrThrow(cookieValue: string): boolean {
-  const secret = sessionSecret();
+  const key = dashboardKey();
 
   // Exactly two segments. Splitting without a limit and rejecting extras means a
   // value with a smuggled third segment fails rather than being silently
@@ -124,7 +142,7 @@ function verifyOrThrow(cookieValue: string): boolean {
 
   // Signature before parse: the payload stays untrusted bytes until the HMAC
   // says it came from us.
-  const expected = signPayload(payload, secret);
+  const expected = signPayload(payload, key);
   const actual = Buffer.from(signatureSegment, 'base64url');
 
   // `timingSafeEqual` throws on length mismatch, so lengths are compared first.
@@ -141,7 +159,13 @@ function verifyOrThrow(cookieValue: string): boolean {
 
   if (typeof parsed !== 'object' || parsed === null) return false;
 
-  const { exp } = parsed as { exp?: unknown };
+  const { typ, exp } = parsed as { typ?: unknown; exp?: unknown };
+
+  // The token has to say what it is for. Belt to the purpose-derived key's
+  // braces: if a later change ever signs another kind of token with this key,
+  // that token still fails here instead of becoming a dashboard session.
+  if (typ !== DASHBOARD_TOKEN_TYPE) return false;
+
   if (typeof exp !== 'number' || !Number.isFinite(exp)) return false;
 
   // Expiry lives inside the signed payload, not only in the cookie `maxAge`.
@@ -154,13 +178,15 @@ function verifyOrThrow(cookieValue: string): boolean {
  * Verify a session cookie value: signature first, then expiry.
  *
  * Never throws. Every failure mode — absent cookie, wrong shape, malformed
- * base64, non-JSON payload, missing `exp`, bad signature, expired token, and an
- * unconfigured secret — returns `false`. A predicate guarding client data should
+ * base64, non-JSON payload, a payload minted for another purpose, missing `exp`,
+ * bad signature, expired token, and an unconfigured secret — returns `false`.
+ * A predicate guarding client data should
  * not be able to surface as a 500 that a caller might mistake for a transient
  * fault, and a misconfigured deploy should deny access rather than grant it.
  *
  * @param cookieValue - Raw cookie value, or `undefined` when the cookie is absent.
- * @returns `true` only for an unexpired token signed with the current secret.
+ * @returns `true` only for an unexpired dashboard-typed token signed with the
+ *   current secret's dashboard key.
  *
  * @example
  * verifySession(createSession()); // => true

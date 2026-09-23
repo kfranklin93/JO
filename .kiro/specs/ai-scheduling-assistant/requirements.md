@@ -157,6 +157,13 @@ Verified by reading source on the current tree:
 4. WHEN a lead expresses scheduling intent THEN the assistant SHALL offer a small number of concrete times rather than a link
 5. WHEN a lead confirms a time THEN the assistant SHALL confirm explicitly before booking
 6. WHEN the conversation begins THEN the opener SHALL reflect the lead's intent, reusing the existing `getConversationStarter`
+7. WHEN the assistant introduces itself THEN it SHALL identify as Joey's assistant and SHALL NOT present itself as Joey
+8. WHEN a lead asks whether they are speaking to Joey, or to a person, or to an AI THEN the assistant SHALL answer plainly that it is Joey's AI assistant and offer to put Joey in touch
+9. WHEN the assistant refers to Joey THEN it SHALL do so in the third person, and SHALL NOT claim to have personally viewed a property, met a client, or held a prior conversation
+10. WHERE the chat surface is rendered THE panel SHALL carry a visible label identifying it as Joey's AI assistant, present before the lead sends a first message and not only inside the message stream
+11. WHILE using `JOEY_PERSONALITY` as the voice THE assistant SHALL keep that voice without impersonating Joey — the tone is his, the identity is his assistant's
+
+Note on 9.7–9.11: disclosure is a requirement rather than a matter of widget copy for three reasons. California's bot disclosure law (SB 1001) requires disclosure where a bot communicates with a person to incentivise a commercial transaction, and a visitor may be anywhere. Real estate is a licensed profession, so an unlabelled "Joey" discussing price or property carries materially more exposure than a labelled assistant. And a client who discovers after the fact that "Joey" was a bot loses more trust than one who knew from the first message.
 
 ## Out of scope
 

@@ -78,8 +78,9 @@ Ordered so each task leaves the tree working. Tasks 1-3 need no Bedrock access a
   - Take every colour from the `@theme` tokens in `src/app/globals.css` — no hardcoded hex, no arbitrary values like `bg-[black]`, per the project steering rule
   - Show the booking confirmation from the Calendly response, including the cancel and reschedule links
   - Mount it only where intended, and not at all while Bedrock is unconfigured
-  - Write tests: keyboard-only traversal, live-region announcement, and focus restoration
-  - _Requirements: 2.7, 8.4, 9.4_
+  - Label the panel visibly as Joey's AI assistant — in the header and in the gate copy, so it is read before the first message, not buried in the stream — and add a line to the system prompt stating the assistant speaks for Joey in his voice, refers to him in the third person, and says plainly that it is his AI assistant when asked, rather than claiming to be him
+  - Write tests: keyboard-only traversal, live-region announcement, focus restoration, the label present before any message is sent, and a direct "is this really Joey?" turn answered as the assistant
+  - _Requirements: 2.7, 8.4, 9.4, 9.7, 9.8, 9.9, 9.10, 9.11_
 
 - [ ] 9. Give Joey visibility and takeover
   - Create `src/app/api/dashboard/leads/[id]/history/route.ts`, session-verified with `verifySession` exactly as `/api/dashboard/data` is, scoped to one lead rather than widening the existing payload — which already fetches every follow-up unbounded
