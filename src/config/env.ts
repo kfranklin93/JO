@@ -54,6 +54,32 @@ const envSchema = z.object({
   // CRM Configuration
   LOFTY_API_BASE_URL: z.string().optional(),
   LOFTY_API_KEY: z.string().optional(),
+
+  // JOEY UPDATE: AI assistant (Claude via the Anthropic API) — brain for the
+  // client-facing assistant. Optional at parse time for the same reason as
+  // every other integration key: this file parses at module import, so a
+  // required value would fail `next build` rather than the request. The
+  // assistant falls back to mock mode when ANTHROPIC_API_KEY is absent.
+  ANTHROPIC_API_KEY: z.string().optional(),
+  // VERIFY before live calls: confirm this resolves in the Anthropic console.
+  // Model IDs may require a date suffix (e.g. claude-haiku-4-5-20251001).
+  ANTHROPIC_MODEL: z.string().default('claude-haiku-4-5'),
+  ANTHROPIC_MAX_TOKENS: z.coerce.number().default(1024),
+
+  // JOEY UPDATE: Composio tool layer (CRM / email / SMS connectors). The
+  // executor factory selects the live Composio path only when this is set.
+  COMPOSIO_API_KEY: z.string().optional(),
+  COMPOSIO_USER_ID: z.string().default('joeyo-assistant'),
+
+  // JOEY UPDATE: assistant knowledge, substituted into the {{PLACEHOLDER}}
+  // tokens in src/lib/assistant/system-prompt.ts. Left optional so an
+  // unfilled deployment degrades to a visible placeholder rather than a crash.
+  ASSISTANT_SERVICE_AREA: z.string().optional(),
+  ASSISTANT_SERVICE_AREA_LIST: z.string().optional(),
+  ASSISTANT_BUYER_SERVICES: z.string().optional(),
+  ASSISTANT_SELLER_SERVICES: z.string().optional(),
+  ASSISTANT_GUIDE_SUMMARY: z.string().optional(),
+  ASSISTANT_TEAM_SUMMARY: z.string().optional(),
   
   // Analytics
   ANALYTICS_API_KEY: z.string().optional(),
@@ -97,6 +123,20 @@ export const env = envSchema.parse({
   CALENDLY_LINK: process.env.CALENDLY_LINK,
   LOFTY_API_BASE_URL: process.env.LOFTY_API_BASE_URL,
   LOFTY_API_KEY: process.env.LOFTY_API_KEY,
+  // JOEY UPDATE: parse calls for the assistant vars. A schema entry without a
+  // matching line here silently stays undefined, because this object is the
+  // only input the schema ever sees.
+  ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY,
+  ANTHROPIC_MODEL: process.env.ANTHROPIC_MODEL,
+  ANTHROPIC_MAX_TOKENS: process.env.ANTHROPIC_MAX_TOKENS,
+  COMPOSIO_API_KEY: process.env.COMPOSIO_API_KEY,
+  COMPOSIO_USER_ID: process.env.COMPOSIO_USER_ID,
+  ASSISTANT_SERVICE_AREA: process.env.ASSISTANT_SERVICE_AREA,
+  ASSISTANT_SERVICE_AREA_LIST: process.env.ASSISTANT_SERVICE_AREA_LIST,
+  ASSISTANT_BUYER_SERVICES: process.env.ASSISTANT_BUYER_SERVICES,
+  ASSISTANT_SELLER_SERVICES: process.env.ASSISTANT_SELLER_SERVICES,
+  ASSISTANT_GUIDE_SUMMARY: process.env.ASSISTANT_GUIDE_SUMMARY,
+  ASSISTANT_TEAM_SUMMARY: process.env.ASSISTANT_TEAM_SUMMARY,
   ANALYTICS_API_KEY: process.env.ANALYTICS_API_KEY,
   ADMIN_PASSWORD: process.env.ADMIN_PASSWORD,
   SESSION_SECRET: process.env.SESSION_SECRET,
