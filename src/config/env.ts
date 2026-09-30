@@ -80,6 +80,14 @@ const envSchema = z.object({
   ASSISTANT_SELLER_SERVICES: z.string().optional(),
   ASSISTANT_GUIDE_SUMMARY: z.string().optional(),
   ASSISTANT_TEAM_SUMMARY: z.string().optional(),
+
+  // JOEY UPDATE: which source supplies the assistant's approved answers.
+  //
+  // Defaults to the committed playbook (src/lib/assistant/answer-playbook.ts).
+  // Set to 'off' to fall back to the base system prompt for every question —
+  // an escape hatch for pulling a bad answer without shipping code. The
+  // assistant still replies either way; only its consistency changes.
+  ASSISTANT_ANSWER_PLAYBOOK: z.enum(['builtin', 'off']).default('builtin'),
   
   // Analytics
   ANALYTICS_API_KEY: z.string().optional(),
@@ -137,6 +145,7 @@ export const env = envSchema.parse({
   ASSISTANT_SELLER_SERVICES: process.env.ASSISTANT_SELLER_SERVICES,
   ASSISTANT_GUIDE_SUMMARY: process.env.ASSISTANT_GUIDE_SUMMARY,
   ASSISTANT_TEAM_SUMMARY: process.env.ASSISTANT_TEAM_SUMMARY,
+  ASSISTANT_ANSWER_PLAYBOOK: process.env.ASSISTANT_ANSWER_PLAYBOOK,
   ANALYTICS_API_KEY: process.env.ANALYTICS_API_KEY,
   ADMIN_PASSWORD: process.env.ADMIN_PASSWORD,
   SESSION_SECRET: process.env.SESSION_SECRET,

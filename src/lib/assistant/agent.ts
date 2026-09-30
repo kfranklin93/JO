@@ -20,6 +20,7 @@ import {
   ToolExecutor,
 } from "./tools";
 import { getSystemPrompt } from "./system-prompt";
+import { getPlaybookDirective } from "./answer-playbook";
 
 // JOEY UPDATE: CREATE v2 item 5 — process.env reads replaced with the repo's
 // established @/config/env access. Schema entries AND parse calls were both
@@ -84,6 +85,17 @@ export async function runAssistantTurn(
     };
   }
 
+  // JOEY UPDATE: append the approved answer for this question, when there is
+  // one. Appended per turn rather than baked into assistantEnv.system because
+  // the match depends on what was just said — see ./answer-playbook.ts. Returns
+  // undefined on every failure path, so a broken playbook costs the assistant
+  // its consistency and not its ability to reply. The directive goes last and
+  // restates that the prompt's HARD RULES still win.
+  const playbookDirective = await getPlaybookDirective(turn.message);
+  const system = playbookDirective
+    ? `${assistantEnv.system}\n\n${playbookDirective}`
+    : assistantEnv.system;
+
   const client = new Anthropic({ apiKey: assistantEnv.apiKey });
   const messages: Anthropic.MessageParam[] = [
     ...(turn.history ?? []).map((h) => ({ role: h.role, content: h.content })),
@@ -96,7 +108,7 @@ export async function runAssistantTurn(
     const response = await client.messages.create({
       model: assistantEnv.model,
       max_tokens: assistantEnv.maxTokens,
-      system: assistantEnv.system,
+      system,
       tools: anthropicTools(),
       messages,
     });
