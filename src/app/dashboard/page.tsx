@@ -3,6 +3,7 @@
 import * as React from 'react';
 import { useRouter } from 'next/navigation';
 import { AiLogsPanel } from '@/components/dashboard/AiLogsPanel';
+import { ChatTranscriptsPanel } from '@/components/dashboard/ChatTranscriptsPanel';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -126,7 +127,7 @@ type SortDir = 'asc' | 'desc';
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
-type ActiveView = 'overview' | 'ai-copilot';
+type ActiveView = 'overview' | 'ai-copilot' | 'ai-conversations';
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -298,6 +299,20 @@ export default function DashboardPage() {
                 </svg>
                 AI Copilot
               </button>
+              <button
+                type="button"
+                onClick={() => setActiveView('ai-conversations')}
+                className={`flex items-center gap-1.5 rounded-lg px-4 py-1.5 font-sans text-xs font-semibold uppercase tracking-[0.1em] transition-all ${
+                  activeView === 'ai-conversations'
+                    ? 'bg-cerulean text-white shadow-sm'
+                    : 'text-neutral-500 hover:text-neutral-900'
+                }`}
+              >
+                <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M8 10.5h8M8 14h5m-9 6.5 2.3-2.3A9 9 0 1 1 21 12a9 9 0 0 1-9 9H4Z" />
+                </svg>
+                Chat Logs
+              </button>
             </div>
           </div>
 
@@ -325,6 +340,19 @@ export default function DashboardPage() {
             </p>
           </div>
           <AiLogsPanel />
+        </main>
+      )}
+
+      {/* ── Chat Logs ── */}
+      {activeView === 'ai-conversations' && (
+        <main className="mx-auto max-w-screen-xl px-6 py-8">
+          <div className="mb-6">
+            <h2 className="font-serif text-2xl text-navy">Website Chat Logs</h2>
+            <p className="mt-1 font-sans text-sm text-stone">
+              Real conversations from the chat panel on the site, newest first
+            </p>
+          </div>
+          <ChatTranscriptsPanel />
         </main>
       )}
 
