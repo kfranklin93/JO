@@ -36,6 +36,7 @@ import { sendImmediateFollowUp } from '@/lib/services/follow-up-scheduler';
 import type { Lead } from '@/lib/services/follow-up-scheduler';
 import { sendLeadToLofty } from '@/lib/api/lofty';
 import { notifyJoeyOfNewLead } from '@/lib/services/email-service';
+import { recordFreshConsent } from '@/lib/services/email-preferences';
 import { sendSMSAlert } from '@/lib/services/sms-service';
 import {
   formatFieldErrors,
@@ -261,6 +262,21 @@ export async function captureLead(
 
   const succeeded = (result: PromiseSettledResult<boolean>): boolean =>
     result.status === 'fulfilled' && result.value;
+
+  // Someone who previously unsubscribed and has now filled in a form — or given
+  // their email to the chat assistant — has asked to be contacted again. That is
+  // fresh consent, so the suppression is cleared.
+  //
+  // This must happen BEFORE the immediate follow-up, not after: that send goes
+  // through the suppression check like every other client email, so clearing it
+  // afterwards would silently swallow the one reply the person is actually
+  // waiting for.
+  //
+  // Scoped to this function on purpose. Every caller of `captureLead` is a
+  // person entering their own address. A bulk importer must NOT route through
+  // here — a spreadsheet is not consent, and running this across one would undo
+  // every opt-out on the list at once.
+  await recordFreshConsent(lead.email, 'form');
 
   // Integrations run outside the persistence path. A Resend or Twilio outage
   // must not discard a lead that is already stored.

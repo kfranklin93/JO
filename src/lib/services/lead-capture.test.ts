@@ -146,9 +146,17 @@ const sendSMSAlert = vi.fn(async (_subject: string, _body: string) => {
   callOrder.push('sendSMSAlert');
   return true;
 });
+const recordFreshConsent = vi.fn(async (_email: string, _source: string) => {
+  callOrder.push('recordFreshConsent');
+  return true;
+});
 
 vi.mock('@/lib/services/follow-up-scheduler', () => ({
   sendImmediateFollowUp: (lead: LeadArg) => sendImmediateFollowUp(lead),
+}));
+vi.mock('@/lib/services/email-preferences', () => ({
+  recordFreshConsent: (email: string, source: string) =>
+    recordFreshConsent(email, source),
 }));
 vi.mock('@/lib/api/lofty', () => ({
   sendLeadToLofty: (lead: LeadArg) => sendLeadToLofty(lead),
@@ -231,6 +239,10 @@ beforeEach(() => {
   });
   sendSMSAlert.mockImplementation(async () => {
     callOrder.push('sendSMSAlert');
+    return true;
+  });
+  recordFreshConsent.mockImplementation(async () => {
+    callOrder.push('recordFreshConsent');
     return true;
   });
 
@@ -446,6 +458,10 @@ describe('captureLead — the immediate touchpoint', () => {
     await captureLead(validInput);
 
     expect(callOrder).toEqual([
+      // Clearing a prior opt-out has to come first. The immediate follow-up
+      // goes through the suppression check like every other client email, so
+      // clearing afterwards would swallow the one reply they are waiting for.
+      'recordFreshConsent',
       'sendImmediateFollowUp',
       'markSent',
       'sendLeadToLofty',

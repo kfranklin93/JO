@@ -2,6 +2,8 @@ import { Resend } from 'resend';
 import { env } from '@/config/env';
 import { escapeHtml, escapeAttr, safeMailto, safeTel } from '@/lib/utils/escape';
 import { requireEnv } from '@/lib/utils/require-env';
+import { createUnsubscribeToken } from '@/lib/auth/unsubscribe-token';
+import { isSuppressed, normalizeEmail } from '@/lib/services/email-preferences';
 
 // Initialize Resend client
 let resendClient: Resend | null = null;
@@ -22,6 +24,15 @@ export interface SendEmailOptions {
   html: string;
   text?: string;
   replyTo?: string;
+  /**
+   * Extra SMTP headers.
+   *
+   * Added for `List-Unsubscribe` and `List-Unsubscribe-Post`, which are what
+   * Gmail and Outlook read to offer their own unsubscribe button. Both are
+   * required together: the header alone, without the POST form, does not
+   * qualify as one-click and the mailbox provider ignores it.
+   */
+  headers?: Record<string, string>;
 }
 
 /**
@@ -48,6 +59,10 @@ export async function sendEmail(options: SendEmailOptions): Promise<boolean> {
     
     if (options.text) {
       emailData.text = options.text;
+    }
+
+    if (options.headers) {
+      emailData.headers = options.headers;
     }
 
     const { data, error } = await resend.emails.send(emailData);
@@ -96,21 +111,68 @@ export function textToHtml(text: string): string {
 }
 
 /**
- * Send a follow-up email to a lead
+ * The unsubscribe URL for an address.
+ *
+ * Absolute, because it lives in an email — a relative path has nothing to
+ * resolve against in a mail client.
+ */
+function unsubscribeUrl(email: string): string {
+  const token = createUnsubscribeToken(normalizeEmail(email));
+  return `${env.NEXT_PUBLIC_SITE_URL}/api/unsubscribe?token=${encodeURIComponent(token)}`;
+}
+
+/**
+ * Send a follow-up email to a lead.
+ *
+ * This is the only function in the codebase that mails a client, which is why
+ * the opt-out check lives here and nowhere else. Joey's own notifications —
+ * `notifyJoeyOfNewLead` and `sendDailyLeadSummary` — call `sendEmail` directly,
+ * so they are structurally incapable of being suppressed by a client's
+ * unsubscribe. Putting the check in `sendEmail` instead would have stopped Joey
+ * hearing about his own leads.
+ *
+ * Fails closed: if the suppression list cannot be read, nothing is sent and the
+ * error propagates. See src/lib/services/email-preferences.ts for why that
+ * asymmetry is deliberate, and for the one deployment-ordering rule it implies.
+ *
+ * @throws {SuppressionUnavailableError} When the opt-out list cannot be read.
  */
 export async function sendFollowUpEmail(
   to: string,
   subject: string,
   content: string
 ): Promise<boolean> {
+  if (await isSuppressed(to)) {
+    // Not a failure. The system did the right thing, and saying so plainly
+    // means a quiet drip can be explained without reading code.
+    console.log(`[email] suppressed, not sending "${subject}" to ${normalizeEmail(to)}`);
+    return true;
+  }
+
   const formattedContent = formatEmailWithSignature(content);
-  const html = textToHtml(formattedContent);
+  const url = unsubscribeUrl(to);
+
+  // The footer is appended to the HTML *after* textToHtml, not folded into the
+  // text body, because textToHtml escapes everything it is given — an anchor
+  // tag passed through it would render as visible markup.
+  const html =
+    textToHtml(formattedContent) +
+    `\n<p style="margin-top:24px;font-size:12px;color:#707070">` +
+    `<a href="${escapeAttr(url)}" style="color:#707070">Unsubscribe from these emails</a>` +
+    `</p>`;
 
   return sendEmail({
     to,
     subject,
     html,
-    text: formattedContent,
+    text: `${formattedContent}\n\nUnsubscribe: ${url}`,
+    headers: {
+      'List-Unsubscribe': `<${url}>`,
+      // Declares that the URL accepts a POST, which is what makes this
+      // one-click under RFC 8058. Without it Gmail will not show its own
+      // unsubscribe control.
+      'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+    },
   });
 }
 
