@@ -1,5 +1,6 @@
 import twilio from 'twilio';
 import { env } from '@/config/env';
+import { bookingLine } from '@/lib/services/booking-link';
 
 let twilioClient: ReturnType<typeof twilio> | null = null;
 
@@ -56,8 +57,12 @@ export async function sendSMSWithBooking(
   to: string,
   message: string
 ): Promise<boolean> {
-  const bookingLink = env.CALENDLY_LINK || 'https://calendly.com/joey';
-  const fullMessage = `${message}\n\n📅 Book a call: ${bookingLink}`;
+  // The booking line is dropped when no link is configured, rather than
+  // defaulting to `https://calendly.com/joey` — a URL nobody owns, which is
+  // what this used to text to clients. An SMS is an especially bad place for a
+  // dead link, since there is no context around it to explain the mistake.
+  const line = bookingLine();
+  const fullMessage = line ? `${message}\n\n${line}` : message;
   return sendSMS(to, fullMessage);
 }
 

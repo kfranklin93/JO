@@ -4,6 +4,7 @@ import { escapeHtml, escapeAttr, safeMailto, safeTel } from '@/lib/utils/escape'
 import { requireEnv } from '@/lib/utils/require-env';
 import { createUnsubscribeToken } from '@/lib/auth/unsubscribe-token';
 import { isSuppressed, normalizeEmail } from '@/lib/services/email-preferences';
+import { bookingLine } from '@/lib/services/booking-link';
 
 // Initialize Resend client
 let resendClient: Resend | null = null;
@@ -84,18 +85,21 @@ export async function sendEmail(options: SendEmailOptions): Promise<boolean> {
  * Format email content with Joey's signature
  */
 export function formatEmailWithSignature(content: string): string {
-  const calendlyLink = env.CALENDLY_LINK || 'https://calendly.com/joey';
-  
-  return `${content}
-
-Joey Oberndorfer
+  // Assembled as blocks so an absent booking line leaves no double gap. The
+  // line is omitted entirely when no link is configured — this used to default
+  // to `https://calendly.com/joey`, a URL nobody owns, so every signature
+  // carried a dead link and nothing errored to say so.
+  const blocks = [
+    content,
+    `Joey Oberndorfer
 Real Estate Agent
 ${env.JOEY_PHONE}
-${env.JOEY_EMAIL}
+${env.JOEY_EMAIL}`,
+    bookingLine(),
+    'Helping families find their perfect home in the Atlanta metro area.',
+  ];
 
-📅 Book a call: ${calendlyLink}
-
-Helping families find their perfect home in the Atlanta metro area.`;
+  return blocks.filter((block) => block.trim().length > 0).join('\n\n');
 }
 
 /**

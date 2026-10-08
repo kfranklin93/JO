@@ -49,6 +49,18 @@ const envSchema = z.object({
   TWILIO_PHONE_NUMBER: z.string().optional(),
   
   // Calendar Configuration
+  //
+  // Any scheduling tool that produces a public URL works: a Google Calendar
+  // appointment page, Cal.com, Calendly. Read through
+  // `bookingLink()` in src/lib/services/booking-link.ts rather than directly,
+  // because an absent link must render as no link at all — two call sites used
+  // to default it to `https://calendly.com/joey`, a URL nobody owns, which put
+  // a dead booking link in every follow-up email and SMS.
+  BOOKING_LINK: z.string().url().optional(),
+
+  // DEPRECATED, read as a fallback by `bookingLink()` so the rename can happen
+  // in either order without a window where the link disappears. Delete from the
+  // environment once BOOKING_LINK is set, then delete from here.
   CALENDLY_LINK: z.string().url().optional(),
   
   // CRM Configuration
@@ -128,6 +140,7 @@ export const env = envSchema.parse({
   TWILIO_ACCOUNT_SID: process.env.TWILIO_ACCOUNT_SID,
   TWILIO_AUTH_TOKEN: process.env.TWILIO_AUTH_TOKEN,
   TWILIO_PHONE_NUMBER: process.env.TWILIO_PHONE_NUMBER,
+  BOOKING_LINK: process.env.BOOKING_LINK,
   CALENDLY_LINK: process.env.CALENDLY_LINK,
   LOFTY_API_BASE_URL: process.env.LOFTY_API_BASE_URL,
   LOFTY_API_KEY: process.env.LOFTY_API_KEY,

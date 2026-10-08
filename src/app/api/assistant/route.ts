@@ -25,6 +25,7 @@ import {
   type LocalCaptureHook,
 } from "@/lib/assistant/tools";
 import { captureLead } from "@/lib/services/lead-capture";
+import { bookingLink } from "@/lib/services/booking-link";
 import {
   checkAndCount,
   checkAndCountSession,
@@ -189,8 +190,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       reply: result.reply,
       mode: result.mode,
-      // JOEY UPDATE: env access via @/config/env per repo convention.
-      bookingUrl: env.CALENDLY_LINK ?? null,
+      // Null when unconfigured, so the client renders no button rather than a
+      // broken one. See src/lib/services/booking-link.ts.
+      bookingUrl: bookingLink() ?? null,
     });
   } catch (err) {
     console.error("[assistant] error:", err);

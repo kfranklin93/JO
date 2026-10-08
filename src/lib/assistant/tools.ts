@@ -14,6 +14,7 @@
 
 import { env } from "@/config/env";
 import { LEAD_INTENTS } from "@/lib/validation/lead";
+import { bookingLink } from "@/lib/services/booking-link";
 import type { ToolName, ToolParamSchema, ToolCall, ToolExecutor } from "./types";
 
 export interface ToolParamSchemaDef extends ToolParamSchema {}
@@ -196,6 +197,30 @@ export const TOOL_DEFINITIONS: Record<ToolName, ToolDefinition> = {
   },
 };
 
+/**
+ * What `book_intro_call` hands back, shared by both executors.
+ *
+ * When no booking link is configured the result says so explicitly and tells the
+ * model what to do instead. The previous versions returned the literal string
+ * `"{{CALENDLY_LINK}}"` or an empty string, and a model handed either of those
+ * will cheerfully present it to a client as a link — or invent a plausible URL
+ * to fill the gap. Naming the absence is what stops that.
+ */
+function bookIntroCallResult(): Record<string, unknown> {
+  const link = bookingLink();
+
+  if (link) return { booking_url: link };
+
+  return {
+    booking_url: null,
+    status: "no_booking_link",
+    message:
+      "No booking link is configured. Do NOT invent a URL or offer one. Tell the " +
+      "client Joey will reach out personally to arrange a time, and make sure you " +
+      "have their name and email so he can.",
+  };
+}
+
 /** Hook the host app supplies so capture_lead writes through the repo's
  *  existing (Zod-validated) leads pipeline — dashboard + drips keep working. */
 export type LocalCaptureHook = (input: Record<string, unknown>) => Promise<{ lead_id: string }>;
@@ -229,9 +254,7 @@ export class MockToolExecutor implements ToolExecutor {
       }
       return { lead_id: `mock_${Date.now()}`, status: "captured_mock_only" };
     }
-    if (call.name === "book_intro_call")
-      // JOEY UPDATE: env access via @/config/env per repo convention (CREATE v2 item 5).
-      return { booking_url: env.CALENDLY_LINK ?? "{{CALENDLY_LINK}}" };
+    if (call.name === "book_intro_call") return bookIntroCallResult();
     return { status: "logged_mock" };
   }
 }
@@ -251,9 +274,7 @@ export class ComposioToolExecutor implements ToolExecutor {
   };
 
   async execute(call: ToolCall): Promise<Record<string, unknown>> {
-    if (call.name === "book_intro_call")
-      // JOEY UPDATE: env access via @/config/env per repo convention.
-      return { booking_url: env.CALENDLY_LINK ?? "" };
+    if (call.name === "book_intro_call") return bookIntroCallResult();
 
     // capture_lead: local store FIRST (source of truth), CRM mirror second.
     if (call.name === "capture_lead" && this.localCapture) {

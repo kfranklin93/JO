@@ -39,6 +39,7 @@ import {
 } from '@/lib/assistant/tools';
 import { captureLead } from '@/lib/services/lead-capture';
 import { recordChatTurn } from '@/lib/services/chat-store';
+import { bookingLink } from '@/lib/services/booking-link';
 import {
   checkAndCount,
   checkAndCountSession,
@@ -214,7 +215,7 @@ export async function POST(req: NextRequest) {
       sessionId,
       reply: FAIL_WARM_REPLY,
       mode: 'live',
-      bookingUrl: env.CALENDLY_LINK ?? null,
+      bookingUrl: bookingLink() ?? null,
     });
   }
 
@@ -256,7 +257,9 @@ export async function POST(req: NextRequest) {
     sessionId,
     reply,
     mode: result.mode,
-    bookingUrl: env.CALENDLY_LINK ?? null,
+    // Null when unconfigured, so the panel renders no button rather than a
+    // broken one. See src/lib/services/booking-link.ts.
+    bookingUrl: bookingLink() ?? null,
   });
 }
 
