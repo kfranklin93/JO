@@ -21,7 +21,15 @@ export const siteConfig = {
   contact: {
     phone: '619-997-1090',
     phoneDisplay: '(619) 997-1090',
-    email: 'JoeyObern@gmail.com',
+    // Canonical public address, confirmed by Joey. This is what the structured
+    // data publishes, so it has to match his Google Business Profile and his
+    // Zillow, Realtor.com and Homes.com listings exactly — inconsistent contact
+    // details across sources actively dilute local search ranking.
+    //
+    // Note this is the address clients see and reply to. Outbound mail is sent
+    // from MAIL_FROM instead, because Resend will only send from a verified
+    // domain and gmail.com can never be one. See the note in src/config/env.ts.
+    email: 'gowithjoeyo@gmail.com',
     location: 'Atlanta, GA',
     office: '1230 Peachtree St, Atlanta, GA 30309',
     brokerage: 'eXp Realty LLC',
