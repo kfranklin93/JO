@@ -266,7 +266,7 @@ export default function DashboardPage() {
         <div className="mx-auto flex max-w-screen-xl items-center justify-between">
           <div className="flex items-center gap-6">
             <div>
-              <span className="font-serif text-xl text-[#1C2A39]">Joey O.</span>
+              <span className="font-serif text-xl text-navy">Joey O.</span>
               <span className="ml-3 text-sm uppercase tracking-widest text-neutral-400">
                 Dashboard
               </span>
@@ -334,8 +334,8 @@ export default function DashboardPage() {
       {activeView === 'ai-copilot' && (
         <main className="mx-auto max-w-screen-xl px-6 py-8">
           <div className="mb-6">
-            <h2 className="font-serif text-2xl text-[#1C2A39]">AI Copilot & Client Logs</h2>
-            <p className="mt-1 font-sans text-sm text-[#1C2A39]/50">
+            <h2 className="font-serif text-2xl text-navy">AI Copilot & Client Logs</h2>
+            <p className="mt-1 font-sans text-sm text-navy/50">
               Real-time Amazon Bedrock client conversations · Claude 3.5 Sonnet
             </p>
           </div>

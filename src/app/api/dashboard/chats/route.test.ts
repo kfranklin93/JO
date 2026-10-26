@@ -128,8 +128,14 @@ describe('GET /api/dashboard/chats — authorization', () => {
 
   it('refuses a tampered token', async () => {
     const valid = createSession();
-    // Flip the last character of the signature.
-    requestCookie = valid.slice(0, -1) + (valid.endsWith('a') ? 'b' : 'a');
+
+    // Appending to the payload rather than flipping the signature's last
+    // character. That earlier approach was intermittently green: the final
+    // base64url character carries unused padding bits, so flipping it can
+    // decode to identical bytes and still verify. Changing the signed payload
+    // always invalidates the signature.
+    const [payload, signature] = valid.split('.');
+    requestCookie = `${payload}x.${signature}`;
 
     expect((await GET()).status).toBe(401);
   });

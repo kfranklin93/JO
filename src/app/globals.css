@@ -18,18 +18,64 @@
 @import "tailwindcss" source("../../src");
 
 @theme {
-  /* Quiet Luxury Palette */
-  --color-mocha: #1C1917;
-  --color-linen: #FAF9F6;
-  --color-navy: #1C2A39;
-  --color-onyx: #0D1117;
-  --color-champagne: #C5A059;
+  /*
+   * Joey's brand palette.
+   *
+   * Five colours, from his brand sheet:
+   *
+   *   Onyx           #0B0B0C   text, deepest surfaces
+   *   Champagne Gold #C9A45C   accent only — see the contrast note below
+   *   Bone           #F2ECE0   page background
+   *   Hunter         #14291F   secondary dark surface
+   *   eXp Navy       #0F2A5E   primary actions
+   *
+   * ## Champagne Gold is an accent, never a text colour on light
+   *
+   * This is the one rule worth stating, because gold looks like it should work
+   * everywhere and measurably does not. Its contrast ratios:
+   *
+   *   gold on white    2.4:1   FAILS  (AA needs 4.5:1)
+   *   gold on bone     2.0:1   FAILS
+   *   gold on onyx     8.4:1   passes
+   *   gold on hunter   6.5:1   passes
+   *
+   * So: gold as a *fill* with onyx text, or gold text on a dark surface. Never
+   * gold text on bone or white, and never white text on a gold button. Use
+   * `--color-champagne-foreground` whenever gold is the background and the
+   * pairing is decided for you.
+   *
+   * Navy and Hunter are the safe ones — navy on white is 13.9:1, hunter on bone
+   * is 13:1 — which is why primary actions are navy rather than gold.
+   *
+   * ## Why the old names still exist
+   *
+   * `cerulean`, `bronze`, `mocha` and `linen` are retired from the brand but
+   * kept here as aliases pointing at their replacements. The site used
+   * `bg-cerulean` as the action colour on roughly forty components, and
+   * repointing one token changes all of them correctly in one move, with no
+   * chance of missing a usage. Class names get renamed opportunistically when
+   * those files are next touched; nothing breaks in the meantime.
+   */
+
+  /* Brand */
+  --color-onyx: #0B0B0C;
+  --color-champagne: #C9A45C;
+  --color-champagne-foreground: #0B0B0C;
+  --color-bone: #F2ECE0;
+  --color-hunter: #14291F;
+  --color-navy: #0F2A5E;
+
+  /* Supporting neutrals */
   --color-stone: #707070;
   --color-silver: #8E8E93;
-  --color-cerulean: #0A7EA4;
-  --color-bronze: #A0522D;
-  --color-border: #E5E5E5;
-  --color-surface: #FAF9F6;
+  --color-border: #DED5C4;
+  --color-surface: #F2ECE0;
+
+  /* Retired names, aliased to their replacements — see the note above. */
+  --color-mocha: #0B0B0C;
+  --color-linen: #F2ECE0;
+  --color-cerulean: #0F2A5E;
+  --color-bronze: #C9A45C;
   
   /* Neutral ramp */
   --color-neutral-50: #FAFAFA;
@@ -45,21 +91,25 @@
   --color-neutral-950: #0A0A0A;
   
   /* Semantic tokens */
-  --color-background: #FAF9F6;
-  --color-foreground: #1C2A39;
-  
-  --color-primary: #1C2A39;
-  --color-primary-foreground: #FAF9F6;
-  
-  --color-secondary: #FAF9F6;
-  --color-secondary-foreground: #1C2A39;
-  
-  --color-accent: #0A7EA4;
+  --color-background: #F2ECE0;
+  --color-foreground: #0B0B0C;
+
+  --color-primary: #0F2A5E;
+  --color-primary-foreground: #F2ECE0;
+
+  --color-secondary: #F2ECE0;
+  --color-secondary-foreground: #0B0B0C;
+
+  /*
+   * Actions are navy, not gold. Navy carries white text at 13.9:1; gold cannot
+   * carry white text at all (2.4:1). See the contrast note above.
+   */
+  --color-accent: #0F2A5E;
   --color-accent-foreground: #ffffff;
-  --color-accent-hover: #086d8f;
-  
+  --color-accent-hover: #0A1F45;
+
   --color-muted: #707070;
-  --color-muted-foreground: #FAF9F6;
+  --color-muted-foreground: #F2ECE0;
   
   /* Font families */
   --font-serif: var(--font-bellefair), Playfair Display, Georgia, serif;
@@ -76,12 +126,18 @@
   --container-content: 80rem;
 }
 
+/*
+ * Mirrors the @theme values above for the handful of plain-CSS rules below that
+ * cannot use Tailwind utilities (body, .eyebrow). These must be kept in step
+ * with @theme by hand — they are the one place where the single-source-of-truth
+ * rule has a seam, which is why the list is kept as short as possible.
+ */
 :root {
   color-scheme: light;
-  --background: #FAF9F6;
-  --foreground: #1C2A39;
-  --accent: #0A7EA4;
-  --accent-hover: #086d8f;
+  --background: #F2ECE0;
+  --foreground: #0B0B0C;
+  --accent: #0F2A5E;
+  --accent-hover: #0A1F45;
 }
 
 *,
@@ -115,7 +171,14 @@ img {
   height: auto;
 }
 
-/* Eyebrow / kicker label utility */
+/*
+ * Eyebrow / kicker label utility.
+ *
+ * Navy, via --accent. Champagne gold is the tempting choice for a small
+ * uppercase label on a luxury site and it fails contrast badly on bone (2.0:1),
+ * so it is not used here. Gold eyebrows are fine on an onyx or hunter section —
+ * use `text-champagne` directly in that context.
+ */
 .eyebrow {
   font-family: var(--font-sans), Arial, sans-serif;
   font-size: 0.75rem;

@@ -94,10 +94,43 @@ describe('Design token CSS generation', () => {
     expect(css).toContain('.bg-accent-hover');
     expect(css).toContain('background-color: var(--color-accent-hover');
 
-    // Verify the CSS variables are defined in the output
-    expect(css).toContain('--color-navy: #1C2A39');
-    expect(css).toContain('--color-cerulean: #0A7EA4');
-    expect(css).toContain('--color-champagne: #C5A059');
+    expect(css).toContain('.bg-bone');
+    expect(css).toContain('background-color: var(--color-bone');
+
+    expect(css).toContain('.bg-hunter');
+    expect(css).toContain('background-color: var(--color-hunter');
+
+    // Verify the CSS variables are defined in the output, with Joey's brand
+    // values. Asserting the hex rather than just the name is what makes this
+    // fail if the palette drifts from the brand sheet.
+    expect(css).toContain('--color-onyx: #0B0B0C');
+    expect(css).toContain('--color-champagne: #C9A45C');
+    expect(css).toContain('--color-bone: #F2ECE0');
+    expect(css).toContain('--color-hunter: #14291F');
+    expect(css).toContain('--color-navy: #0F2A5E');
+  });
+
+  it('keeps the retired colour names pointing at their replacements', async () => {
+    // `bg-cerulean` was the action colour on roughly forty components. The names
+    // are kept as aliases so repointing one token moved all of them at once,
+    // with no chance of missing a usage. If someone deletes an alias without
+    // renaming the usages, those components silently lose their colour.
+    const css = await compileFor(candidatesFrom('token-colors.html'));
+
+    expect(css).toContain('--color-cerulean: #0F2A5E');
+    expect(css).toContain('--color-linen: #F2ECE0');
+    expect(css).toContain('--color-bronze: #C9A45C');
+    expect(css).toContain('--color-mocha: #0B0B0C');
+  });
+
+  it('pairs champagne gold with a dark foreground, never white', async () => {
+    // Gold on white is 2.4:1 and on bone 2.0:1 — both fail WCAG AA. The paired
+    // token exists so the decision is made once rather than at each call site,
+    // and this asserts it did not get "simplified" to white.
+    const css = await compileFor(candidatesFrom('token-colors.html'));
+
+    expect(css).toContain('--color-champagne-foreground: #0B0B0C');
+    expect(css).not.toContain('--color-champagne-foreground: #fff');
   });
 
   it('should generate utilities for non-color tokens', async () => {

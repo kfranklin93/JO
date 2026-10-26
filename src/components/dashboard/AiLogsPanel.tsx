@@ -46,7 +46,7 @@ function ConfidenceBar({ score }: { score: number }) {
   const color = getConfidenceColor(score);
   return (
     <div className="flex items-center gap-2">
-      <div className="h-1.5 w-20 rounded-full bg-[#1C2A39]/10">
+      <div className="h-1.5 w-20 rounded-full bg-navy/10">
         <div
           className="h-1.5 rounded-full transition-all duration-500"
           style={{ width: `${score}%`, backgroundColor: color }}
@@ -86,23 +86,23 @@ function AuditDrawer({ meta }: { meta: NonNullable<BedrockMessage['meta']> }) {
       </button>
 
       {open && (
-        <div className="mt-2 rounded-lg border border-accent/20 bg-[#1C2A39]/5 p-4 text-xs">
+        <div className="mt-2 rounded-lg border border-accent/20 bg-navy/5 p-4 text-xs">
           {/* Top row: latency / tokens / model */}
           <div className="mb-3 flex flex-wrap gap-4">
             <div>
-              <span className="font-semibold uppercase tracking-wider text-[#1C2A39]/50">Latency</span>
-              <p className="mt-0.5 font-mono font-medium text-[#1C2A39]">{meta.latencyMs} ms</p>
+              <span className="font-semibold uppercase tracking-wider text-navy/50">Latency</span>
+              <p className="mt-0.5 font-mono font-medium text-navy">{meta.latencyMs} ms</p>
             </div>
             <div>
-              <span className="font-semibold uppercase tracking-wider text-[#1C2A39]/50">Tokens</span>
-              <p className="mt-0.5 font-mono font-medium text-[#1C2A39]">{meta.tokenCount}</p>
+              <span className="font-semibold uppercase tracking-wider text-navy/50">Tokens</span>
+              <p className="mt-0.5 font-mono font-medium text-navy">{meta.tokenCount}</p>
             </div>
             <div>
-              <span className="font-semibold uppercase tracking-wider text-[#1C2A39]/50">Model</span>
-              <p className="mt-0.5 font-medium text-[#1C2A39]">{meta.model}</p>
+              <span className="font-semibold uppercase tracking-wider text-navy/50">Model</span>
+              <p className="mt-0.5 font-medium text-navy">{meta.model}</p>
             </div>
             <div>
-              <span className="font-semibold uppercase tracking-wider text-[#1C2A39]/50">Groundedness</span>
+              <span className="font-semibold uppercase tracking-wider text-navy/50">Groundedness</span>
               <div className="mt-1">
                 <ConfidenceBar score={meta.groundedness} />
               </div>
@@ -123,12 +123,12 @@ function AuditDrawer({ meta }: { meta: NonNullable<BedrockMessage['meta']> }) {
           {/* Sources */}
           {meta.sources.length > 0 && (
             <div>
-              <span className="font-semibold uppercase tracking-wider text-[#1C2A39]/50">
+              <span className="font-semibold uppercase tracking-wider text-navy/50">
                 Retrieved Sources
               </span>
               <ul className="mt-2 space-y-1.5">
                 {meta.sources.map((src) => (
-                  <li key={src.id} className="flex items-center gap-2 text-[#1C2A39]/70">
+                  <li key={src.id} className="flex items-center gap-2 text-navy/70">
                     <SourceIcon type={src.type} />
                     <span>{src.label}</span>
                   </li>
@@ -158,15 +158,15 @@ function MessageBubble({ msg }: { msg: BedrockMessage }) {
         <div
           className={`rounded-2xl px-4 py-3 text-sm leading-relaxed ${
             isAI
-              ? 'rounded-tl-sm bg-[#1C2A39] text-[#FAF9F6]'
-              : 'rounded-tr-sm bg-accent/15 text-[#1C2A39]'
+              ? 'rounded-tl-sm bg-navy text-bone'
+              : 'rounded-tr-sm bg-accent/15 text-navy'
           }`}
         >
           {msg.content}
         </div>
 
         {/* Time + role label */}
-        <p className={`mt-1 text-xs text-[#1C2A39]/40 ${isAI ? 'text-left' : 'text-right'}`}>
+        <p className={`mt-1 text-xs text-navy/40 ${isAI ? 'text-left' : 'text-right'}`}>
           {isAI ? 'Bedrock AI' : 'Client'} · {time}
         </p>
 
@@ -198,31 +198,31 @@ function ThreadListItem({
       onClick={onSelect}
       className={`w-full rounded-xl border px-4 py-3.5 text-left transition-all duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-accent ${
         isSelected
-          ? 'border-accent/60 bg-[#1C2A39] text-[#FAF9F6]'
-          : 'border-[#1C2A39]/10 bg-[#FAF9F6] text-[#1C2A39] hover:border-accent/30 hover:bg-white'
+          ? 'border-accent/60 bg-navy text-bone'
+          : 'border-navy/10 bg-bone text-navy hover:border-accent/30 hover:bg-white'
       }`}
     >
       {/* Name + badge */}
       <div className="flex items-center justify-between gap-2">
-        <span className={`font-sans text-sm font-semibold ${isSelected ? 'text-[#FAF9F6]' : 'text-[#1C2A39]'}`}>
+        <span className={`font-sans text-sm font-semibold ${isSelected ? 'text-bone' : 'text-navy'}`}>
           {thread.clientName}
         </span>
         <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${
-          isSelected ? 'bg-white/15 text-[#FAF9F6]' : badgeClass
+          isSelected ? 'bg-white/15 text-bone' : badgeClass
         }`}>
           {tierLabel}
         </span>
       </div>
 
       {/* Property */}
-      <p className={`mt-0.5 truncate text-xs ${isSelected ? 'text-[#FAF9F6]/60' : 'text-[#1C2A39]/50'}`}>
+      <p className={`mt-0.5 truncate text-xs ${isSelected ? 'text-bone/60' : 'text-navy/50'}`}>
         {thread.propertyContext}
       </p>
 
       {/* Sentiment + confidence */}
       <div className="mt-2 flex items-center justify-between">
         <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-          isSelected ? 'bg-accent/20 text-accent' : 'bg-accent/10 text-[#1C2A39]/60'
+          isSelected ? 'bg-accent/20 text-accent' : 'bg-accent/10 text-navy/60'
         }`}>
           {thread.sentiment}
         </span>
@@ -232,12 +232,12 @@ function ThreadListItem({
               className="h-1 rounded-full"
               style={{
                   width: `${thread.latestConfidence}%`,
-                  backgroundColor: isSelected ? 'var(--color-accent, #0A7EA4)' : color,
+                  backgroundColor: isSelected ? 'var(--color-accent)' : color,
                 }}
             />
           </div>
           <span className={`text-xs font-semibold tabular-nums ${isSelected ? 'text-accent' : ''}`}
-            style={{ color: isSelected ? 'var(--color-accent, #0A7EA4)' : color }}>
+            style={{ color: isSelected ? 'var(--color-accent)' : color }}>
             {thread.latestConfidence}%
           </span>
         </div>
@@ -297,23 +297,23 @@ export function AiLogsPanel() {
   const confidenceColor = getConfidenceColor(selectedThread.latestConfidence);
 
   return (
-    <div className="flex h-[calc(100vh-10rem)] min-h-[600px] overflow-hidden rounded-2xl border border-[#1C2A39]/10 bg-[#FAF9F6] shadow-sm">
+    <div className="flex h-[calc(100vh-10rem)] min-h-[600px] overflow-hidden rounded-2xl border border-navy/10 bg-bone shadow-sm">
 
       {/* ── Left sidebar ─────────────────────────────────────────────────── */}
-      <aside className="flex w-72 shrink-0 flex-col border-r border-[#1C2A39]/10 bg-[#FAF9F6]">
+      <aside className="flex w-72 shrink-0 flex-col border-r border-navy/10 bg-bone">
 
         {/* Sidebar header */}
-        <div className="border-b border-[#1C2A39]/10 px-4 py-4">
-          <h2 className="font-sans text-xs font-semibold uppercase tracking-[0.15em] text-[#1C2A39]/50">
+        <div className="border-b border-navy/10 px-4 py-4">
+          <h2 className="font-sans text-xs font-semibold uppercase tracking-[0.15em] text-navy/50">
             Client Conversations
           </h2>
-          <p className="mt-1 font-sans text-xs text-[#1C2A39]/40">
+          <p className="mt-1 font-sans text-xs text-navy/40">
             {mockBedrockThreads.length} active threads
           </p>
         </div>
 
         {/* Filter tabs */}
-        <div className="flex gap-1 border-b border-[#1C2A39]/10 px-3 py-2">
+        <div className="flex gap-1 border-b border-navy/10 px-3 py-2">
           {(
             [
               { key: 'all', label: 'All' },
@@ -327,8 +327,8 @@ export function AiLogsPanel() {
               onClick={() => setFilterTab(key)}
               className={`rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors ${
                 filterTab === key
-                  ? 'bg-[#1C2A39] text-[#FAF9F6]'
-                  : 'text-[#1C2A39]/60 hover:bg-[#1C2A39]/5 hover:text-[#1C2A39]'
+                  ? 'bg-navy text-bone'
+                  : 'text-navy/60 hover:bg-navy/5 hover:text-navy'
               }`}
             >
               {label}
@@ -339,7 +339,7 @@ export function AiLogsPanel() {
         {/* Thread list */}
         <div className="flex-1 space-y-2 overflow-y-auto p-3">
           {visibleThreads.length === 0 ? (
-            <p className="py-8 text-center text-xs text-[#1C2A39]/40">No threads in this filter.</p>
+            <p className="py-8 text-center text-xs text-navy/40">No threads in this filter.</p>
           ) : (
             visibleThreads.map((thread) => (
               <ThreadListItem
@@ -357,10 +357,10 @@ export function AiLogsPanel() {
       <div className="flex flex-1 flex-col overflow-hidden">
 
         {/* Thread header */}
-        <div className="flex items-center justify-between border-b border-[#1C2A39]/10 bg-white px-6 py-4">
+        <div className="flex items-center justify-between border-b border-navy/10 bg-white px-6 py-4">
           <div className="min-w-0">
             <div className="flex items-center gap-3">
-              <h3 className="font-serif text-lg font-medium text-[#1C2A39] truncate">
+              <h3 className="font-serif text-lg font-medium text-navy truncate">
                 {selectedThread.clientName}
               </h3>
               <span className={`shrink-0 rounded-full px-2.5 py-0.5 text-xs font-medium ${tierBadgeClass}`}>
@@ -372,7 +372,7 @@ export function AiLogsPanel() {
                 </span>
               )}
             </div>
-            <p className="mt-0.5 truncate font-sans text-xs text-[#1C2A39]/50">
+            <p className="mt-0.5 truncate font-sans text-xs text-navy/50">
               {selectedThread.propertyAddress}
             </p>
           </div>
@@ -380,7 +380,7 @@ export function AiLogsPanel() {
           <div className="flex shrink-0 items-center gap-3">
             {/* Confidence score */}
             <div className="hidden items-center gap-2 sm:flex">
-              <span className="font-sans text-xs text-[#1C2A39]/50">Confidence</span>
+              <span className="font-sans text-xs text-navy/50">Confidence</span>
               <ConfidenceBar score={selectedThread.latestConfidence} />
             </div>
 
@@ -391,7 +391,7 @@ export function AiLogsPanel() {
               className={`flex items-center gap-2 rounded-lg border px-3 py-2 font-sans text-xs font-medium transition-all ${
                 isPaused
                   ? 'border-emerald-400 bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
-                  : 'border-accent bg-accent/10 text-[#1C2A39] hover:bg-accent/20'
+                  : 'border-accent bg-accent/10 text-navy hover:bg-accent/20'
               }`}
             >
               {isPaused ? (
@@ -414,12 +414,12 @@ export function AiLogsPanel() {
         </div>
 
         {/* Property context strip */}
-        <div className="border-b border-accent/20 bg-[#1C2A39]/3 px-6 py-2">
-          <p className="font-sans text-xs text-[#1C2A39]/60">
-            <span className="font-semibold text-[#1C2A39]/80">Property: </span>
+        <div className="border-b border-accent/20 bg-navy/3 px-6 py-2">
+          <p className="font-sans text-xs text-navy/60">
+            <span className="font-semibold text-navy/80">Property: </span>
             {selectedThread.propertyContext}
-            <span className="mx-2 text-[#1C2A39]/30">·</span>
-            <span className="font-semibold text-[#1C2A39]/80">Sentiment: </span>
+            <span className="mx-2 text-navy/30">·</span>
+            <span className="font-semibold text-navy/80">Sentiment: </span>
             <span
               className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium"
               style={{ backgroundColor: `${confidenceColor}18`, color: confidenceColor }}
@@ -448,14 +448,14 @@ export function AiLogsPanel() {
         </div>
 
         {/* Status bar */}
-        <div className="flex items-center justify-between border-t border-[#1C2A39]/10 bg-white px-6 py-3">
-          <p className="font-sans text-xs text-[#1C2A39]/40">
+        <div className="flex items-center justify-between border-t border-navy/10 bg-white px-6 py-3">
+          <p className="font-sans text-xs text-navy/40">
             {selectedThread.messages.length} message{selectedThread.messages.length !== 1 ? 's' : ''}
             <span className="mx-2">·</span>
-            Model: <span className="font-medium text-[#1C2A39]/60">Claude 3.5 Sonnet</span>
+            Model: <span className="font-medium text-navy/60">Claude 3.5 Sonnet</span>
             <span className="mx-2">·</span>
             Avg latency:{' '}
-            <span className="font-medium text-[#1C2A39]/60">
+            <span className="font-medium text-navy/60">
               {Math.round(
                 selectedThread.messages
                   .filter((m) => m.meta)
@@ -467,7 +467,7 @@ export function AiLogsPanel() {
           </p>
           <div className="flex items-center gap-1.5">
             <div className="h-2 w-2 rounded-full bg-emerald-400" />
-            <span className="font-sans text-xs text-[#1C2A39]/40">Bedrock Connected</span>
+            <span className="font-sans text-xs text-navy/40">Bedrock Connected</span>
           </div>
         </div>
       </div>

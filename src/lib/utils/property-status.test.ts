@@ -30,12 +30,15 @@ describe('statusBadgeClasses', () => {
   });
 
   it('uses the muted pairing for Under Contract', () => {
-    expect(statusBadgeClasses('Under Contract')).toBe('bg-stone text-linen');
+    // Was `bg-stone text-linen`. Stone is a mid-grey that fails AA against both
+    // bone (4.21:1) and onyx (3.97:1), which the palette change exposed — see
+    // the ratio note in property-status.ts.
+    expect(statusBadgeClasses('Under Contract')).toBe('bg-hunter text-bone');
   });
 
   it('treats any unrecognised status as unavailable', () => {
     for (const status of ['Sold', 'Pending', 'Coming Soon', '', 'available']) {
-      expect(statusBadgeClasses(status)).toBe('bg-stone text-linen');
+      expect(statusBadgeClasses(status)).toBe('bg-hunter text-bone');
     }
   });
 
