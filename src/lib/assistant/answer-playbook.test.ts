@@ -260,21 +260,52 @@ describe('the shipped content', () => {
     expect(offenders).toEqual([]);
   });
 
-  it('is marked as awaiting Joey’s sign-off', () => {
-    expect(pendingApprovalIds(ANSWER_PLAYBOOK)).toEqual(ANSWER_PLAYBOOK.map((e) => e.id));
+  it('carries Joey’s sign-off on every entry', () => {
+    // These started as drafts marked PENDING_APPROVAL. Joey rewrote them and
+    // sent them back verbatim, so nothing here is pending any more — and if an
+    // entry is ever added without his wording, this fails.
+    expect(pendingApprovalIds(ANSWER_PLAYBOOK)).toEqual([]);
+
+    for (const entry of ANSWER_PLAYBOOK) {
+      expect(entry.approval, entry.id).toContain('Joey Oberndorfer');
+    }
+  });
+
+  it('never says "commission" in an answer, only in the keywords', () => {
+    // Joey's instruction: he says "compensation". The keywords still carry
+    // "commission" because that is the word clients type.
+    for (const entry of ANSWER_PLAYBOOK) {
+      expect(entry.answer.toLowerCase(), entry.id).not.toContain('commission');
+    }
+
+    const compensation = ANSWER_PLAYBOOK.find((e) => e.id === 'compensation');
+    expect(compensation?.keywords.join(' ')).toContain('commission');
+    expect(compensation?.answer).toContain('Compensation');
+  });
+
+  it('states plainly that Joey is not an insurance agent', () => {
+    // His correction. The draft this replaced said insurance was something he
+    // handles, which misrepresented a licensed professional's services.
+    const insurance = ANSWER_PLAYBOOK.find((e) => e.id === 'insurance-help');
+
+    expect(insurance?.answer).toContain("isn't an insurance agent");
   });
 
   it.each([
     ['are you a bot or a real person?', 'am-i-talking-to-a-bot'],
-    ['what is your commission?', 'commission-and-fees'],
+    ['what is your commission?', 'compensation'],
     // Found live: this phrasing matched nothing, so the model answered from the
     // base prompt and drifted off Joey's register.
-    ['what percent commission do you charge?', 'commission-and-fees'],
-    ['just give me a number, what do you charge?', 'commission-and-fees'],
+    ['what percent commission do you charge?', 'compensation'],
+    ['just give me a number, what do you charge?', 'compensation'],
     ['how much is my house worth?', 'home-valuation'],
     ['do I need to be pre-approved first?', 'pre-approval-first'],
     ["I'm a first time home buyer, where do I start?", 'first-time-buyer'],
-    ['how long does it take to sell a place around here?', 'how-long-to-sell'],
+    // Joey merged time-to-sell into the valuation answer, so both land here.
+    ['how long does it take to sell a place around here?', 'home-valuation'],
+    ['when can we schedule a consultation?', 'am-i-talking-to-a-bot'],
+    ['can I meet with Joey?', 'am-i-talking-to-a-bot'],
+    ['I might be relocating out of state', 'service-area'],
     ['do you work in Marietta?', 'service-area'],
     ['are you a licensed agent?', 'who-is-joey'],
     ['looking for an investment property with good cash flow', 'investment-property'],

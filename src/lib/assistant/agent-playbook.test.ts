@@ -63,7 +63,7 @@ describe('runAssistantTurn — playbook injection', () => {
   it('sends the approved answer for a question the playbook covers', async () => {
     await runAssistantTurn({ sessionId: 'p1', message: 'what is your commission?' });
 
-    expect(systemSent()).toContain(entryById('commission-and-fees').answer);
+    expect(systemSent()).toContain(entryById('compensation').answer);
   });
 
   it('keeps the base prompt and its hard rules alongside the directive', async () => {

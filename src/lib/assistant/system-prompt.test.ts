@@ -58,6 +58,17 @@ describe('system prompt — lead capture instructions', () => {
     expect(prompt).toMatch(/Never split it across two capture_lead calls/);
   });
 
+  it('forbids the word "commission" and names the replacement', () => {
+    // Joey's explicit instruction. Observed live: with only the playbook answer
+    // in play, the model mirrored the client's "commission" back and overwrote
+    // his "compensation" — so the rule has to be in the prompt, not just in the
+    // answer text. The prompt also used to say "commissions" itself, which was
+    // priming the substitution.
+    expect(prompt).toMatch(/NEVER say "commission"/);
+    expect(prompt).toMatch(/compensation/);
+    expect(prompt).not.toMatch(/quote prices, commissions/);
+  });
+
   it('forbids inventing a value to satisfy the tool', () => {
     expect(prompt).toMatch(/do NOT put\s+a placeholder, a guess/);
     expect(prompt).toMatch(/Never satisfy it by making a\s+value up/);

@@ -76,6 +76,16 @@ export interface PlaybookEntry {
   strongKeywords?: string[];
   /** The answer, in Joey's voice. Quotes no figures and promises no outcomes. */
   answer: string;
+  /**
+   * A conditional instruction to the model, separate from the answer text.
+   *
+   * For the cases where Joey wanted something to happen *after* the answer
+   * rather than said as part of it — asking for the property address only when
+   * it is still unknown, or moving straight on to offering the consultation.
+   * Folding these into `answer` would have the model read the instruction out
+   * loud to the client.
+   */
+  followUp?: string;
   /** `PENDING_APPROVAL`, or whoever signed off and when. */
   approval: string;
 }
@@ -309,12 +319,15 @@ export function pendingApprovalIds(entries: readonly PlaybookEntry[]): string[] 
  * weights later instructions more heavily.
  */
 export function buildPlaybookDirective(match: PlaybookMatch): string {
+  const followUp = match.entry.followUp
+    ? `\nAfter giving it: ${match.entry.followUp}\n`
+    : '';
+
   return `## APPROVED ANSWER FOR THIS QUESTION
 
-Joey has already written and approved an answer to what this person just asked.
-Use its substance, and stay close to its wording. Adapt the greeting, the length
-and the order to fit the conversation — but do not add facts it does not contain,
-and do not contradict it.
+Joey has written and approved an answer to what this person just asked. These are
+his own words. Deliver this answer — do not paraphrase it, shorten it, or improve
+its grammar. Do not add facts it does not contain, and do not contradict it.
 
 Question, as Joey filed it: ${match.entry.question}
 
@@ -322,11 +335,21 @@ Joey's approved answer:
 """
 ${match.entry.answer}
 """
+${followUp}
+Where the answer contains [Name], substitute the client's first name. If they
+have not given you their name yet, remove [Name] along with any comma or space
+left stranded by it, so the sentence still reads naturally. Never output the
+literal text "[Name]", and never guess at a name.
+
+Keep Joey's exact terminology even where the client used a different word for
+the same thing. Mirroring their vocabulary back at them is the natural instinct
+and it is wrong here: these are the words Joey chose, and swapping one for a
+synonym is paraphrasing.
 
 The HARD RULES above still take precedence over this answer. If using it would
-mean quoting a price, commission or fee, promising an outcome, or giving legal,
-tax or financial advice, follow the hard rules instead and offer to have Joey
-confirm personally.`;
+mean quoting a price, a compensation figure or a fee, promising an outcome, or
+giving legal, tax or financial advice, follow the hard rules instead and offer to
+have Joey confirm personally.`;
 }
 
 /**
