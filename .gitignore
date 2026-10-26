@@ -55,3 +55,11 @@ next-env.d.ts
 *.swp
 *.swo
 *~
+
+# Local Netlify folder — site link and local build output, written by
+# `netlify link` and `netlify build`. Machine-specific, never shared.
+.netlify
+
+# Written by `netlify build` when it bundles the edge function for the Next.js
+# middleware. A local build artifact, regenerated remotely on every deploy.
+deno.lock
