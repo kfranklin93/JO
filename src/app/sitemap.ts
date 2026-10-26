@@ -31,27 +31,53 @@ import { siteConfig } from '@/config/site';
  * results with no description, which is the opposite of the intent.
  */
 
-/** Routes that should be indexed, with how often they realistically change. */
+/**
+ * Routes with real content, safe to ask Google to index.
+ *
+ * See PLACEHOLDER_ROUTES below for the ones deliberately held back.
+ */
 const ROUTES: { path: string; changeFrequency: MetadataRoute.Sitemap[number]['changeFrequency']; priority: number }[] = [
   { path: '', changeFrequency: 'weekly', priority: 1 },
-
-  // The pages that target local intent searches — "sell my house in Marietta"
-  // and the like. These are the commercial pages.
-  { path: '/sell-home', changeFrequency: 'monthly', priority: 0.9 },
-  { path: '/buy-home', changeFrequency: 'monthly', priority: 0.9 },
-  { path: '/home-insurance', changeFrequency: 'monthly', priority: 0.8 },
-  { path: '/closing-services', changeFrequency: 'monthly', priority: 0.8 },
 
   // Listings change often; the page is worth recrawling.
   { path: '/properties', changeFrequency: 'weekly', priority: 0.8 },
 
   { path: '/about', changeFrequency: 'monthly', priority: 0.7 },
-  { path: '/contact', changeFrequency: 'yearly', priority: 0.7 },
   { path: '/get-started', changeFrequency: 'yearly', priority: 0.7 },
 
   { path: '/privacy', changeFrequency: 'yearly', priority: 0.3 },
   { path: '/terms', changeFrequency: 'yearly', priority: 0.3 },
 ];
+
+/**
+ * Pages that exist as stubs and are NOT submitted for indexing yet.
+ *
+ * Every one of these is currently a ten-line component whose body says
+ * "Placeholder page for …". An earlier version of this file listed them, which
+ * was wrong in two ways: Google does not rank thin pages, so it bought nothing,
+ * and a visitor arriving from a search result promising "Sell Your Home in
+ * Metro Atlanta" would have landed on the word "Placeholder" — worse for Joey
+ * than not ranking at all. Thin content in a sitemap also spends crawl budget
+ * and drags site-quality signals for the pages that *are* real.
+ *
+ * These are the highest-value pages on the site once written — they are the
+ * ones that can win "sell my house in Marietta" — so this list is a to-do, not
+ * a decision. Move an entry into ROUTES above the moment its page has genuine
+ * content, and give it a priority of 0.9.
+ *
+ * `/contact` is here for the same reason, though it is a stub of a different
+ * kind: it needs the real contact details rather than prose.
+ */
+const PLACEHOLDER_ROUTES = [
+  '/sell-home',
+  '/buy-home',
+  '/home-insurance',
+  '/closing-services',
+  '/contact',
+] as const;
+
+/** Exported so the test can assert these stay out until they are written. */
+export const HELD_BACK_FROM_SITEMAP: readonly string[] = PLACEHOLDER_ROUTES;
 
 export default function sitemap(): MetadataRoute.Sitemap {
   // One timestamp for the whole generation rather than `new Date()` per entry,

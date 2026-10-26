@@ -32,19 +32,25 @@ beforeEach(() => {
 });
 
 describe('sitemap', () => {
-  it('lists the commercial pages that target local searches', () => {
+  it('lists the pages that have real content', () => {
     const paths = sitemap().map((entry) => entry.url);
 
-    for (const page of [
-      '/sell-home',
-      '/buy-home',
-      '/home-insurance',
-      '/closing-services',
-      '/properties',
-      '/about',
-      '/contact',
-    ]) {
+    for (const page of ['/properties', '/about', '/get-started', '/privacy', '/terms']) {
       expect(paths).toContain(`https://gowithjoeyo.com${page}`);
+    }
+  });
+
+  it('holds back the placeholder pages until they are written', async () => {
+    // These are ten-line stubs whose body text says "Placeholder page for …".
+    // Submitting them bought nothing — Google does not rank thin pages — and
+    // would have sent searchers to the word "Placeholder". They are the
+    // highest-value pages once written, so this is a to-do rather than a
+    // decision; the comment in sitemap.ts says how to promote one.
+    const { HELD_BACK_FROM_SITEMAP } = await import('./sitemap');
+    const urls = sitemap().map((entry) => entry.url).join(' ');
+
+    for (const page of HELD_BACK_FROM_SITEMAP) {
+      expect(urls, `${page} is still a placeholder`).not.toContain(page);
     }
   });
 
