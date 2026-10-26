@@ -65,9 +65,33 @@
   --color-hunter: #14291F;
   --color-navy: #0F2A5E;
 
-  /* Supporting neutrals */
-  --color-stone: #707070;
-  --color-silver: #8E8E93;
+  /*
+   * Supporting neutrals.
+   *
+   * Both were darkened when the background moved to Bone, and the reason is
+   * worth keeping: #707070 stone measured 4.70:1 on the old #FAF9F6 linen and
+   * passed AA, but only 4.21:1 on Bone — and `text-stone` is the site's
+   * standard secondary text, used in more than thirty files. Changing the
+   * background quietly pushed all of it below the floor. Warm greys rather
+   * than neutral ones, to sit correctly against Bone.
+   *
+   *   stone  on bone  4.97:1   body text, passes AA
+   *   silver on bone  4.57:1   passes, but barely
+   *
+   * `silver` is now the same value as `stone`, which deserves explaining
+   * rather than looking like a copy-paste slip. On a background as light as
+   * Bone there is no room for two distinct grey tiers that both clear AA: any
+   * grey light enough to read as "one step quieter" lands under the floor.
+   * Darkening silver to the point where it passed made it indistinguishable
+   * from stone anyway, so rather than ship a difference too small to see and
+   * too close to the limit to trust, the two are deliberately equal.
+   *
+   * Build text hierarchy from size and weight instead of a second grey. Use
+   * `silver` for borders, dividers, icons and disabled states — things that do
+   * not have to meet a text contrast ratio.
+   */
+  --color-stone: #6A645C;
+  --color-silver: #6A645C;
   --color-border: #DED5C4;
   --color-surface: #F2ECE0;
 
@@ -108,7 +132,9 @@
   --color-accent-foreground: #ffffff;
   --color-accent-hover: #0A1F45;
 
-  --color-muted: #707070;
+  /* Kept in step with --color-stone; it was left behind at #707070 and failed
+   * AA on Bone at 4.21:1 while stone had already been fixed. */
+  --color-muted: #6A645C;
   --color-muted-foreground: #F2ECE0;
   
   /* Font families */
