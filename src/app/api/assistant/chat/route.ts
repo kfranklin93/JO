@@ -41,6 +41,8 @@ import { captureLead } from '@/lib/services/lead-capture';
 import { recordChatTurn, sessionLeadId } from '@/lib/services/chat-store';
 import { bookingLink } from '@/lib/services/booking-link';
 import { assistantMuteState } from '@/lib/services/assistant-mute';
+import { book, offerSlots } from '@/lib/services/booking';
+import { describeSlot } from '@/lib/services/slot-label';
 import {
   checkAndCount,
   checkAndCountSession,
@@ -192,6 +194,76 @@ export async function POST(req: NextRequest) {
     return { lead_id: outcome.leadId };
   };
 
+  /**
+   * The calendar hooks.
+   *
+   * The lead identity is closed over here rather than passed as a tool
+   * argument, which is the security property: `book_appointment` takes a start
+   * time and nothing else, so an injected "book this for rival@agency.com" has
+   * nowhere to put the address. The id is whichever lead this conversation has
+   * actually established — the one already on the session, or the one
+   * `capture_lead` just created in this same turn.
+   *
+   * Reading `capturedLeadId` at call time rather than closing over its value
+   * matters: the model can capture a lead and book in a single turn, and the
+   * variable is only assigned partway through.
+   */
+  const bookingHooks = {
+    availability: async () => {
+      const slots = await offerSlots(new Date());
+      return slots.map((slot) => ({
+        start_time: slot.startsAt.toISOString(),
+        label: describeSlot(slot.startsAt),
+      }));
+    },
+    book: async (startTime: string) => {
+      const forLead = capturedLeadId ?? leadId;
+      if (!forLead) return { status: 'no_lead' as const };
+
+      const startsAt = new Date(startTime);
+      if (Number.isNaN(startsAt.getTime())) {
+        // A model-invented string rather than a copied one. Reported as "not
+        // available" with real alternatives, which is both true and actionable.
+        const slots = await offerSlots(new Date());
+        return {
+          status: 'not_available' as const,
+          alternatives: slots.slice(0, 4).map((slot) => ({
+            start_time: slot.startsAt.toISOString(),
+            label: describeSlot(slot.startsAt),
+          })),
+        };
+      }
+
+      const result = await book({
+        leadId: forLead,
+        startsAt,
+        createdBy: 'assistant',
+        notes: `Booked through the website assistant (session ${sessionId}).`,
+      });
+
+      if (result.ok) {
+        return {
+          status: result.alreadyBooked ? ('already_booked' as const) : ('booked' as const),
+          starts_at: result.appointment.startsAt.toISOString(),
+          label: describeSlot(result.appointment.startsAt),
+        };
+      }
+
+      if (result.reason === 'unavailable') return { status: 'unavailable' as const };
+
+      return {
+        status:
+          result.reason === 'slot_taken'
+            ? ('slot_taken' as const)
+            : ('not_available' as const),
+        alternatives: result.alternatives.map((slot) => ({
+          start_time: slot.startsAt.toISOString(),
+          label: describeSlot(slot.startsAt),
+        })),
+      };
+    },
+  };
+
   // Requirement 8.5: when Joey has switched the assistant off, the inbound
   // message is still recorded but no reply is generated.
   //
@@ -243,7 +315,7 @@ export async function POST(req: NextRequest) {
       // `history` spread only when present: exactOptionalPropertyTypes rejects an
       // explicit undefined for an optional property.
       { sessionId, message, ...(history ? { history } : {}) },
-      { localCapture: captureLeadLocally },
+      { localCapture: captureLeadLocally, booking: bookingHooks },
     );
   } catch (err) {
     console.error('[assistant:chat] error:', err);

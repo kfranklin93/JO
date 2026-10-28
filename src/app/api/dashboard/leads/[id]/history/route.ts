@@ -4,6 +4,7 @@ import { SESSION_COOKIE_NAME, verifySession } from '@/lib/auth/session';
 import { envErrorResponse, requireEnv } from '@/lib/utils/require-env';
 import { leadHistory } from '@/lib/services/lead-history';
 import { assistantMuteState } from '@/lib/services/assistant-mute';
+import { forLead, withLeads, type BookingWithLead } from '@/lib/services/booking';
 
 /**
  * GET /api/dashboard/leads/[id]/history — one lead's full conversation.
@@ -48,6 +49,23 @@ export async function GET(
       assistantMuteState(id),
     ]);
 
+    // Requirement 8.4: bookings alongside the conversation. Resolved outside the
+    // Promise.all above and with its own catch, deliberately.
+    // src/lib/db/appointment-schema.sql has not been applied yet, so a missing
+    // `appointments` relation is the likely case — and inside that Promise.all it
+    // would 500 the whole route, taking down the conversation view, which is
+    // this panel's primary job and works today. An empty list costs Joey a
+    // section; a 500 costs him the transcript.
+    const appointments: BookingWithLead[] = await forLead(id)
+      .then(withLeads)
+      .catch((error: unknown) => {
+        console.error(
+          `[dashboard:history] appointments unavailable for lead ${id}:`,
+          error,
+        );
+        return [];
+      });
+
     return NextResponse.json({
       leadId: id,
       history,
@@ -55,12 +73,7 @@ export async function GET(
         muted: mute.muted,
         reason: mute.reason,
       },
-      // Requirement 8.4 wants bookings shown alongside the history. There is no
-      // appointments table yet, because the assistant cannot book — that is the
-      // Calendly work still outstanding. Reported as an explicit empty rather
-      // than omitted, so the dashboard can render the section and the gap is
-      // visible instead of looking finished.
-      appointments: [],
+      appointments,
     });
   } catch (error) {
     const envError = envErrorResponse(error);

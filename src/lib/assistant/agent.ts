@@ -16,6 +16,7 @@ import { env } from "@/config/env";
 import {
   TOOL_DEFINITIONS,
   createToolExecutor,
+  ExecutorHooks,
   ToolCall,
   ToolExecutor,
 } from "./tools";
@@ -67,10 +68,13 @@ function anthropicTools() {
 
 export async function runAssistantTurn(
   turn: AssistantTurn,
-  options?: { localCapture?: Parameters<typeof createToolExecutor>[0] }
+  // `ExecutorHooks` rather than a bare capture hook: booking needs the lead's
+  // identity closed over server-side, so the host passes `{ localCapture,
+  // booking }`. The older `{ localCapture: fn }` call shape stays valid.
+  options?: ExecutorHooks
 ): Promise<AssistantResult> {
   const assistantEnv = getAssistantEnv();
-  const executor: ToolExecutor = createToolExecutor(options?.localCapture);
+  const executor: ToolExecutor = createToolExecutor(options);
 
   if (!assistantEnv.apiKey) {
     // MOCK MODE: no Anthropic key — same defensive pattern as lofty.ts.

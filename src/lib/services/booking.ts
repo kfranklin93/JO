@@ -34,7 +34,9 @@ import {
   type Appointment,
   type AppointmentChannel,
 } from '@/lib/db/appointment-schema';
+import { leads } from '@/lib/db/schema';
 import { SLOT_MINUTES, freeSlots, type Slot } from '@/lib/services/availability';
+import { resolveLeadName } from '@/lib/services/lead-mapping';
 
 /** Postgres's code for a unique-constraint violation. */
 const UNIQUE_VIOLATION = '23505';
@@ -281,8 +283,20 @@ export async function forLead(leadId: string): Promise<BookingView[]> {
     .orderBy(asc(appointments.startsAt));
 }
 
-/** Bookings inside a window, for a calendar view. */
-export async function between(start: Date, end: Date): Promise<BookingView[]> {
+/**
+ * Bookings inside a window, for a calendar view.
+ *
+ * Bounded like {@link upcoming}, and for the same reason: every row carries a
+ * lead's name, email and phone once it passes through {@link withLeads}, so an
+ * unbounded window would hand back the whole client list in one response the
+ * first time somebody asked for a decade. A caller that wants more pages the
+ * window.
+ */
+export async function between(
+  start: Date,
+  end: Date,
+  limit = 50,
+): Promise<BookingView[]> {
   return db
     .select({
       id: appointments.id,
@@ -302,7 +316,67 @@ export async function between(start: Date, end: Date): Promise<BookingView[]> {
         inArray(appointments.status, ['scheduled', 'completed', 'no_show']),
       ),
     )
-    .orderBy(asc(appointments.startsAt));
+    .orderBy(asc(appointments.startsAt))
+    .limit(limit);
+}
+
+/** Just enough of the lead for Joey to know who he is meeting. */
+export interface BookingLeadRef {
+  id: string;
+  name: string | null;
+  email: string;
+  phone: string | null;
+}
+
+/** A booking with its client attached. */
+export interface BookingWithLead extends BookingView {
+  lead: BookingLeadRef | null;
+}
+
+/**
+ * Attach lead details to a page of bookings.
+ *
+ * A second query rather than a drizzle `innerJoin`, for two reasons.
+ * `upcoming`, `between` and `forLead` stay usable by callers that do not need
+ * lead data — the assistant's availability path is one — and a join would make
+ * every one of them pay for it. And an inner join would *drop* a booking whose
+ * lead row is gone, which is the wrong failure: losing an appointment from
+ * Joey's calendar is worse than showing it unattributed, so a missing lead
+ * becomes `lead: null` and keeps its place. The same reasoning the follow-up
+ * cron applies when a claimed row references a vanished lead.
+ *
+ * One batched `inArray` lookup, not one query per row; the volume is a page of
+ * bookings.
+ */
+export async function withLeads(
+  bookings: readonly BookingView[],
+): Promise<BookingWithLead[]> {
+  // An empty `inArray` is not a valid query, and there is nothing to look up.
+  if (bookings.length === 0) return [];
+
+  const ids = [...new Set(bookings.map((booking) => booking.leadId))];
+
+  const rows = await db.select().from(leads).where(inArray(leads.id, ids));
+
+  const byId = new Map(rows.map((row) => [row.id, row]));
+
+  return bookings.map((booking) => {
+    const row = byId.get(booking.leadId);
+
+    return {
+      ...booking,
+      lead: row
+        ? {
+            id: row.id,
+            // resolveLeadName owns which of the three name columns wins. A
+            // second decider here would eventually disagree with the drip.
+            name: resolveLeadName(row) ?? null,
+            email: row.email,
+            phone: row.phone ?? null,
+          }
+        : null,
+    };
+  });
 }
 
 /** Free slots the assistant or a picker can offer. */

@@ -8,6 +8,8 @@ export type ToolName =
   | "log_lead_note"
   | "draft_followup"
   | "book_intro_call"
+  | "check_availability"
+  | "book_appointment"
   | "escalate_to_joey";
 
 export interface ToolParamSchema {

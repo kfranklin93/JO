@@ -16,6 +16,11 @@
  * fill). That distinction is the point: Joey needs to know at a glance whether
  * he is reading his own words before he follows up on them.
  *
+ * Bookings this lead holds are listed above the conversation, since "have they
+ * got time with Joey?" is the question that decides what he does next. The
+ * section is hidden when there are none rather than showing an empty heading on
+ * every row.
+ *
  * Fetched lazily on first expand. The leads table can hold hundreds of rows and
  * eagerly loading every transcript would ship every client's words to the
  * browser to render one.
@@ -23,6 +28,16 @@
 
 import * as React from 'react';
 import { cn } from '@/lib/utils/cn';
+import { describeSlotDay, describeSlotTime } from '@/lib/services/slot-label';
+import type {
+  AppointmentChannel,
+  AppointmentStatus,
+} from '@/lib/db/appointment-schema';
+import {
+  appointmentChannelLabel,
+  appointmentStatusLabel,
+  appointmentStatusStyle,
+} from './appointment-labels';
 
 interface HistoryEntry {
   id: string;
@@ -36,11 +51,28 @@ interface HistoryEntry {
   latencyMs?: number | null;
 }
 
+/**
+ * A consultation this lead has booked. ISO strings, serialised by the route.
+ *
+ * `status` and `channel` are the schema's enum unions, so a value added to the
+ * database has to be given a label and a colour in `appointment-labels.ts`
+ * before this compiles.
+ */
+interface AppointmentEntry {
+  id: string;
+  startsAt: string;
+  endsAt: string;
+  status: AppointmentStatus;
+  channel: AppointmentChannel;
+  createdBy: string;
+  notes: string | null;
+}
+
 interface HistoryResponse {
   leadId: string;
   history: HistoryEntry[];
   assistant: { muted: boolean; reason: 'global' | 'lead' | 'unavailable' | null };
-  appointments: unknown[];
+  appointments: AppointmentEntry[];
 }
 
 const CHANNEL_LABELS: Record<HistoryEntry['channel'], string> = {
@@ -51,6 +83,15 @@ const CHANNEL_LABELS: Record<HistoryEntry['channel'], string> = {
   in_person: 'In person',
 };
 
+/**
+ * Message timestamps render in the *viewer's* timezone, which is right for "when
+ * did they say this" — Joey wants it relative to his own clock.
+ *
+ * Appointment times do not use this. They go through `slot-label.ts`, which pins
+ * Joey's zone, because a booking is a commitment to a specific wall clock: a
+ * client in California booked 2 PM Eastern, and showing it as 11 AM to whoever
+ * happens to be reading would be showing a different appointment.
+ */
 function formatWhen(iso: string): string {
   return new Date(iso).toLocaleString('en-US', {
     month: 'short',
@@ -176,6 +217,46 @@ export function LeadHistoryPanel({ leadId }: { leadId: string }) {
           {data.assistant.muted ? 'Let the assistant reply' : 'I’ll handle this one'}
         </button>
       </div>
+
+      {/* ── Bookings ──
+          Rendered only when there are some: an empty "Bookings" heading on
+          every lead in the table is noise, and most leads never book. */}
+      {data.appointments.length > 0 && (
+        <section>
+          <h4 className="font-sans text-xs font-semibold tracking-wider text-stone uppercase">
+            Bookings
+          </h4>
+          <ul className="mt-2 space-y-2">
+            {data.appointments.map((appointment) => {
+              const startsAt = new Date(appointment.startsAt);
+              return (
+                <li
+                  key={appointment.id}
+                  className="flex flex-wrap items-center gap-x-4 gap-y-1 rounded-xl border border-navy/10 bg-white px-4 py-3"
+                >
+                  <span className="font-sans text-sm font-medium text-navy">
+                    {describeSlotDay(startsAt)}
+                  </span>
+                  <span className="font-sans text-sm text-stone">
+                    {describeSlotTime(startsAt)}
+                  </span>
+                  <span className="font-sans text-xs text-stone">
+                    {appointmentChannelLabel(appointment.channel)}
+                  </span>
+                  <span
+                    className={cn(
+                      'ml-auto rounded-full px-2 py-0.5 font-sans text-xs font-medium',
+                      appointmentStatusStyle(appointment.status),
+                    )}
+                  >
+                    {appointmentStatusLabel(appointment.status)}
+                  </span>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      )}
 
       {/* ── Conversation ── */}
       {data.history.length === 0 ? (

@@ -80,6 +80,71 @@ describe('system prompt — lead capture instructions', () => {
   });
 });
 
+/**
+ * The booking rules are the model's half of a two-part guard. The booking
+ * service re-derives availability before it writes, so an invented instant is
+ * refused — but the refusal comes after the client has already been told
+ * "Thursday at 2". Only the prompt can prevent the sentence.
+ */
+describe('system prompt — booking instructions', () => {
+  /** Just the booking section, so the assertions below cannot pass on other text. */
+  const section = prompt.slice(
+    prompt.indexOf('## BOOKING A CONSULTATION'),
+    prompt.indexOf('## HARD RULES'),
+  );
+
+  it('has a booking section at all', () => {
+    expect(prompt).toContain(
+      '## BOOKING A CONSULTATION (check_availability, book_appointment)',
+    );
+    expect(section.length).toBeGreaterThan(0);
+  });
+
+  it('requires check_availability before any time is offered', () => {
+    expect(section).toMatch(
+      /Call check_availability BEFORE you offer or confirm any time/,
+    );
+    expect(section).toMatch(/offer ONLY\s+the times it returned/);
+  });
+
+  it('forbids describing availability from memory', () => {
+    expect(section).toMatch(/Never describe availability from memory/);
+  });
+
+  it('puts capture_lead before book_appointment', () => {
+    expect(section).toMatch(/capture_lead must have succeeded first/);
+    expect(section).toMatch(/capture the lead\s+before you reach for book_appointment/);
+  });
+
+  it('forbids claiming a booking that did not happen', () => {
+    expect(section).toMatch(/Never\s+claim a booking that did not happen/);
+    expect(section).toMatch(/never re-offer the time that just\s+failed/);
+    expect(prompt).toMatch(
+      /NEVER tell a client a time is booked unless book_appointment returned booked/,
+    );
+  });
+
+  it('shows a timezone-qualified example time', () => {
+    expect(section).toMatch(/Joey's local business timezone/);
+    expect(section).toContain('Thursday, March 12 at 2:00 PM EDT');
+  });
+
+  it('states the availability hard rule alongside the existing ones', () => {
+    expect(prompt).toMatch(
+      /NEVER present a day or a time as available unless check_availability returned/,
+    );
+  });
+
+  it('does not reintroduce the forbidden word', () => {
+    // Joey's rule applies to new prompt text as much as the old.
+    expect(section).not.toMatch(/\bcommission\b/i);
+  });
+
+  it('spells Joey’s name the way he spells it', () => {
+    expect(section).toContain('Joey Oberndorfer');
+  });
+});
+
 describe('system prompt — substitution', () => {
   it('leaves no placeholder unfilled once the facts are supplied', () => {
     expect(prompt).not.toMatch(/\{\{[A-Z_]+\}\}/);

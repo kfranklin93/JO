@@ -18,6 +18,7 @@
 
 import * as React from 'react';
 import { cn } from '@/lib/utils/cn';
+import { Stat } from './Stat';
 
 interface ApiMessage {
   id: string;
@@ -304,17 +305,6 @@ export function ChatTranscriptsPanel() {
           )}
         </section>
       </div>
-    </div>
-  );
-}
-
-function Stat({ label, value }: { label: string; value: number }) {
-  return (
-    <div className="rounded-xl border border-navy/10 bg-white px-4 py-3">
-      <p className="font-sans text-xs font-semibold tracking-widest text-silver uppercase">
-        {label}
-      </p>
-      <p className="mt-1 font-serif text-2xl text-navy">{value}</p>
     </div>
   );
 }

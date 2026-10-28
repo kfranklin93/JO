@@ -35,6 +35,10 @@ vi.mock('@/lib/services/lead-history', () => ({ leadHistory }));
 const assistantMuteState = vi.fn();
 vi.mock('@/lib/services/assistant-mute', () => ({ assistantMuteState }));
 
+const forLead = vi.fn();
+const withLeads = vi.fn();
+vi.mock('@/lib/services/booking', () => ({ forLead, withLeads }));
+
 const { GET } = await import('./route');
 const { createSession } = await import('@/lib/auth/session');
 
@@ -66,6 +70,24 @@ const HISTORY = [
   },
 ];
 
+/** One booking, as `withLeads` hands it back. */
+const BOOKING = {
+  id: 'appt-1',
+  leadId: LEAD,
+  startsAt: new Date('2026-03-12T18:00:00.000Z'),
+  endsAt: new Date('2026-03-12T18:15:00.000Z'),
+  status: 'scheduled',
+  channel: 'phone',
+  createdBy: 'assistant',
+  notes: null,
+  lead: {
+    id: LEAD,
+    name: 'Dana Whitfield',
+    email: 'dana@example.com',
+    phone: '404-555-0100',
+  },
+};
+
 /** Call the handler the way Next does, with params as a promise. */
 function get(id = LEAD) {
   return GET(new Request(`https://gowithjoeyo.com/api/dashboard/leads/${id}/history`), {
@@ -84,6 +106,10 @@ beforeEach(() => {
   leadHistory.mockResolvedValue(HISTORY);
   assistantMuteState.mockReset();
   assistantMuteState.mockResolvedValue({ muted: false, reason: null });
+  forLead.mockReset();
+  forLead.mockResolvedValue([]);
+  withLeads.mockReset();
+  withLeads.mockResolvedValue([]);
 
   vi.spyOn(console, 'error').mockImplementation(() => {});
 });
@@ -191,12 +217,42 @@ describe('payload', () => {
     expect(body.assistant).toEqual({ muted: true, reason: 'lead' });
   });
 
-  it('returns appointments as an explicit empty list', async () => {
-    // Requirement 8.4 is genuinely unmet — there is no appointments table
-    // because the assistant cannot book yet. An explicit empty keeps the gap
-    // visible rather than letting the omission read as "done".
+  it('returns this lead’s bookings alongside the conversation', async () => {
+    // Requirement 8.4. The panel renders date, time and status, so all three
+    // have to survive serialisation — `startsAt` in particular, which is a Date
+    // on the way out and an ISO string on the way in.
+    withLeads.mockResolvedValue([BOOKING]);
+
     const body = await (await get()).json();
 
+    expect(body.appointments).toHaveLength(1);
+    expect(body.appointments[0]).toMatchObject({
+      id: 'appt-1',
+      startsAt: '2026-03-12T18:00:00.000Z',
+      status: 'scheduled',
+      channel: 'phone',
+    });
+    expect(body.appointments[0].lead.name).toBe('Dana Whitfield');
+  });
+
+  it('asks for bookings scoped to the lead in the path', async () => {
+    await get(LEAD);
+
+    expect(forLead).toHaveBeenCalledWith(LEAD);
+    expect(forLead).toHaveBeenCalledTimes(1);
+  });
+
+  it('still serves the conversation when the calendar read fails', async () => {
+    // appointment-schema.sql has not been applied, so a missing relation is the
+    // likely case. Losing the transcript over a missing bookings section would
+    // break the panel's primary job, which works today.
+    forLead.mockRejectedValue(new Error('relation "appointments" does not exist'));
+
+    const response = await get();
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.history).toHaveLength(2);
     expect(body.appointments).toEqual([]);
   });
 

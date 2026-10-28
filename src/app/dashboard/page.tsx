@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { ChatTranscriptsPanel } from '@/components/dashboard/ChatTranscriptsPanel';
 import { LeadHistoryPanel } from '@/components/dashboard/LeadHistoryPanel';
 import { AssistantKillSwitch } from '@/components/dashboard/AssistantKillSwitch';
+import { AppointmentsPanel } from '@/components/dashboard/AppointmentsPanel';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -138,8 +139,12 @@ type SortDir = 'asc' | 'desc';
  * asked for live rows or removal; `ChatTranscriptsPanel` already shows the real
  * conversations, so two AI tabs where one was fiction served Joey worse than one
  * that is true.
+ *
+ * `appointments` is a view rather than a card on the overview because a calendar
+ * is something Joey reads down, not a number he glances at — a count of
+ * bookings tells him nothing about which call is next.
  */
-type ActiveView = 'overview' | 'ai-conversations';
+type ActiveView = 'overview' | 'ai-conversations' | 'appointments';
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -311,6 +316,20 @@ export default function DashboardPage() {
                 </svg>
                 Chat Logs
               </button>
+              <button
+                type="button"
+                onClick={() => setActiveView('appointments')}
+                className={`flex items-center gap-1.5 rounded-lg px-4 py-1.5 font-sans text-xs font-semibold uppercase tracking-[0.1em] transition-all ${
+                  activeView === 'appointments'
+                    ? 'bg-cerulean text-white shadow-sm'
+                    : 'text-neutral-500 hover:text-neutral-900'
+                }`}
+              >
+                <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M8 2.5v4m8-4v4M3.5 9.5h17M5.5 5h13a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2Z" />
+                </svg>
+                Calendar
+              </button>
             </div>
           </div>
 
@@ -342,6 +361,19 @@ export default function DashboardPage() {
             </p>
           </div>
           <ChatTranscriptsPanel />
+        </main>
+      )}
+
+      {/* ── Calendar ── */}
+      {activeView === 'appointments' && (
+        <main className="mx-auto max-w-screen-xl px-6 py-8">
+          <div className="mb-6">
+            <h2 className="font-serif text-2xl text-navy">Calendar</h2>
+            <p className="mt-1 font-sans text-sm text-stone">
+              Consultations booked through the assistant, soonest first
+            </p>
+          </div>
+          <AppointmentsPanel />
         </main>
       )}
 
