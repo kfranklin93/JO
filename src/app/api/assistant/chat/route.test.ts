@@ -26,7 +26,16 @@ const runAssistantTurn = vi.fn();
 vi.mock('@/lib/assistant/agent', () => ({ runAssistantTurn }));
 
 const recordChatTurn = vi.fn();
-vi.mock('@/lib/services/chat-store', () => ({ recordChatTurn }));
+const sessionLeadId = vi.fn();
+vi.mock('@/lib/services/chat-store', () => ({ recordChatTurn, sessionLeadId }));
+
+/**
+ * The mute switches. Mocked rather than stubbed at the DB, because what matters
+ * here is that the route asks before it spends a model call — and that it uses
+ * the lead from the *stored session*, not one the client could nominate.
+ */
+const assistantMuteState = vi.fn();
+vi.mock('@/lib/services/assistant-mute', () => ({ assistantMuteState }));
 
 const captureLead = vi.fn();
 vi.mock('@/lib/services/lead-capture', () => ({ captureLead }));
@@ -49,6 +58,10 @@ beforeEach(() => {
   runAssistantTurn.mockResolvedValue(AGENT_REPLY);
   recordChatTurn.mockReset();
   recordChatTurn.mockResolvedValue(true);
+  sessionLeadId.mockReset();
+  sessionLeadId.mockResolvedValue(undefined);
+  assistantMuteState.mockReset();
+  assistantMuteState.mockResolvedValue({ muted: false, reason: null });
   captureLead.mockReset();
 
   vi.spyOn(console, 'log').mockImplementation(() => {});
@@ -373,6 +386,82 @@ describe('POST /api/assistant/chat — a reply with no text in it', () => {
     const body = await (await POST(chatRequest())).json();
 
     expect(body.reply).toBe(AGENT_REPLY.reply);
+  });
+});
+
+describe('POST /api/assistant/chat — when Joey has muted the assistant', () => {
+  it('makes no model call', async () => {
+    // The whole point of the switch. If this fires after the model, the
+    // assistant has already said the thing Joey switched it off for.
+    assistantMuteState.mockResolvedValue({ muted: true, reason: 'global' });
+
+    await POST(chatRequest());
+
+    expect(runAssistantTurn).not.toHaveBeenCalled();
+  });
+
+  it('still answers the visitor, and does not pretend to be a bot', async () => {
+    assistantMuteState.mockResolvedValue({ muted: true, reason: 'lead' });
+
+    const body = await (await POST(chatRequest())).json();
+
+    expect(body.reply).toContain('personally');
+    expect(body.reply).not.toContain('went wrong');
+  });
+
+  it('still records the inbound message, which is the point of recording it', async () => {
+    // Requirement 8.5: inbound messages are recorded even when no reply is
+    // generated. Joey needs to read what they said in order to answer it.
+    assistantMuteState.mockResolvedValue({ muted: true, reason: 'lead' });
+
+    await POST(chatRequest({ message: 'is the lake house still available?' }));
+
+    expect(recordChatTurn).toHaveBeenCalledWith(
+      expect.objectContaining({ userMessage: 'is the lake house still available?' }),
+    );
+  });
+
+  it('asks about the lead on the stored session, not one the client sent', async () => {
+    // A client-supplied lead id would let a visitor pick whose mute rules apply
+    // to them — including picking an unmuted one.
+    const sessionId = crypto.randomUUID();
+    sessionLeadId.mockResolvedValue('lead-7');
+
+    await POST(chatRequest({ sessionId }));
+
+    expect(sessionLeadId).toHaveBeenCalledWith(sessionId);
+    expect(assistantMuteState).toHaveBeenCalledWith('lead-7');
+  });
+
+  it('governs an anonymous session by the global switch alone', async () => {
+    sessionLeadId.mockResolvedValue(undefined);
+
+    await POST(chatRequest());
+
+    expect(assistantMuteState).toHaveBeenCalledWith(undefined);
+  });
+
+  it('stays silent when the switch cannot be read', async () => {
+    // assistantMuteState fails closed and reports 'unavailable'. The route must
+    // honour that rather than treating an unknown as permission.
+    assistantMuteState.mockResolvedValue({ muted: true, reason: 'unavailable' });
+
+    await POST(chatRequest());
+
+    expect(runAssistantTurn).not.toHaveBeenCalled();
+  });
+
+  it('counts the refused turn against the limits like any other', async () => {
+    // Otherwise muting the assistant turns the endpoint into a free, unmetered
+    // way to write rows to the database.
+    const ip = freshIp();
+    assistantMuteState.mockResolvedValue({ muted: true, reason: 'global' });
+
+    for (let sent = 0; sent < MAX_REQUESTS_PER_IP; sent += 1) {
+      expect((await POST(chatRequest({ ip }))).status).toBe(200);
+    }
+
+    expect((await POST(chatRequest({ ip }))).status).toBe(429);
   });
 });
 

@@ -2,8 +2,9 @@
 
 import * as React from 'react';
 import { useRouter } from 'next/navigation';
-import { AiLogsPanel } from '@/components/dashboard/AiLogsPanel';
 import { ChatTranscriptsPanel } from '@/components/dashboard/ChatTranscriptsPanel';
+import { LeadHistoryPanel } from '@/components/dashboard/LeadHistoryPanel';
+import { AssistantKillSwitch } from '@/components/dashboard/AssistantKillSwitch';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -127,7 +128,18 @@ type SortDir = 'asc' | 'desc';
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
-type ActiveView = 'overview' | 'ai-copilot' | 'ai-conversations';
+/**
+ * Dashboard views.
+ *
+ * `ai-copilot` is gone along with `AiLogsPanel` and `src/data/mockBedrockLogs.ts`.
+ * That panel rendered fixtures — named clients, confidence scores, retrieved
+ * sources — none of which exist on a real row, so "wire it to live data" would
+ * have meant inventing groundedness numbers to fill its audit drawer. The spec
+ * asked for live rows or removal; `ChatTranscriptsPanel` already shows the real
+ * conversations, so two AI tabs where one was fiction served Joey worse than one
+ * that is true.
+ */
+type ActiveView = 'overview' | 'ai-conversations';
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -287,20 +299,6 @@ export default function DashboardPage() {
               </button>
               <button
                 type="button"
-                onClick={() => setActiveView('ai-copilot')}
-                className={`flex items-center gap-1.5 rounded-lg px-4 py-1.5 font-sans text-xs font-semibold uppercase tracking-[0.1em] transition-all ${
-                  activeView === 'ai-copilot'
-                    ? 'bg-cerulean text-white shadow-sm'
-                    : 'text-neutral-500 hover:text-neutral-900'
-                }`}
-              >
-                <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
-                </svg>
-                AI Copilot
-              </button>
-              <button
-                type="button"
                 onClick={() => setActiveView('ai-conversations')}
                 className={`flex items-center gap-1.5 rounded-lg px-4 py-1.5 font-sans text-xs font-semibold uppercase tracking-[0.1em] transition-all ${
                   activeView === 'ai-conversations'
@@ -320,6 +318,10 @@ export default function DashboardPage() {
             <span className="text-xs text-neutral-400">
               {stats.total} total lead{stats.total !== 1 ? 's' : ''}
             </span>
+            {/* The master switch. In the header because the emergency it exists
+                for is "something is wrong and I don't know which conversations
+                yet", which is the wrong moment to be hunting through rows. */}
+            <AssistantKillSwitch />
             <button
               onClick={handleLogout}
               className="rounded-lg border border-bronze/40 px-3 py-1.5 text-sm text-bronze transition hover:bg-bronze/10 hover:border-bronze"
@@ -329,19 +331,6 @@ export default function DashboardPage() {
           </div>
         </div>
       </header>
-
-      {/* ── AI Copilot Panel ── */}
-      {activeView === 'ai-copilot' && (
-        <main className="mx-auto max-w-screen-xl px-6 py-8">
-          <div className="mb-6">
-            <h2 className="font-serif text-2xl text-navy">AI Copilot & Client Logs</h2>
-            <p className="mt-1 font-sans text-sm text-navy/50">
-              Real-time Amazon Bedrock client conversations · Claude 3.5 Sonnet
-            </p>
-          </div>
-          <AiLogsPanel />
-        </main>
-      )}
 
       {/* ── Chat Logs ── */}
       {activeView === 'ai-conversations' && (
@@ -482,8 +471,10 @@ export default function DashboardPage() {
 
         {/* ── Leads Table ── */}
         <section>
+          {/* The empty state uses text-stone, not text-neutral-400 — the latter
+              is 2.52:1 on white and failed the contrast audit. */}
           {visibleLeads.length === 0 ? (
-            <div className="rounded-xl border border-neutral-200 bg-white py-16 text-center text-neutral-400">
+            <div className="rounded-xl border border-neutral-200 bg-white py-16 text-center text-stone">
               No leads match your filters.
             </div>
           ) : (
@@ -701,6 +692,19 @@ export default function DashboardPage() {
                                     {lead.engagementScore}/100
                                   </span>
                                 </Detail>
+                              </div>
+
+                              {/* Requirement 8: everything this person has been
+                                  told, across chat, text and email, plus the
+                                  switch that stops the assistant replying to
+                                  them. Mounted only while expanded, so opening
+                                  the dashboard does not fetch every client's
+                                  transcript to render one. */}
+                              <div className="mt-5 border-t border-neutral-200 pt-4">
+                                <h3 className="mb-3 text-xs font-semibold uppercase tracking-widest text-neutral-400">
+                                  Conversation
+                                </h3>
+                                <LeadHistoryPanel leadId={lead.id} />
                               </div>
 
                               <div className="mt-4 flex gap-3">

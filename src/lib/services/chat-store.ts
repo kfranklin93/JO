@@ -264,3 +264,37 @@ export async function countAnonymousChats(): Promise<number> {
 
   return row?.count ?? 0;
 }
+
+/**
+ * The lead a session has been linked to, if any.
+ *
+ * The chat route needs this *before* it calls the model, to check whether Joey
+ * has muted the assistant for this person — but the route only learns a lead id
+ * when `capture_lead` fires, which is usually a later turn than the one that
+ * matters. The link is already on the session row from that earlier turn, so it
+ * is read back rather than threaded through the client, which also means a
+ * client cannot nominate which lead's rules apply to it.
+ *
+ * Returns undefined for an unknown session, an anonymous one, or an unreadable
+ * table. All three mean the same thing to the caller: no lead-specific rule
+ * applies, so only the global switch governs.
+ */
+export async function sessionLeadId(sessionId: string): Promise<string | undefined> {
+  try {
+    const [row] = await db
+      .select({ leadId: chatSessions.leadId })
+      .from(chatSessions)
+      .where(eq(chatSessions.id, sessionId))
+      .limit(1);
+
+    return row?.leadId ?? undefined;
+  } catch (err) {
+    console.warn(
+      `[chat-store] could not resolve the lead for session=${sessionId}:`,
+      err,
+    );
+    return undefined;
+  }
+}
+
+

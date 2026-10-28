@@ -3,15 +3,17 @@
 /**
  * Joey's view of what people said to the chat assistant.
  *
- * Reads `/api/dashboard/chats`, which is DB-backed — unlike `AiLogsPanel`, which
- * renders `src/data/mockBedrockLogs.ts`. The two are kept separate rather than
- * one replacing the other: that panel's audit drawer has fields no real row
- * carries yet, and swapping its data source out was not in scope here.
+ * Reads `/api/dashboard/chats`, which is DB-backed. This replaced an earlier
+ * `AiLogsPanel` that rendered fixtures from `src/data/mockBedrockLogs.ts` —
+ * named clients, confidence scores, retrieved-source lists. Both files are gone:
+ * the spec required live rows or removal, and wiring that panel up would have
+ * meant inventing groundedness numbers to fill its audit drawer.
  *
- * Colours come from the `@theme` tokens in globals.css. `AiLogsPanel` hardcodes
- * `#1C2A39` and `#FAF9F6`, which is the thing the project rule forbids and
- * `tests/no-arbitrary-colour-escapes.test.ts` guards; this file uses
- * `navy`/`linen`/`cerulean` instead.
+ * This is the site-wide view of every conversation. For one lead's full history
+ * across chat, SMS and email, see the expandable rows in the leads table, which
+ * read `/api/dashboard/leads/[id]/history`.
+ *
+ * Colours come from the `@theme` tokens in globals.css, never raw hex.
  */
 
 import * as React from 'react';

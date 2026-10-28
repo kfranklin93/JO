@@ -38,8 +38,9 @@ import {
   type LocalCaptureHook,
 } from '@/lib/assistant/tools';
 import { captureLead } from '@/lib/services/lead-capture';
-import { recordChatTurn } from '@/lib/services/chat-store';
+import { recordChatTurn, sessionLeadId } from '@/lib/services/chat-store';
 import { bookingLink } from '@/lib/services/booking-link';
+import { assistantMuteState } from '@/lib/services/assistant-mute';
 import {
   checkAndCount,
   checkAndCountSession,
@@ -54,6 +55,18 @@ const MAX_CONTENT_LENGTH = 4000;
 /** Canonical v4 UUID shape, which is what `randomUUID` produces. */
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+/**
+ * The reply sent when Joey has muted the assistant.
+ *
+ * Deliberately not an apology or an error. From the visitor's side nothing has
+ * gone wrong — they are getting a human instead of a bot, which is an upgrade.
+ * It also avoids implying an automatic reply is coming, because the point of
+ * the mute is that Joey is handling this one himself.
+ */
+const MUTED_REPLY =
+  "Thanks for reaching out! Joey's handling messages personally right now, so " +
+  "he'll come back to you directly — he'll have everything you've written here.";
 
 /** The reply sent when the model call itself fails. */
 const FAIL_WARM_REPLY =
@@ -178,6 +191,44 @@ export async function POST(req: NextRequest) {
     capturedLeadId = outcome.leadId;
     return { lead_id: outcome.leadId };
   };
+
+  // Requirement 8.5: when Joey has switched the assistant off, the inbound
+  // message is still recorded but no reply is generated.
+  //
+  // Checked here, before the model call, because the cost of getting this wrong
+  // is the assistant continuing to say the thing Joey switched it off for. The
+  // lead comes from the stored session rather than the request, since the route
+  // only learns a lead id when capture_lead fires — typically a later turn than
+  // the one being muted.
+  //
+  // `assistantMuteState` fails closed: an unreadable table reports muted. See
+  // the note in that module for why that direction is the safe one here, unlike
+  // almost everywhere else in this codebase.
+  const leadId = await sessionLeadId(sessionId);
+  const muteState = await assistantMuteState(leadId);
+
+  if (muteState.muted) {
+    console.log(
+      `[assistant:chat] session=${sessionId} muted=${muteState.reason} — recorded, no model call`,
+    );
+
+    await storeQuietly({
+      sessionId,
+      userMessage: message,
+      reply: MUTED_REPLY,
+      mode: 'mock',
+      toolCalls: [],
+      latencyMs: 0,
+      ...(leadId ? { leadId } : {}),
+    });
+
+    return NextResponse.json({
+      sessionId,
+      reply: MUTED_REPLY,
+      mode: 'mock',
+      bookingUrl: bookingLink() ?? null,
+    });
+  }
 
   const started = Date.now();
 
