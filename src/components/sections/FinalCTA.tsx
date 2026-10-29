@@ -24,9 +24,13 @@ export function FinalCTA() {
           <h2 className="font-serif text-5xl text-linen sm:text-6xl">
             Ready to Find Your Atlanta Home?
           </h2>
+          {/* `closedDeals` is already the string '60+', so the trailing literal
+              `+` that used to sit after this interpolation rendered "60++".
+              The sentence also counted the wrong thing: `closedDeals` is
+              closed transactions, not clients, so it now says homes closed. */}
           <p className="mx-auto mt-8 max-w-2xl font-sans text-lg text-linen/80">
-            Experience Joey's proven 'One-Tour' conversion mastery. Schedule your exclusive viewing today
-            and discover why {siteConfig.stats.closedDeals}+ clients trust Joey with their real estate journey.
+            Experience Joey's proven first-tour approach. Schedule your exclusive viewing today
+            and see why {siteConfig.stats.closedDeals} Atlanta homes have closed with Joey.
           </p>
           <div className="mt-12 flex flex-col gap-4 sm:flex-row sm:justify-center sm:gap-6">
             <MagneticButton
@@ -64,8 +68,13 @@ export function FinalCTA() {
               24-Hour Response Guarantee
             </div>
             <div className="h-4 w-[1px] bg-white/20" aria-hidden="true" />
+            {/* Was `{stats.conversionRate} First-Tour Success Rate`, which
+                rendered "One-Tour First-Tour Success Rate" — the token holds
+                the descriptor 'One-Tour', not a rate, so interpolating it in
+                front of those words said the same thing twice. Stated as plain
+                copy instead, matching the sub-copy in MarketStatsSection. */}
             <div className="font-sans text-sm text-linen/80">
-              {siteConfig.stats.conversionRate} First-Tour Success Rate
+              Most Clients Buy on First Tour
             </div>
           </div>
         </motion.div>

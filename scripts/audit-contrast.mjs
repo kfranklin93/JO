@@ -15,6 +15,9 @@
  *   3. on-page   — text with no background of its own, measured against the
  *                  nearest enclosing background, or the page background if
  *                  there is no enclosing one
+ *   4. raw hex   — a hex literal inside an arbitrary value, `bg-[...#fff...]`,
+ *                  which is a colour declared outside the @theme block and
+ *                  which categories 1-3 structurally cannot see
  *
  * Usage:  npm run audit:contrast     (or: node scripts/audit-contrast.mjs)
  * Exits 1 if any category has a finding.
@@ -62,6 +65,12 @@
  *   guessed at. Same for text below 70% opacity.
  * - **Colours set by a variant map in another file.** A `className` passed
  *   into a component is invisible to this script.
+ * - **The contrast of an arbitrary value.** Category 4 reports that a hex was
+ *   written inside brackets; it does not measure it. Replacing the hex with
+ *   `var(--color-<token>)` silences the finding without the pairing ever being
+ *   checked, because the token is inside an arbitrary value and still opaque
+ *   to the reader. The gate is "colours live in @theme", not "this gradient
+ *   is legible".
  *
  * Treat a clean run as "no obvious pairing errors", not as proof of
  * accessibility — the real check is a browser and a human.
@@ -368,11 +377,44 @@ function subtreeTextTokens(lines, tags, self, palette) {
   return found;
 }
 
+/**
+ * A hex literal inside an arbitrary Tailwind value: `bg-[...#ffffff...]`.
+ *
+ * Deliberately a raw-line scan and not a class-list one, because the point is
+ * that an arbitrary value is *opaque* to the token reader above. Everything
+ * else in this script works by resolving `bg-x`/`text-y` token pairs against
+ * the palette, so a colour written as a literal inside brackets is invisible
+ * to all three categories no matter how badly it contrasts — which is exactly
+ * how `bg-[linear-gradient(to_right,#ffffff_1px,...)]` sat on the market-stats
+ * section through a clean audit run.
+ *
+ * This does not measure contrast. It reports a colour declared outside the
+ * @theme block, which is a rule violation on its own terms: the fix is
+ * `var(--color-<token>)`, and then the value is a token reference rather than
+ * a second place colours live.
+ *
+ * Scoped to arbitrary values on purpose. A bare `#hex` elsewhere in a .tsx
+ * file is an SVG `fill`, a framer-motion style object or a prose comment, none
+ * of which this script has any business policing.
+ */
+const ARBITRARY_HEX = /-\[[^\]]*#[0-9a-fA-F]{3,8}[^\]]*\]/g;
+
+function arbitraryHex(lines) {
+  const out = [];
+  lines.forEach((line, i) => {
+    for (const [match] of line.matchAll(ARBITRARY_HEX)) {
+      out.push({ line: i + 1, snippet: match.slice(0, 90) });
+    }
+  });
+  return out;
+}
+
 function analyse(palette) {
   const explicit = [];
   const inherited = [];
   const onPage = [];
   const suppressed = [];
+  const rawHex = [];
   const pageBg = palette.get('background');
 
   for (const file of sourceFiles(SRC)) {
@@ -380,6 +422,8 @@ function analyse(palette) {
     const lines = source.split('\n');
     const rel = relative(process.cwd(), file);
     const tags = indexTags(lines);
+
+    for (const f of arbitraryHex(lines)) rawHex.push({ file: rel, ...f });
 
     const candidates = [];
     lines.forEach((line, i) => {
@@ -507,7 +551,7 @@ function analyse(palette) {
     }
   }
 
-  return { explicit, inherited, onPage, suppressed };
+  return { explicit, inherited, onPage, suppressed, rawHex };
 }
 
 /* ---------------------------------------------------------------- *
@@ -515,7 +559,7 @@ function analyse(palette) {
  * ---------------------------------------------------------------- */
 
 const palette = loadPalette();
-const { explicit, inherited, onPage, suppressed } = analyse(palette);
+const { explicit, inherited, onPage, suppressed, rawHex } = analyse(palette);
 
 console.log('Palette in use:');
 for (const name of ['onyx', 'bone', 'navy', 'champagne', 'hunter', 'stone', 'foreground']) {
@@ -548,23 +592,32 @@ for (const f of onPage.sort((a, b) => a.ratio - b.ratio)) {
   console.log(`            ${f.snippet}`);
 }
 
+console.log('\n== Raw hex inside an arbitrary value (unauditable colour) ==');
+if (rawHex.length === 0) console.log('  none');
+for (const f of rawHex) {
+  console.log(`  ${f.file}:${f.line}`);
+  console.log(`            ${f.snippet}`);
+}
+
 console.log('\n== Suppressed by an explicit `contrast-ok:` comment ==');
 if (suppressed.length === 0) console.log('  none');
 for (const s of suppressed) {
   console.log(`  ${s.file}:${s.line}  ${s.why}`);
 }
 
-const total = explicit.length + inherited.length + onPage.length;
+const total = explicit.length + inherited.length + onPage.length + rawHex.length;
 console.log(
   `\n${explicit.length} explicit, ${inherited.length} inherited, ` +
-    `${onPage.length} on-surface, ${suppressed.length} suppressed.`,
+    `${onPage.length} on-surface, ${rawHex.length} raw hex, ` +
+    `${suppressed.length} suppressed.`,
 );
 
 if (total > 0) {
   console.error(
     `\nFAIL: ${total} contrast finding(s). Fix the colour, or — if this is a ` +
       `surface the script cannot resolve — say so in a comment naming the ` +
-      `parent that makes it safe.`,
+      `parent that makes it safe. A raw hex is not suppressible: replace it ` +
+      `with var(--color-<token>) so the colour stays in the @theme block.`,
   );
   process.exitCode = 1;
 } else {

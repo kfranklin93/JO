@@ -14,6 +14,30 @@ export const siteConfig = {
   locale: 'en_US',
   
   // Performance Stats
+  //
+  // `closedDeals` and `totalVolume` match the figures Joey publishes in his
+  // bio and on his brokerage profiles. Note `closedDeals` already carries its
+  // own '+' — appending another renders "60++", which was live on the closing
+  // CTA. It counts closed transactions, not clients.
+  //
+  // UNVERIFIED — these two still need Joey's real numbers:
+  //
+  //   avgDaysOnMarket  '0-4-7 Months'  A day count written in months, in a
+  //                                    format that reads as corrupted data.
+  //                                    No label can honestly describe it, so
+  //                                    MarketStatsSection no longer renders a
+  //                                    tile for it; the grid is three wide.
+  //                                    Restore the tile once there is a real
+  //                                    figure in days.
+  //   conversionRate   'One-Tour'      A descriptor, not a rate. Labelled
+  //                                    "First-Tour Buyers" rather than
+  //                                    "Conversion Rate" so the label matches
+  //                                    the value it actually holds. Wants a
+  //                                    real percentage.
+  //
+  // Do not substitute plausible-looking numbers here. These are a licensed
+  // agent's published performance claims; an invented one is a professional
+  // and a legal problem, not a copy problem.
   stats: {
     closedDeals: '60+',
     totalVolume: '$23.9M',

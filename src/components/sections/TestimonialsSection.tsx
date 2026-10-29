@@ -7,6 +7,14 @@ import { clientTestimonials } from '@/data/testimonials';
 
 // JOEY UPDATE: Created testimonials section for social proof and trust building
 // Warm, approachable design inspired by Shanna Bradley reference
+//
+// Testimonials only, deliberately. This section used to end in a "Homes Sold /
+// Total Volume / Average Rating" strip that repeated, verbatim, the figures
+// MarketStatsSection renders immediately below it — the same two numbers twice
+// in adjacent sections. MarketStatsSection is the single place the numbers
+// live; the five-star claim survives as "5-Star Rated Agent" in FinalCTA. The
+// heading and sub-head above refer to the quotes, not to any stat, so nothing
+// here is left dangling.
 
 export function TestimonialsSection() {
   return (
@@ -89,30 +97,6 @@ export function TestimonialsSection() {
             </motion.article>
           ))}
         </div>
-
-        {/* JOEY UPDATE: Trust indicators */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6, delay: 0.4 }}
-          className="mt-16 rounded-lg border border-neutral-200 bg-white p-8 text-center"
-        >
-          <div className="grid gap-8 sm:grid-cols-3">
-            <div>
-              <div className="font-serif text-4xl text-accent">60+</div>
-              <div className="mt-2 font-sans text-sm uppercase tracking-[0.2em] text-stone">Homes Sold</div>
-            </div>
-            <div>
-              <div className="font-serif text-4xl text-accent">$23.9M</div>
-              <div className="mt-2 font-sans text-sm uppercase tracking-[0.2em] text-stone">Total Volume</div>
-            </div>
-            <div>
-              <div className="font-serif text-4xl text-accent">5.0</div>
-              <div className="mt-2 font-sans text-sm uppercase tracking-[0.2em] text-stone">Average Rating</div>
-            </div>
-          </div>
-        </motion.div>
       </div>
     </section>
   );
