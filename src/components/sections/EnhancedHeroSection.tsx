@@ -4,6 +4,7 @@ import * as React from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import Image from 'next/image';
 import { siteConfig } from '@/config/site';
+import { Button } from '@/components/ui/Button';
 import { MagneticButton } from '@/components/ui/MagneticButton';
 
 // JOEY UPDATE: Created search-first hero with parallax scrolling inspired by Chase Mizell
@@ -31,15 +32,18 @@ export function EnhancedHeroSection() {
   };
 
   return (
-    /* Navy, not hunter, and that is a deliberate exception. The navy here is
-       a photographic wash (`bg-navy/60 mix-blend-multiply` plus a gradient)
-       rather than a flat brand surface; a green multiply layer tints skin
-       tones in the portrait underneath. Known cost: the hunter search button
-       inside has almost no edge against this wash (1.1:1 as shapes) — it was
-       equally edgeless when the action colour was navy, so this is pre-existing
-       rather than something the repoint caused, and the label itself is bone
-       at 13:1. */
-    <section ref={heroRef} className="relative min-h-screen overflow-hidden bg-navy">
+    /* Hunter, like every other dark surface on the site. This used to be navy
+       on the argument that the wash is photographic rather than a brand fill,
+       but on screen it read as a blue hero on a green site, which is what the
+       owner was looking at when he asked for it to change.
+       Opacities are unchanged from the navy version and did not need to move:
+       hunter (#14291F, relative luminance 0.020) is darker than eXp navy
+       (#0F2A5E, 0.026), so the same `/60` multiply plus the same gradient
+       suppress the photograph slightly *more* than before. The headline is
+       bone at 13:1 against the fill and nothing about the wash got lighter.
+       The search button is gold here, not hunter: a hunter action on a hunter
+       section is 1:1 against its own background and was invisible. */
+    <section ref={heroRef} className="relative min-h-screen overflow-hidden bg-hunter">
       {/* JOEY UPDATE: Parallax background image layer */}
       <motion.div
         style={{ y: imageY }}
@@ -55,9 +59,9 @@ export function EnhancedHeroSection() {
           quality={90}
         />
         {/* Base dark wash — kills brightness of the photo uniformly */}
-        <div className="absolute inset-0 bg-navy/60 mix-blend-multiply" />
+        <div className="absolute inset-0 bg-hunter/60 mix-blend-multiply" />
         {/* Gradient overlay — ensures top and bottom text areas are fully legible */}
-        <div className="absolute inset-0 bg-gradient-to-b from-navy/80 via-navy/50 to-navy/90" />
+        <div className="absolute inset-0 bg-gradient-to-b from-hunter/80 via-hunter/50 to-hunter/90" />
       </motion.div>
 
       {/* JOEY UPDATE: Hero content with parallax motion */}
@@ -71,7 +75,7 @@ export function EnhancedHeroSection() {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
-            className="font-serif text-5xl leading-tight text-white sm:text-6xl lg:text-7xl xl:text-8xl"
+            className="font-serif text-5xl leading-tight text-bone sm:text-6xl lg:text-7xl xl:text-8xl"
           >
             Find Your Perfect Home
             <br />
@@ -83,7 +87,7 @@ export function EnhancedHeroSection() {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.4 }}
-            className="mx-auto mt-6 max-w-2xl font-sans text-xl text-white/90 sm:text-2xl"
+            className="mx-auto mt-6 max-w-2xl font-sans text-xl text-bone/90 sm:text-2xl"
           >
             Expert guidance for buyers and sellers across Atlanta's most desirable neighborhoods
           </motion.p>
@@ -103,11 +107,11 @@ export function EnhancedHeroSection() {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search by neighborhood, city, or ZIP code..."
-                  className="h-16 w-full rounded-lg border-2 border-white/20 bg-white/10 px-6 font-sans text-lg text-white placeholder-white/60 backdrop-blur-md transition-all focus:border-cerulean focus:bg-white/20 focus:outline-none"
+                  className="h-16 w-full rounded-lg border-2 border-bone/20 bg-bone/10 px-6 font-sans text-lg text-bone placeholder-bone/60 backdrop-blur-md transition-all focus:border-champagne focus:bg-bone/20 focus:outline-none"
                   aria-label="Search properties"
                 />
                 <svg
-                  className="absolute right-6 top-1/2 h-6 w-6 -translate-y-1/2 text-white/60"
+                  className="absolute right-6 top-1/2 h-6 w-6 -translate-y-1/2 text-bone/60"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -117,12 +121,22 @@ export function EnhancedHeroSection() {
                   <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
                 </svg>
               </div>
-              <button
+              {/* Gold, via the variant rather than a colour override here.
+                  This button was `bg-cerulean`, which is hunter, and the
+                  section behind it is now hunter too — the same colour as
+                  itself. `champagne` gives it a 6.5:1 edge against the wash
+                  and an onyx label at 8.4:1, and its focus ring is bone
+                  rather than the old `outline-cerulean`, which would have
+                  been hunter on hunter. Sizing only in the className: the
+                  colours all come from the variant. */}
+              <Button
                 type="submit"
-                className="h-16 rounded-lg bg-cerulean px-8 font-sans text-lg font-medium text-bone transition-all hover:bg-cerulean/90 hover:shadow-2xl hover:shadow-cerulean/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cerulean sm:px-12"
+                variant="champagne"
+                size="lg"
+                className="h-16 rounded-lg px-8 font-sans text-lg hover:shadow-2xl hover:shadow-champagne/20 sm:px-12"
               >
                 Search
-              </button>
+              </Button>
             </div>
           </motion.form>
 
@@ -133,24 +147,29 @@ export function EnhancedHeroSection() {
             transition={{ duration: 0.8, delay: 0.8 }}
             className="mt-12 flex flex-wrap items-center justify-center gap-4"
           >
-            {/* `onDark`, not `outline` + a white override: the hero is a navy
-                wash over a photo, where `outline`'s navy-on-transparent is
-                invisible. The frosted-glass fill is kept here because it is
-                what makes these legible over a photograph rather than a flat
-                fill; the colours now come from the variant. */}
+            {/* `champagneOutline`, a step down in weight from the solid gold
+                Search above: a gold border with a bone label that fills to
+                gold with an onyx label on hover. Three solid gold buttons in
+                one hero is heavy, and these two are alternatives to the
+                search rather than equals of it, so the hierarchy that was
+                here before is kept — only the colour family changed.
+                The `bg-bone/10` frost is gone and the blur stays. The bone
+                tint lifted the surface immediately under the gold border,
+                which is the one thing that eats the border's 6.5:1 margin;
+                the blur alone still separates these from the photograph. */}
             <MagneticButton
               href="/buy-home"
-              variant="onDark"
+              variant="champagneOutline"
               size="lg"
-              className="bg-bone/10 backdrop-blur-md"
+              className="backdrop-blur-md"
             >
               I'm Buying
             </MagneticButton>
             <MagneticButton
               href="/sell-home"
-              variant="onDark"
+              variant="champagneOutline"
               size="lg"
-              className="bg-bone/10 backdrop-blur-md"
+              className="backdrop-blur-md"
             >
               I'm Selling
             </MagneticButton>
@@ -161,9 +180,9 @@ export function EnhancedHeroSection() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.8, delay: 1 }}
-            className="mt-16 border-t border-white/30 pt-8"
+            className="mt-16 border-t border-bone/30 pt-8"
           >
-            <p className="font-sans text-lg text-white">
+            <p className="font-sans text-lg text-bone">
               <span className="font-medium text-champagne">{siteConfig.fullName}</span>
               {' • '}
               {siteConfig.subtitle}
@@ -171,7 +190,7 @@ export function EnhancedHeroSection() {
             <div className="mt-4 flex flex-wrap items-center justify-center gap-6">
               <a
                 href={`tel:${siteConfig.contact.phone}`}
-                className="flex items-center gap-2 rounded-full bg-white/15 px-4 py-2 font-sans text-sm font-medium text-white backdrop-blur-sm transition-all hover:bg-cerulean hover:text-bone"
+                className="flex items-center gap-2 rounded-full bg-bone/15 px-4 py-2 font-sans text-sm font-medium text-bone backdrop-blur-sm transition-all hover:bg-champagne hover:text-champagne-foreground"
               >
                 <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" />
@@ -180,7 +199,7 @@ export function EnhancedHeroSection() {
               </a>
               <a
                 href={`mailto:${siteConfig.contact.email}`}
-                className="flex items-center gap-2 rounded-full bg-white/15 px-4 py-2 font-sans text-sm font-medium text-white backdrop-blur-sm transition-all hover:bg-cerulean hover:text-bone"
+                className="flex items-center gap-2 rounded-full bg-bone/15 px-4 py-2 font-sans text-sm font-medium text-bone backdrop-blur-sm transition-all hover:bg-champagne hover:text-champagne-foreground"
               >
                 <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
@@ -200,11 +219,11 @@ export function EnhancedHeroSection() {
         className="absolute bottom-8 left-1/2 z-10 -translate-x-1/2"
       >
         <div className="flex flex-col items-center gap-2">
-          <span className="font-sans text-sm uppercase tracking-wider text-white/60">Scroll to explore</span>
+          <span className="font-sans text-sm uppercase tracking-wider text-bone/60">Scroll to explore</span>
           <motion.svg
             animate={{ y: [0, 8, 0] }}
             transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
-            className="h-6 w-6 text-white/60"
+            className="h-6 w-6 text-bone/60"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"

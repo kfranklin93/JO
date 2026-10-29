@@ -16,6 +16,12 @@ import { MagneticButton, type MagneticButtonProps } from './MagneticButton';
  * wrong. `onDark` replaces that pattern, and these tests are what keep it from
  * being "simplified" back out.
  *
+ * `champagne` and `champagneOutline` are the same story one colour along: the
+ * hero's sections are hunter now, and `primary` is hunter, so the gold
+ * variants are what a dark surface reaches for. The assertions below hold gold
+ * to being a fill rather than ink, and hold the dark-surface variants to a
+ * bone focus ring rather than the hunter one in the base class list.
+ *
  * GSAP is mocked. The cursor-follow animation is not what this file is about,
  * and `gsap.context` touches layout APIs that jsdom does not implement.
  */
@@ -35,6 +41,8 @@ const VARIANTS: NonNullable<MagneticButtonProps['variant']>[] = [
   'secondary',
   'outline',
   'onDark',
+  'champagne',
+  'champagneOutline',
 ];
 
 /** Classes on a freshly rendered control, scoped so a test may call it twice. */
@@ -67,6 +75,38 @@ describe('MagneticButton variants', () => {
     expect(classes).toContain('hover:bg-bone');
     expect(classes).toContain('hover:text-hunter');
     expect(classes).not.toContain('text-navy');
+  });
+
+  it('gives champagne a gold fill with the theme-decided onyx label', () => {
+    const classes = classesFor({ variant: 'champagne' });
+    expect(classes).toContain('bg-champagne');
+    expect(classes).toContain('text-champagne-foreground');
+    expect(classes).not.toContain('text-white');
+    expect(classes).not.toContain('text-bone');
+  });
+
+  it('gives champagneOutline a gold border, a bone label and a gold hover fill', () => {
+    const classes = classesFor({ variant: 'champagneOutline' });
+    expect(classes).toContain('border-champagne');
+    expect(classes).toContain('text-bone');
+    expect(classes).toContain('hover:bg-champagne');
+    expect(classes).toContain('hover:text-champagne-foreground');
+    // Gold is the fill, never the ink: 2.0:1 on bone, and a variant map does
+    // not know which surface it will land on.
+    expect(classes).not.toContain('text-champagne');
+    // Lighter weight than `champagne` on purpose — no fill at rest.
+    expect(classes.some((c) => /^bg-/.test(c))).toBe(false);
+  });
+
+  it('replaces the hunter focus ring on every dark-surface variant', () => {
+    // The base class list sets `focus-visible:outline-primary`, which is
+    // hunter — the same colour as the sections these variants sit on. twMerge
+    // lets the variant win, and this is the assertion that says it does.
+    for (const variant of ['onDark', 'champagne', 'champagneOutline'] as const) {
+      const classes = classesFor({ variant });
+      expect(classes).toContain('focus-visible:outline-bone');
+      expect(classes).not.toContain('focus-visible:outline-primary');
+    }
   });
 
   it('keeps outline as a light-surface variant with no background', () => {

@@ -23,6 +23,10 @@ import { Button, type ButtonProps } from './Button';
  *  - `onDark` pairs bone with bone. It is the variant that exists so a call
  *    site on a dark surface does not hand-roll a colour override, which is what
  *    four of MagneticButton's call sites were doing.
+ *  - the two `champagne` variants keep gold as a fill and never as ink, and
+ *    keep their focus ring off hunter. Both halves of that are things the
+ *    hero got wrong by hand: a hunter button on a hunter section, with a
+ *    hunter focus ring.
  */
 
 const VARIANTS: NonNullable<ButtonProps['variant']>[] = [
@@ -31,6 +35,8 @@ const VARIANTS: NonNullable<ButtonProps['variant']>[] = [
   'outline',
   'ghost',
   'onDark',
+  'champagne',
+  'champagneOutline',
   'danger',
 ];
 
@@ -63,6 +69,36 @@ describe('Button variants', () => {
     expect(classes).toContain('hover:text-hunter');
     // The whole point of the variant: no navy ink to disappear into the dark.
     expect(classes).not.toContain('text-navy');
+  });
+
+  it('gives champagne a gold fill with the theme-decided onyx label', () => {
+    const classes = classesFor({ variant: 'champagne' });
+    expect(classes).toContain('bg-champagne');
+    expect(classes).toContain('text-champagne-foreground');
+    // Gold carries onyx, never white and never bone — 2.4:1 and 2.3:1.
+    expect(classes).not.toContain('text-white');
+    expect(classes).not.toContain('text-bone');
+  });
+
+  it('gives champagneOutline a gold border, a bone label and a gold hover fill', () => {
+    const classes = classesFor({ variant: 'champagneOutline' });
+    expect(classes).toContain('border-champagne');
+    expect(classes).toContain('text-bone');
+    expect(classes).toContain('hover:bg-champagne');
+    expect(classes).toContain('hover:text-champagne-foreground');
+    // Gold is the fill here, never the ink: gold text is 2.0:1 on bone, and a
+    // variant map cannot know which surface it lands on.
+    expect(classes).not.toContain('text-champagne');
+  });
+
+  it('keeps the champagne variants off a hunter focus ring', () => {
+    // The hero's Search button had `outline-cerulean`, which is hunter, on
+    // what is now a hunter section: a focus ring the same colour as the page.
+    for (const variant of ['champagne', 'champagneOutline'] as const) {
+      const classes = classesFor({ variant });
+      expect(classes).toContain('focus-visible:outline-bone');
+      expect(classes).not.toContain('focus-visible:outline-cerulean');
+    }
   });
 
   it('keeps outline and ghost as light-surface variants', () => {

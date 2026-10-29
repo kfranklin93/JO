@@ -18,6 +18,36 @@ import { cn } from '@/lib/utils/cn';
  * bone on navy is 11.8:1, so it is legible on every dark fill in the palette.
  * Reach for it instead of hand-rolling a `className` override at the call
  * site, which is what the four MagneticButton call sites used to do.
+ *
+ * ## `champagne` and `champagneOutline`: a dark surface that needs an action
+ *
+ * `primary` is hunter, and hunter is also the site's dark section fill, so a
+ * `primary` button on a hunter section is the same colour as its background
+ * and disappears — the hero's Search control, exactly. The two champagne
+ * variants are the fix:
+ *
+ *   `champagne`        solid gold fill, onyx label. 8.4:1 label on fill, and
+ *                      6.5:1 fill against hunter, so the button has an edge
+ *                      as well as a readable word on it. This is the
+ *                      *primary* action on a dark surface.
+ *   `champagneOutline` gold border, bone label, fills to gold with an onyx
+ *                      label on hover. Deliberately lighter weight: use it
+ *                      for secondary actions beside a `champagne` one, so a
+ *                      panel does not end up with three solid gold slabs.
+ *
+ * Pick between them by weight, not by colour: `champagne` for the one action
+ * you want pressed, `champagneOutline` for the alternatives, `onDark` when
+ * the surface already has gold on it and another gold button would compete.
+ *
+ * The outline variant labels itself bone rather than gold on purpose. Gold
+ * text is legible on hunter (6.5:1) but 2.0:1 on bone, and a variant map
+ * cannot know which surface it will land on, so the safe half of the pairing
+ * is the one that gets declared here. Gold is a fill in these variants; it is
+ * never the ink.
+ *
+ * Both are dark-surface variants. On Bone the gold border drops to 2.0:1 and
+ * a bone label vanishes outright — `primary` or `outline` is what a light
+ * section wants.
  */
 const buttonVariants = {
   variant: {
@@ -31,6 +61,10 @@ const buttonVariants = {
       'bg-transparent text-navy hover:bg-linen focus-visible:outline-navy disabled:text-navy/40',
     onDark:
       'border-2 border-bone bg-transparent text-bone hover:border-bone hover:bg-bone hover:text-hunter focus-visible:outline-bone disabled:border-bone/20 disabled:text-bone/40',
+    champagne:
+      'bg-champagne text-champagne-foreground shadow-sm hover:bg-champagne/90 focus-visible:outline-bone disabled:bg-champagne/40',
+    champagneOutline:
+      'border-2 border-champagne bg-transparent text-bone hover:border-champagne hover:bg-champagne hover:text-champagne-foreground focus-visible:outline-bone disabled:border-champagne/20 disabled:text-bone/40',
     danger:
       'bg-red-600 text-white shadow-sm hover:bg-red-700 focus-visible:outline-red-600 disabled:bg-red-400',
   },

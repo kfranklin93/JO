@@ -9,7 +9,7 @@ import { cn } from '@/lib/utils/cn';
 export interface MagneticButtonProps {
   strength?: number;
   children: React.ReactNode;
-  variant?: 'primary' | 'secondary' | 'outline' | 'onDark';
+  variant?: 'primary' | 'secondary' | 'outline' | 'onDark' | 'champagne' | 'champagneOutline';
   size?: 'sm' | 'md' | 'lg';
   className?: string;
   href?: string;
@@ -109,12 +109,39 @@ export function MagneticButton({
    * bone and flips its label to hunter on hover. Bone on hunter is 13.1:1 and
    * bone on navy is 11.8:1, so it is legible on every dark fill in the
    * palette. Reach for it rather than an override at the call site.
+   *
+   * `champagne` and `champagneOutline` are the other two dark-surface
+   * variants, and they exist because `primary` is hunter while hunter is also
+   * the site's dark section fill: a `primary` button on a hunter section is
+   * its own background colour and vanishes, which is what happened to the
+   * hero's Search control.
+   *
+   *   `champagne`        solid gold fill, onyx label. 8.4:1 label on fill,
+   *                      6.5:1 fill against hunter. The primary action on a
+   *                      dark surface.
+   *   `champagneOutline` gold border, bone label, fills to gold with an onyx
+   *                      label on hover. Deliberately lighter weight, for
+   *                      secondary actions sitting beside a `champagne` one.
+   *
+   * Choose by weight rather than by colour: `champagne` for the action you
+   * want pressed, `champagneOutline` for its alternatives, `onDark` where
+   * another gold button would compete with gold already on the surface. The
+   * hero uses exactly that split — a solid gold Search, two gold-outlined
+   * quick actions.
+   *
+   * The outline variant's label is bone, not gold, on purpose: gold ink is
+   * 6.5:1 on hunter but 2.0:1 on bone, and a variant map does not know which
+   * surface it will land on. Gold is a fill here, never the ink. Both
+   * variants are dark-surface only — on Bone the gold border falls to 2.0:1
+   * and a bone label disappears.
    */
   const variants = {
     primary: 'bg-cerulean text-bone border-2 border-cerulean hover:bg-cerulean/90 hover:border-cerulean/90',
     secondary: 'bg-linen text-navy border-2 border-neutral-200 hover:bg-neutral-100',
     outline: 'border-2 border-navy text-navy hover:bg-cerulean hover:border-cerulean hover:text-bone',
-    onDark: 'border-2 border-bone text-bone hover:bg-bone hover:border-bone hover:text-hunter',
+    onDark: 'border-2 border-bone text-bone hover:bg-bone hover:border-bone hover:text-hunter focus-visible:outline-bone',
+    champagne: 'bg-champagne text-champagne-foreground border-2 border-champagne hover:bg-champagne/90 hover:border-champagne/90 focus-visible:outline-bone',
+    champagneOutline: 'border-2 border-champagne text-bone hover:bg-champagne hover:border-champagne hover:text-champagne-foreground focus-visible:outline-bone',
   };
 
   const sizes = {

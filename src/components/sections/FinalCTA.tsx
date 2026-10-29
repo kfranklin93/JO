@@ -7,11 +7,13 @@ import { siteConfig } from '@/config/site';
 
 export function FinalCTA() {
   return (
-    /* Still eXp Navy after the hunter repoint, on purpose. Nothing inside
-       this section is a hunter fill — both buttons are bone-based — so there
-       is no clash, and a navy closing panel against the onyx and black
-       sections above it is what gives the page its dark-tone variety. */
-    <section className="bg-navy py-32 sm:py-40">
+    /* Hunter, not eXp Navy. The earlier pass kept this closing panel navy for
+       dark-tone variety against the onyx sections above; the owner's decision
+       is that hunter is the dark surface and navy belongs to the logo marks.
+       Both buttons are bone-based — a bone fill with a navy label, and a bone
+       outline — so neither is a hunter action on a hunter surface: bone on
+       hunter is 13.1:1 and navy on bone is 11.8:1. */
+    <section className="bg-hunter py-32 sm:py-40">
       <div className="mx-auto max-w-4xl px-8 text-center lg:px-12">
         <motion.div
           initial={{ opacity: 0, y: 30 }}

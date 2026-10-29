@@ -170,7 +170,7 @@ export function HorizontalScrollGallery() {
           whileInView={{ opacity: 1, scale: 1 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
-          className="flex h-[70vh] w-[500px] flex-shrink-0 flex-col items-center justify-center rounded-2xl bg-navy p-12 text-center shadow-2xl"
+          className="flex h-[70vh] w-[500px] flex-shrink-0 flex-col items-center justify-center rounded-2xl bg-hunter p-12 text-center shadow-2xl"
         >
           <h3 className="font-serif text-4xl text-linen">
             Ready to Call Marietta Home?
@@ -181,7 +181,7 @@ export function HorizontalScrollGallery() {
           <div className="mt-8">
             <Link href="/get-started">
               {/* `onDark`, not `outline` + a bone-fill override. This card is
-                  navy, so `outline`'s navy-on-transparent would vanish.
+                  hunter, so `outline`'s navy-on-transparent would vanish.
                   Note this is the one converted call site whose appearance
                   changes: it used to render as a solid bone button with navy
                   text and now renders as a bone outline that fills on hover,

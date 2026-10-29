@@ -59,10 +59,10 @@ export default function PropertiesPage() {
   return (
     <main className="min-h-screen bg-linen">
       {/* Hero Section */}
-      {/* eXp Navy on purpose, not a straggler from the hunter repoint:
-          this masthead is brokerage chrome and carries no hunter fill, so it
-          stays the eXp colour. See the @theme note in globals.css. */}
-      <section className="relative bg-navy py-32">
+      {/* Hunter, not eXp Navy — hunter is the dark surface everywhere now and
+          navy is reserved for the logo marks. Bone (`text-linen`, the same
+          value) on hunter is 13.1:1. */}
+      <section className="relative bg-hunter py-32">
         <div className="container mx-auto px-6">
           <div className="mx-auto max-w-4xl text-center">
             <h1 className="font-serif text-5xl font-light tracking-tight text-linen sm:text-6xl lg:text-7xl">
@@ -177,10 +177,10 @@ export default function PropertiesPage() {
       </section>
 
       {/* CTA Section */}
-      {/* eXp Navy on purpose, not a straggler from the hunter repoint:
-          this masthead is brokerage chrome and carries no hunter fill, so it
-          stays the eXp colour. See the @theme note in globals.css. */}
-      <section className="bg-navy py-32">
+      {/* Hunter, not eXp Navy, like the masthead above. The gold CTA inside
+          still works: gold on hunter is 6.5:1 as a fill, and its label is
+          `champagne-foreground` so the pairing is decided in the theme. */}
+      <section className="bg-hunter py-32">
         <div className="container mx-auto px-6">
           <div className="mx-auto max-w-3xl text-center">
             <h2 className="font-serif text-4xl font-light text-linen sm:text-5xl">
@@ -192,7 +192,7 @@ export default function PropertiesPage() {
             <div className="mt-10">
               <Link
                 href="/get-started"
-                className="inline-flex items-center justify-center gap-3 rounded-2xl bg-champagne px-10 py-5 font-sans text-lg font-normal text-navy transition-all duration-300 hover:bg-champagne/90 hover:shadow-2xl hover:shadow-onyx/40"
+                className="inline-flex items-center justify-center gap-3 rounded-2xl bg-champagne px-10 py-5 font-sans text-lg font-normal text-champagne-foreground transition-all duration-300 hover:bg-champagne/90 hover:shadow-2xl hover:shadow-onyx/40"
               >
                 Start Your Search
                 <svg

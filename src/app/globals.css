@@ -62,18 +62,42 @@
    * Navy and Hunter are the safe ones — navy on white is 13.9:1, hunter on bone
    * is 13.1:1 — which is why actions are hunter rather than gold.
    *
-   * ## Actions are hunter; navy is kept for eXp
+   * ## Hunter is the surface colour; gold is the button on it
    *
    * Hunter green is the action and dark-surface colour: `--color-primary`,
    * `--color-accent` and the `cerulean` alias all resolve to it, so every
    * button, badge and active tab on the site is hunter.
    *
+   * That creates one pairing to watch, and it is the reason the hero's search
+   * button went invisible: a hunter-backed action placed on a hunter *section*
+   * is the same colour as its own background. On a hunter surface the action
+   * has to be gold or bone, not hunter:
+   *
+   *   gold fill, onyx label, on hunter   6.5:1 fill / 8.4:1 label   passes
+   *   bone fill or outline, on hunter    13.1:1                     passes
+   *   hunter on hunter                   1.0:1                      invisible
+   *
+   * Both button components carry a `champagne` and a `champagneOutline`
+   * variant for exactly this case — reach for those rather than re-deriving
+   * the colours in a `className` at the call site.
+   *
+   * ## Navy is kept for eXp, and only for eXp
+   *
    * `--color-navy` is deliberately *not* repointed. eXp Navy is a real
    * brokerage colour and has to stay available as a literal token for the
-   * places that genuinely mean eXp rather than "the action colour" — the
-   * header and footer logo marks, the brokerage credit, the legal-page
-   * mastheads. Anything that sets `bg-navy` is saying eXp; anything that sets
-   * `bg-primary`/`bg-accent` is saying "this is an action".
+   * places that genuinely mean eXp rather than "a dark surface".
+   *
+   * That list is now short. Navy was also doing duty as the generic dark
+   * section fill — the hero wash, the legal-page mastheads, the closing CTA
+   * panels — and every one of those has moved to hunter, because hunter is
+   * the brand's dark surface and navy next to it read as a second, competing
+   * one. What is left on navy is the logo marks in the header and footer and
+   * the navigation dropdown panel, which are brokerage chrome rather than
+   * page surface, and which are the owner's call rather than ours.
+   *
+   * Anything that still sets `bg-navy` is saying eXp; anything that sets
+   * `bg-primary`/`bg-accent` is saying "this is an action"; anything that
+   * wants a dark panel sets `bg-hunter`.
    *
    * ## Why the old names still exist
    *
@@ -211,35 +235,61 @@
   --accent-hover: #0D1B14;
 }
 
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-}
+/*
+ * Element resets, and they have to be inside `@layer base`.
+ *
+ * This is not housekeeping. `a { color: inherit }` written *outside* a layer
+ * beats every Tailwind utility, because unlayered CSS wins over layered CSS
+ * in the cascade no matter what the specificity is — and `.text-bone` lives
+ * in `@layer utilities`, which `@import "tailwindcss"` declares above. The
+ * consequence, which was on screen for weeks: every `<a>` on the site threw
+ * away the text colour it asked for and inherited Onyx from `body` instead.
+ *
+ * That is the "black text on a dark button" report. The button variants were
+ * corrected once already and the pixels did not change, because the variant
+ * was never what was wrong — the hero's `I'm Buying` / `I'm Selling` links
+ * and its phone and email pills all declared `text-bone` and all rendered
+ * near-black on the dark wash, about 1.3:1.
+ *
+ * Inside `@layer base` the reset still gives every link its inherited colour
+ * by default, and a `text-*` utility on a link now wins when one is present,
+ * which is the behaviour the whole component tree was written against.
+ *
+ * Keep new element resets in here. A *class* like `.eyebrow` below is
+ * deliberately left unlayered: it is a small composed style that should beat
+ * a stray utility, and nothing in the tree pairs it with one.
+ */
+@layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
 
-html {
-  scroll-behavior: smooth;
-}
+  html {
+    scroll-behavior: smooth;
+  }
 
-body {
-  margin: 0;
-  min-height: 100vh;
-  background-color: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-sans), Arial, sans-serif;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans), Arial, sans-serif;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
 
-a {
-  color: inherit;
-  text-decoration: none;
-}
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
 
-img {
-  max-width: 100%;
-  height: auto;
+  img {
+    max-width: 100%;
+    height: auto;
+  }
 }
 
 /*
