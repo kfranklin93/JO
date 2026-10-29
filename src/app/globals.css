@@ -26,8 +26,23 @@
    *   Onyx           #0B0B0C   text, deepest surfaces
    *   Champagne Gold #C9A45C   accent only — see the contrast note below
    *   Bone           #F2ECE0   page background
-   *   Hunter         #14291F   secondary dark surface
-   *   eXp Navy       #0F2A5E   primary actions
+   *   Hunter         #14291F   primary actions and dark surfaces
+   *   eXp Navy       #0F2A5E   eXp brokerage brand usage
+   *
+   * ## A dark brand surface carries bone text
+   *
+   * Never white, and never an inherited near-black. Bone is the one text
+   * colour that is correct on every dark surface in the palette:
+   *
+   *   bone on hunter   13.1:1   passes
+   *   bone on navy     11.8:1   passes
+   *   bone on onyx     16.6:1   passes
+   *
+   * White technically measures higher, but it is not a brand colour and reads
+   * cold next to the warm Bone page background. The pairing is decided in the
+   * theme rather than at each call site: use `--color-hunter-foreground`,
+   * `--color-navy-foreground` or `--color-champagne-foreground` when one of
+   * those is the background.
    *
    * ## Champagne Gold is an accent, never a text colour on light
    *
@@ -45,16 +60,38 @@
    * pairing is decided for you.
    *
    * Navy and Hunter are the safe ones — navy on white is 13.9:1, hunter on bone
-   * is 13:1 — which is why primary actions are navy rather than gold.
+   * is 13.1:1 — which is why actions are hunter rather than gold.
+   *
+   * ## Actions are hunter; navy is kept for eXp
+   *
+   * Hunter green is the action and dark-surface colour: `--color-primary`,
+   * `--color-accent` and the `cerulean` alias all resolve to it, so every
+   * button, badge and active tab on the site is hunter.
+   *
+   * `--color-navy` is deliberately *not* repointed. eXp Navy is a real
+   * brokerage colour and has to stay available as a literal token for the
+   * places that genuinely mean eXp rather than "the action colour" — the
+   * header and footer logo marks, the brokerage credit, the legal-page
+   * mastheads. Anything that sets `bg-navy` is saying eXp; anything that sets
+   * `bg-primary`/`bg-accent` is saying "this is an action".
    *
    * ## Why the old names still exist
    *
-   * `cerulean`, `bronze`, `mocha` and `linen` are retired from the brand but
-   * kept here as aliases pointing at their replacements. The site used
-   * `bg-cerulean` as the action colour on roughly forty components, and
-   * repointing one token changes all of them correctly in one move, with no
-   * chance of missing a usage. Class names get renamed opportunistically when
-   * those files are next touched; nothing breaks in the meantime.
+   * `cerulean`, `mocha` and `linen` are retired from the brand but kept here
+   * as aliases pointing at their replacements. The site used `bg-cerulean` as
+   * the action colour on roughly forty components, and repointing one token
+   * changes all of them correctly in one move, with no chance of missing a
+   * usage. Class names get renamed opportunistically when those files are next
+   * touched; nothing breaks in the meantime.
+   *
+   * One retired name was deleted rather than aliased: the old metallic name
+   * for Champagne Gold held the identical value (#C9A45C), so two tokens
+   * described one colour and only one of them was the brand name. An alias
+   * there bought no safe migration, it only let the wrong name keep spreading,
+   * so every usage was renamed to `champagne` in one pass and the token
+   * removed. That rename changed no rendered pixel and fixed no contrast
+   * failure — if gold was illegible somewhere before, it still is, and the
+   * fix is a different colour, not a different name for the same one.
    */
 
   /* Brand */
@@ -63,7 +100,9 @@
   --color-champagne-foreground: #0B0B0C;
   --color-bone: #F2ECE0;
   --color-hunter: #14291F;
+  --color-hunter-foreground: #F2ECE0;
   --color-navy: #0F2A5E;
+  --color-navy-foreground: #F2ECE0;
 
   /*
    * Supporting neutrals.
@@ -95,11 +134,12 @@
   --color-border: #DED5C4;
   --color-surface: #F2ECE0;
 
-  /* Retired names, aliased to their replacements — see the note above. */
+  /* Retired names, aliased to their replacements — see the note above.
+   * `cerulean` is hunter, not navy: it was the action colour, and actions are
+   * hunter now. */
   --color-mocha: #0B0B0C;
   --color-linen: #F2ECE0;
-  --color-cerulean: #0F2A5E;
-  --color-bronze: #C9A45C;
+  --color-cerulean: #14291F;
   
   /* Neutral ramp */
   --color-neutral-50: #FAFAFA;
@@ -118,19 +158,24 @@
   --color-background: #F2ECE0;
   --color-foreground: #0B0B0C;
 
-  --color-primary: #0F2A5E;
+  --color-primary: #14291F;
   --color-primary-foreground: #F2ECE0;
 
   --color-secondary: #F2ECE0;
   --color-secondary-foreground: #0B0B0C;
 
   /*
-   * Actions are navy, not gold. Navy carries white text at 13.9:1; gold cannot
-   * carry white text at all (2.4:1). See the contrast note above.
+   * Actions are hunter, not gold and no longer navy. Hunter carries bone text
+   * at 13.1:1; gold cannot carry white text at all (2.4:1). See the contrast
+   * notes above.
+   *
+   * `accent-hover` is hunter darkened rather than a different hue, so a hover
+   * reads as "the same button, pressed". Bone on it measures 15.1:1, so the
+   * label stays legible through the transition.
    */
-  --color-accent: #0F2A5E;
-  --color-accent-foreground: #ffffff;
-  --color-accent-hover: #0A1F45;
+  --color-accent: #14291F;
+  --color-accent-foreground: #F2ECE0;
+  --color-accent-hover: #0D1B14;
 
   /* Kept in step with --color-stone; it was left behind at #707070 and failed
    * AA on Bone at 4.21:1 while stone had already been fixed. */
@@ -162,8 +207,8 @@
   color-scheme: light;
   --background: #F2ECE0;
   --foreground: #0B0B0C;
-  --accent: #0F2A5E;
-  --accent-hover: #0A1F45;
+  --accent: #14291F;
+  --accent-hover: #0D1B14;
 }
 
 *,
@@ -200,7 +245,7 @@ img {
 /*
  * Eyebrow / kicker label utility.
  *
- * Navy, via --accent. Champagne gold is the tempting choice for a small
+ * Hunter, via --accent. Champagne gold is the tempting choice for a small
  * uppercase label on a luxury site and it fails contrast badly on bone (2.0:1),
  * so it is not used here. Gold eyebrows are fine on an onyx or hunter section —
  * use `text-champagne` directly in that context.

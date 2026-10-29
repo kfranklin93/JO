@@ -117,7 +117,7 @@ export function AppointmentsPanel() {
     return (
       <div
         role="alert"
-        className="rounded-xl border border-bronze/40 bg-white px-6 py-8 text-center"
+        className="rounded-xl border border-champagne/40 bg-white px-6 py-8 text-center"
       >
         <p className="font-sans text-sm font-medium text-navy">{error}</p>
       </div>

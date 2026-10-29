@@ -10,6 +10,9 @@ export default function TermsPage() {
   return (
     <main className="min-h-screen bg-linen">
       {/* Hero Section */}
+      {/* eXp Navy on purpose, not a straggler from the hunter repoint:
+          this masthead is brokerage chrome and carries no hunter fill, so it
+          stays the eXp colour. See the @theme note in globals.css. */}
       <section className="relative bg-navy py-24">
         <div className="container mx-auto px-6">
           <div className="mx-auto max-w-4xl">

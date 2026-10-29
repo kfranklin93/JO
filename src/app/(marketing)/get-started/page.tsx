@@ -95,7 +95,7 @@ export default function GetStartedPage() {
                 </p>
                 <button
                   onClick={() => setIsSuccess(false)}
-                  className="mt-8 inline-flex items-center gap-2 rounded-lg bg-navy px-6 py-3 font-sans text-sm font-medium text-white hover:bg-navy/90 transition-colors"
+                  className="mt-8 inline-flex items-center gap-2 rounded-lg bg-navy px-6 py-3 font-sans text-sm font-medium text-bone hover:bg-navy/90 transition-colors"
                 >
                   Submit another inquiry
                 </button>

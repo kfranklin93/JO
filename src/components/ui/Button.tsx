@@ -3,16 +3,34 @@
 import * as React from 'react';
 import { cn } from '@/lib/utils/cn';
 
+/**
+ * Read this before adding a variant or picking one.
+ *
+ * `ghost` sets **no background**. `outline` sets `bg-surface`, which is Bone —
+ * a light fill. Both carry `text-navy`, so neither may be placed on a dark
+ * surface: `ghost` renders navy-on-dark at roughly 1:1 and disappears, and
+ * `outline` punches a bone rectangle into the section. They are light-surface
+ * variants, and nothing in the type system can tell you that, because the
+ * surface lives in a parent component.
+ *
+ * `onDark` is the variant for a dark surface: a bone outline that fills with
+ * bone and flips its label to hunter on hover. Bone on hunter is 13.1:1 and
+ * bone on navy is 11.8:1, so it is legible on every dark fill in the palette.
+ * Reach for it instead of hand-rolling a `className` override at the call
+ * site, which is what the four MagneticButton call sites used to do.
+ */
 const buttonVariants = {
   variant: {
     primary:
-      'bg-cerulean text-white shadow-sm hover:bg-cerulean/90 focus-visible:outline-cerulean disabled:bg-cerulean/40',
+      'bg-cerulean text-bone shadow-sm hover:bg-cerulean/90 focus-visible:outline-cerulean disabled:bg-cerulean/40',
     secondary:
       'bg-linen text-navy shadow-sm hover:bg-neutral-200 focus-visible:outline-navy disabled:bg-linen/40',
     outline:
-      'border-2 border-navy bg-surface text-navy hover:border-cerulean hover:bg-cerulean hover:text-white focus-visible:outline-cerulean disabled:border-navy/20 disabled:text-navy/40',
+      'border-2 border-navy bg-surface text-navy hover:border-cerulean hover:bg-cerulean hover:text-bone focus-visible:outline-cerulean disabled:border-navy/20 disabled:text-navy/40',
     ghost:
       'bg-transparent text-navy hover:bg-linen focus-visible:outline-navy disabled:text-navy/40',
+    onDark:
+      'border-2 border-bone bg-transparent text-bone hover:border-bone hover:bg-bone hover:text-hunter focus-visible:outline-bone disabled:border-bone/20 disabled:text-bone/40',
     danger:
       'bg-red-600 text-white shadow-sm hover:bg-red-700 focus-visible:outline-red-600 disabled:bg-red-400',
   },

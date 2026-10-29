@@ -59,6 +59,9 @@ export default function PropertiesPage() {
   return (
     <main className="min-h-screen bg-linen">
       {/* Hero Section */}
+      {/* eXp Navy on purpose, not a straggler from the hunter repoint:
+          this masthead is brokerage chrome and carries no hunter fill, so it
+          stays the eXp colour. See the @theme note in globals.css. */}
       <section className="relative bg-navy py-32">
         <div className="container mx-auto px-6">
           <div className="mx-auto max-w-4xl text-center">
@@ -149,7 +152,7 @@ export default function PropertiesPage() {
                   {/* CTA */}
                   <Link
                     href="/get-started"
-                    className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-navy/20 bg-transparent px-6 py-4 font-sans text-base font-normal text-navy transition-all duration-300 hover:border-navy hover:bg-navy hover:text-linen"
+                    className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-accent/20 bg-transparent px-6 py-4 font-sans text-base font-normal text-accent transition-all duration-300 hover:border-accent hover:bg-accent hover:text-linen"
                   >
                     Schedule Viewing
                     <svg
@@ -174,6 +177,9 @@ export default function PropertiesPage() {
       </section>
 
       {/* CTA Section */}
+      {/* eXp Navy on purpose, not a straggler from the hunter repoint:
+          this masthead is brokerage chrome and carries no hunter fill, so it
+          stays the eXp colour. See the @theme note in globals.css. */}
       <section className="bg-navy py-32">
         <div className="container mx-auto px-6">
           <div className="mx-auto max-w-3xl text-center">

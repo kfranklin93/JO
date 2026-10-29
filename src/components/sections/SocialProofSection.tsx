@@ -70,7 +70,7 @@ export function SocialProofSection() {
               </div>
 
               {/* Hover Arrow */}
-              <div className="mt-6 flex items-center gap-2 text-neutral-400 transition-all duration-300 group-hover:gap-4 group-hover:text-black">
+              <div className="mt-6 flex items-center gap-2 text-silver transition-all duration-300 group-hover:gap-4 group-hover:text-onyx">
                 <span className="font-sans text-xs uppercase tracking-wider">Learn More</span>
                 <svg
                   className="h-4 w-4"

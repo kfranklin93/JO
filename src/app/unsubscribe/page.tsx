@@ -66,7 +66,7 @@ export default async function UnsubscribePage({
               <input type="hidden" name="token" value={token} />
               <button
                 type="submit"
-                className="flex min-h-11 w-full items-center justify-center rounded-xl bg-cerulean px-5 py-3 font-sans text-sm font-medium text-white transition-colors hover:bg-accent-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cerulean"
+                className="flex min-h-11 w-full items-center justify-center rounded-xl bg-cerulean px-5 py-3 font-sans text-sm font-medium text-bone transition-colors hover:bg-accent-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cerulean"
               >
                 Yes, unsubscribe me
               </button>

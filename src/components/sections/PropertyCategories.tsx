@@ -11,7 +11,7 @@ const categories = [
     description: 'High-intent properties ready for immediate occupancy',
     image: '/images/properties/now-selling.jpg',
     badge: 'Now Selling',
-    badgeColor: 'bg-navy',
+    badgeColor: 'bg-accent',
     href: '/properties/now-selling'
   },
   {
@@ -27,7 +27,7 @@ const categories = [
     description: `Showcasing ${siteConfig.stats.closedDeals} successful transactions`,
     image: '/images/properties/legacy.jpg',
     badge: 'Sold',
-    badgeColor: 'bg-navy',
+    badgeColor: 'bg-accent',
     href: '/properties/legacy'
   }
 ];

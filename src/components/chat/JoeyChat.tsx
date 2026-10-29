@@ -218,7 +218,7 @@ export function JoeyChat({ defaultOpen = false }: JoeyChatProps) {
         aria-controls={panelId}
         className={cn(
           'fixed bottom-8 left-8 z-40 flex min-h-11 items-center gap-3 rounded-full',
-          'bg-cerulean px-6 py-4 font-sans text-sm font-medium tracking-wider text-white uppercase',
+          'bg-cerulean px-6 py-4 font-sans text-sm font-medium tracking-wider text-bone uppercase',
           'shadow-soft transition-colors hover:bg-accent-hover',
           'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-cerulean',
         )}
@@ -300,7 +300,7 @@ export function JoeyChat({ defaultOpen = false }: JoeyChatProps) {
                   className={cn(
                     'max-w-[85%] rounded-xl px-3 py-2 font-sans text-sm',
                     message.role === 'user'
-                      ? 'self-end bg-cerulean text-white'
+                      ? 'self-end bg-cerulean text-bone'
                       : 'self-start border border-navy/10 bg-white text-navy',
                   )}
                 >
@@ -327,7 +327,7 @@ export function JoeyChat({ defaultOpen = false }: JoeyChatProps) {
                   className={cn(
                     'flex min-h-11 items-center justify-center rounded-xl border-2 border-navy',
                     'px-4 py-2 font-sans text-sm font-medium text-navy transition-colors',
-                    'hover:border-cerulean hover:bg-cerulean hover:text-white',
+                    'hover:border-cerulean hover:bg-cerulean hover:text-bone',
                     'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cerulean',
                   )}
                 >
@@ -376,7 +376,7 @@ export function JoeyChat({ defaultOpen = false }: JoeyChatProps) {
                   disabled={sending || !draft.trim()}
                   className={cn(
                     'flex min-h-11 min-w-11 items-center justify-center rounded-xl',
-                    'bg-cerulean font-sans text-sm font-medium text-white transition-colors',
+                    'bg-cerulean font-sans text-sm font-medium text-bone transition-colors',
                     'hover:bg-accent-hover',
                     'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cerulean',
                     'disabled:cursor-not-allowed disabled:bg-cerulean/40',

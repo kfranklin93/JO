@@ -180,10 +180,16 @@ export function HorizontalScrollGallery() {
           </p>
           <div className="mt-8">
             <Link href="/get-started">
+              {/* `onDark`, not `outline` + a bone-fill override. This card is
+                  navy, so `outline`'s navy-on-transparent would vanish.
+                  Note this is the one converted call site whose appearance
+                  changes: it used to render as a solid bone button with navy
+                  text and now renders as a bone outline that fills on hover,
+                  matching the other on-dark CTAs. Switch it to
+                  `variant="secondary"` if the solid fill is wanted back. */}
               <MagneticButton
-                variant="outline"
+                variant="onDark"
                 size="lg"
-                className="border-linen bg-linen text-navy hover:bg-linen/90"
               >
                 View Available Homes
                 <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">

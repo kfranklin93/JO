@@ -40,7 +40,7 @@ export function FloatingConnectCTA({ onOpenForm }: FloatingConnectCTAProps) {
           {/* JOEY UPDATE: Premium floating button with magnetic hover effect */}
           <button
             onClick={onOpenForm}
-            className="group relative flex items-center gap-3 rounded-full bg-cerulean px-8 py-4 font-sans text-sm font-medium uppercase tracking-wider text-white shadow-2xl transition-all duration-300 hover:scale-105 hover:bg-cerulean/90 hover:shadow-cerulean/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-cerulean"
+            className="group relative flex items-center gap-3 rounded-full bg-cerulean px-8 py-4 font-sans text-sm font-medium uppercase tracking-wider text-bone shadow-2xl transition-all duration-300 hover:scale-105 hover:bg-cerulean/90 hover:shadow-cerulean/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-cerulean"
             aria-label="Open contact form"
           >
             {/* Icon */}
@@ -69,7 +69,7 @@ export function FloatingConnectCTA({ onOpenForm }: FloatingConnectCTAProps) {
           <div className="sm:hidden">
             <button
               onClick={onOpenForm}
-              className="flex h-14 w-14 items-center justify-center rounded-full bg-cerulean text-white shadow-2xl transition-all duration-300 hover:scale-105 hover:bg-cerulean/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-cerulean"
+              className="flex h-14 w-14 items-center justify-center rounded-full bg-cerulean text-bone shadow-2xl transition-all duration-300 hover:scale-105 hover:bg-cerulean/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-cerulean"
               aria-label="Open contact form"
             >
               <svg

@@ -136,9 +136,9 @@ export function ChatTranscriptsPanel() {
     return (
       <div
         role="alert"
-        className="rounded-xl border border-bronze/40 bg-white px-6 py-8 text-center"
+        className="rounded-xl border border-champagne/40 bg-white px-6 py-8 text-center"
       >
-        <p className="font-sans text-sm font-medium text-bronze">{error}</p>
+        <p className="font-sans text-sm font-medium text-red-600">{error}</p>
       </div>
     );
   }
@@ -182,7 +182,7 @@ export function ChatTranscriptsPanel() {
               'min-h-11 rounded-lg px-4 py-1.5 font-sans text-xs font-semibold tracking-[0.1em] uppercase transition-colors',
               'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cerulean',
               filterTab === tab
-                ? 'bg-cerulean text-white'
+                ? 'bg-cerulean text-bone'
                 : 'text-stone hover:text-navy',
             )}
           >
@@ -266,7 +266,7 @@ export function ChatTranscriptsPanel() {
                     className={cn(
                       'max-w-[80%] rounded-xl px-3 py-2',
                       message.role === 'user'
-                        ? 'ml-auto bg-cerulean text-white'
+                        ? 'ml-auto bg-cerulean text-bone'
                         : 'border border-navy/10 bg-linen text-navy',
                     )}
                   >
@@ -278,7 +278,7 @@ export function ChatTranscriptsPanel() {
                     {message.role === 'assistant' && (
                       <p className="mt-1.5 font-sans text-xs text-stone">
                         {message.mode === 'mock' && (
-                          <span className="text-bronze">
+                          <span className="text-accent">
                             development fallback &middot;{' '}
                           </span>
                         )}

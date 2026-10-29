@@ -50,7 +50,7 @@ export default function DashboardLoginPage() {
         {/* Logo / Brand */}
         <div className="mb-8 text-center">
           <p className="font-serif text-3xl tracking-wide text-neutral-900">Joey O.</p>
-          <p className="mt-1 text-sm uppercase tracking-widest text-bronze">
+          <p className="mt-1 text-sm uppercase tracking-widest text-accent">
             Dashboard
           </p>
         </div>
@@ -92,14 +92,14 @@ export default function DashboardLoginPage() {
             <button
               type="submit"
               disabled={loading || !password}
-              className="w-full rounded-lg bg-cerulean px-4 py-2.5 text-sm font-medium text-white transition hover:bg-cerulean/90 disabled:cursor-not-allowed disabled:opacity-50"
+              className="w-full rounded-lg bg-cerulean px-4 py-2.5 text-sm font-medium text-bone transition hover:bg-cerulean/90 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {loading ? 'Signing in…' : 'Sign in'}
             </button>
           </div>
         </form>
 
-        <p className="mt-6 text-center text-xs text-neutral-400">
+        <p className="mt-6 text-center text-xs text-stone">
           Joey Oberndorfer Real Estate · Lead Dashboard
         </p>
       </div>

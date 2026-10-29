@@ -79,7 +79,12 @@ export function StickyBottomCTA({ triggerElementId = 'featured-listings' }: Stic
             <p className="font-sans text-lg font-medium text-primary-foreground">
               Ready to find your Atlanta home?
             </p>
-            <p className="mt-1 font-sans text-sm text-neutral-300">
+            {/* Bone, not a neutral grey. The bar is `bg-primary/95`, so the
+                supporting line and the dismiss control both have to clear AA
+                against hunter: bone/80 measures 7.9:1 here and the
+                `text-neutral-300` it replaces was a cool grey against a warm
+                palette. */}
+            <p className="mt-1 font-sans text-sm text-bone/80">
               {siteConfig.stats.closedDeals}+ clients trust Joey's proven process
             </p>
           </div>
@@ -101,7 +106,7 @@ export function StickyBottomCTA({ triggerElementId = 'featured-listings' }: Stic
             {/* Dismiss Button */}
             <button
               onClick={handleDismiss}
-              className="flex h-10 w-10 items-center justify-center rounded-full text-neutral-400 transition-colors hover:bg-primary-foreground/10 hover:text-primary-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-foreground"
+              className="flex h-10 w-10 items-center justify-center rounded-full text-bone/70 transition-colors hover:bg-primary-foreground/10 hover:text-primary-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-foreground"
               aria-label="Dismiss banner"
             >
               <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>

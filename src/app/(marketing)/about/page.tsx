@@ -112,6 +112,9 @@ export default function AboutPage() {
       </section>
 
       {/* The Personal Touch - "Off the Clock" */}
+      {/* eXp Navy on purpose, not a straggler from the hunter repoint:
+          this masthead is brokerage chrome and carries no hunter fill, so it
+          stays the eXp colour. See the @theme note in globals.css. */}
       <section className="bg-navy py-24 lg:py-32">
         <div className="container mx-auto px-6">
           <div className="mx-auto max-w-4xl">

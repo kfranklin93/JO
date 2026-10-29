@@ -28,6 +28,8 @@ export function Footer({ className }: FooterProps) {
               className="flex items-center gap-2 rounded-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
               aria-label={`${siteConfig.name} - Home`}
             >
+              {/* eXp Navy, deliberately not the hunter action colour — this
+                  is the brokerage mark. Matches the header logo. */}
               <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-navy text-linen">
                 <span className="text-xl font-bold" aria-hidden="true">
                   JO

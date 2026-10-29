@@ -173,7 +173,7 @@ function LegacyPropertyCard({ property, index }: { property: LegacyProperty; ind
           initial={{ scale: 0, opacity: 0 }}
           animate={isHovered ? { scale: 1, opacity: 1 } : { scale: 0, opacity: 0 }}
           transition={{ duration: 0.3 }}
-          className="absolute left-4 top-4 rounded-2xl bg-navy px-4 py-2 shadow-lg"
+          className="absolute left-4 top-4 rounded-2xl bg-accent px-4 py-2 shadow-lg"
         >
           <span className="font-sans text-sm font-light uppercase tracking-wider text-linen">
             Sold

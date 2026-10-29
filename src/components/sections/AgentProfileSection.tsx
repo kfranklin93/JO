@@ -79,11 +79,13 @@ export function AgentProfileSection() {
                 </svg>
               </MagneticButton>
 
+              {/* `onDark` rather than `outline` + a colour override: this sits
+                  on a neutral-900 section, where `outline`'s navy-on-
+                  transparent is effectively invisible. */}
               <MagneticButton
                 href="/contact"
-                variant="outline"
+                variant="onDark"
                 size="md"
-                className="border-bronze text-bronze hover:bg-bronze hover:text-white hover:border-bronze"
               >
                 <span>Schedule a Consultation</span>
               </MagneticButton>

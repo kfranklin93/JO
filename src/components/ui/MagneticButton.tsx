@@ -9,7 +9,7 @@ import { cn } from '@/lib/utils/cn';
 export interface MagneticButtonProps {
   strength?: number;
   children: React.ReactNode;
-  variant?: 'primary' | 'secondary' | 'outline';
+  variant?: 'primary' | 'secondary' | 'outline' | 'onDark';
   size?: 'sm' | 'md' | 'lg';
   className?: string;
   href?: string;
@@ -94,10 +94,27 @@ export function MagneticButton({
     };
   }, [strength, disabled]);
 
+  /**
+   * Read this before adding a variant or picking one.
+   *
+   * `outline` sets **no background** and carries `text-navy`. On a dark
+   * surface that is dark-on-dark at roughly 1:1 and the label disappears —
+   * which is exactly the bug that produced this comment. Four of the five
+   * `outline` call sites sat on navy or near-black sections and were only
+   * legible because each hand-rolled its own colour override in `className`.
+   * `outline` is a light-surface variant, and nothing in the type system can
+   * say so, because the surface is declared in a parent component.
+   *
+   * `onDark` is the variant for a dark surface: a bone outline that fills with
+   * bone and flips its label to hunter on hover. Bone on hunter is 13.1:1 and
+   * bone on navy is 11.8:1, so it is legible on every dark fill in the
+   * palette. Reach for it rather than an override at the call site.
+   */
   const variants = {
-    primary: 'bg-cerulean text-white border-2 border-cerulean hover:bg-cerulean/90 hover:border-cerulean/90',
+    primary: 'bg-cerulean text-bone border-2 border-cerulean hover:bg-cerulean/90 hover:border-cerulean/90',
     secondary: 'bg-linen text-navy border-2 border-neutral-200 hover:bg-neutral-100',
-    outline: 'border-2 border-navy text-navy hover:bg-cerulean hover:border-cerulean hover:text-white',
+    outline: 'border-2 border-navy text-navy hover:bg-cerulean hover:border-cerulean hover:text-bone',
+    onDark: 'border-2 border-bone text-bone hover:bg-bone hover:border-bone hover:text-hunter',
   };
 
   const sizes = {

@@ -73,7 +73,7 @@ export function ThreeCardCTA() {
               className="group relative flex flex-col border border-neutral-200 bg-white p-8 transition-all duration-300 hover:border-primary hover:shadow-2xl lg:p-10"
             >
               {/* Icon */}
-              <div className="mb-6 text-neutral-400 transition-colors duration-300 group-hover:text-primary">
+              <div className="mb-6 text-silver transition-colors duration-300 group-hover:text-primary">
                 {card.icon}
               </div>
 

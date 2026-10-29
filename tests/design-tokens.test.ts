@@ -100,6 +100,9 @@ describe('Design token CSS generation', () => {
     expect(css).toContain('.bg-hunter');
     expect(css).toContain('background-color: var(--color-hunter');
 
+    expect(css).toContain('.bg-accent');
+    expect(css).toContain('background-color: var(--color-accent');
+
     // Verify the CSS variables are defined in the output, with Joey's brand
     // values. Asserting the hex rather than just the name is what makes this
     // fail if the palette drifts from the brand sheet.
@@ -117,10 +120,47 @@ describe('Design token CSS generation', () => {
     // renaming the usages, those components silently lose their colour.
     const css = await compileFor(candidatesFrom('token-colors.html'));
 
-    expect(css).toContain('--color-cerulean: #0F2A5E');
+    // Hunter, not navy: `cerulean` was the *action* colour, and actions moved
+    // to hunter. Repointing this alias is what carried the change across the
+    // component tree without renaming a class in forty files.
+    expect(css).toContain('--color-cerulean: #14291F');
     expect(css).toContain('--color-linen: #F2ECE0');
-    expect(css).toContain('--color-bronze: #C9A45C');
     expect(css).toContain('--color-mocha: #0B0B0C');
+  });
+
+  it('points the action tokens at hunter and leaves navy to eXp', async () => {
+    const css = await compileFor(candidatesFrom('token-colors.html'));
+
+    expect(css).toContain('--color-primary: #14291F');
+    expect(css).toContain('--color-accent: #14291F');
+
+    // eXp Navy is a real brokerage colour and stays available as a literal
+    // token for the logo marks and the brokerage mastheads. Repointing it
+    // would leave nothing able to express "this means eXp".
+    expect(css).toContain('--color-navy: #0F2A5E');
+  });
+
+  it('has no second name for champagne gold', async () => {
+    // The retired metallic alias held the identical value (#C9A45C), so two
+    // tokens named one colour and only one of them was the brand name. Every
+    // usage was renamed and the token deleted; this keeps it deleted.
+    const css = await compileFor(candidatesFrom('token-colors.html'));
+
+    expect(css).not.toContain('--color-bronze');
+  });
+
+  it('pairs every dark brand surface with bone, never white', async () => {
+    // The rule the site kept getting wrong in both directions: a dark fill
+    // either carried white (not a brand colour, and cold against Bone) or
+    // inherited near-black Onyx and vanished. Deciding it in the theme is
+    // what makes the call site unable to get it wrong.
+    const css = await compileFor(candidatesFrom('token-colors.html'));
+
+    expect(css).toContain('--color-hunter-foreground: #F2ECE0');
+    expect(css).toContain('--color-navy-foreground: #F2ECE0');
+    expect(css).toContain('--color-primary-foreground: #F2ECE0');
+    expect(css).toContain('--color-accent-foreground: #F2ECE0');
+    expect(css).not.toContain('--color-accent-foreground: #ffffff');
   });
 
   it('pairs champagne gold with a dark foreground, never white', async () => {

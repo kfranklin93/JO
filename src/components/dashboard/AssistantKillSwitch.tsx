@@ -70,7 +70,7 @@ export function AssistantKillSwitch() {
   }
 
   if (muted === null && !error) {
-    return <span className="font-sans text-xs text-neutral-400">Assistant&hellip;</span>;
+    return <span className="font-sans text-xs text-stone">Assistant&hellip;</span>;
   }
 
   return (
@@ -100,7 +100,11 @@ export function AssistantKillSwitch() {
           'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cerulean',
           'disabled:cursor-not-allowed disabled:opacity-50',
           muted
-            ? 'border border-bronze bg-bronze/10 text-bronze hover:bg-bronze/20'
+            // Gold border and tint keep the paused state visibly gold, but
+            // the label is onyx: gold text on this near-white tint is 2.2:1.
+            // The audit cannot see this one — it is a cn() fragment, not a
+            // className — so it is written down here instead.
+            ? 'border border-champagne bg-champagne/10 text-onyx hover:bg-champagne/20'
             : 'border border-neutral-300 text-neutral-600 hover:border-neutral-500 hover:text-neutral-900',
         )}
       >
@@ -108,7 +112,7 @@ export function AssistantKillSwitch() {
       </button>
 
       {error && (
-        <span role="alert" className="font-sans text-xs font-medium text-bronze">
+        <span role="alert" className="font-sans text-xs font-medium text-red-600">
           {error}
         </span>
       )}

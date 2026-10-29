@@ -105,7 +105,7 @@ function StatCard({
 }) {
   return (
     <div className="rounded-xl border border-neutral-200 bg-white p-6">
-      <p className="text-xs font-semibold uppercase tracking-widest text-neutral-400">
+      <p className="text-xs font-semibold uppercase tracking-widest text-stone">
         {label}
       </p>
       <p className="mt-2 text-4xl font-bold text-neutral-900">{value}</p>
@@ -251,7 +251,7 @@ export default function DashboardPage() {
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <p className="text-neutral-400">Loading…</p>
+        <p className="text-stone">Loading…</p>
       </div>
     );
   }
@@ -284,7 +284,7 @@ export default function DashboardPage() {
           <div className="flex items-center gap-6">
             <div>
               <span className="font-serif text-xl text-navy">Joey O.</span>
-              <span className="ml-3 text-sm uppercase tracking-widest text-neutral-400">
+              <span className="ml-3 text-sm uppercase tracking-widest text-stone">
                 Dashboard
               </span>
             </div>
@@ -296,7 +296,7 @@ export default function DashboardPage() {
                 onClick={() => setActiveView('overview')}
                 className={`rounded-lg px-4 py-1.5 font-sans text-xs font-semibold uppercase tracking-[0.1em] transition-all ${
                   activeView === 'overview'
-                    ? 'bg-cerulean text-white shadow-sm'
+                    ? 'bg-cerulean text-bone shadow-sm'
                     : 'text-neutral-500 hover:text-neutral-900'
                 }`}
               >
@@ -307,7 +307,7 @@ export default function DashboardPage() {
                 onClick={() => setActiveView('ai-conversations')}
                 className={`flex items-center gap-1.5 rounded-lg px-4 py-1.5 font-sans text-xs font-semibold uppercase tracking-[0.1em] transition-all ${
                   activeView === 'ai-conversations'
-                    ? 'bg-cerulean text-white shadow-sm'
+                    ? 'bg-cerulean text-bone shadow-sm'
                     : 'text-neutral-500 hover:text-neutral-900'
                 }`}
               >
@@ -321,7 +321,7 @@ export default function DashboardPage() {
                 onClick={() => setActiveView('appointments')}
                 className={`flex items-center gap-1.5 rounded-lg px-4 py-1.5 font-sans text-xs font-semibold uppercase tracking-[0.1em] transition-all ${
                   activeView === 'appointments'
-                    ? 'bg-cerulean text-white shadow-sm'
+                    ? 'bg-cerulean text-bone shadow-sm'
                     : 'text-neutral-500 hover:text-neutral-900'
                 }`}
               >
@@ -334,7 +334,7 @@ export default function DashboardPage() {
           </div>
 
           <div className="flex items-center gap-4">
-            <span className="text-xs text-neutral-400">
+            <span className="text-xs text-stone">
               {stats.total} total lead{stats.total !== 1 ? 's' : ''}
             </span>
             {/* The master switch. In the header because the emergency it exists
@@ -343,7 +343,11 @@ export default function DashboardPage() {
             <AssistantKillSwitch />
             <button
               onClick={handleLogout}
-              className="rounded-lg border border-bronze/40 px-3 py-1.5 text-sm text-bronze transition hover:bg-bronze/10 hover:border-bronze"
+              // Stone, not gold. This header is bg-white and gold text on
+              // white is 2.35:1 — the @theme note rules gold out as a text
+              // colour on light surfaces, and a quiet grey is the right
+              // weight for "sign out" anyway.
+              className="rounded-lg border border-stone/40 px-3 py-1.5 text-sm text-stone transition hover:bg-stone/10 hover:border-stone"
             >
               Sign out
             </button>
@@ -381,7 +385,7 @@ export default function DashboardPage() {
 
         {/* ── Stats Row ── */}
         <section>
-          <h2 className="mb-4 text-xs font-semibold uppercase tracking-widest text-neutral-400">
+          <h2 className="mb-4 text-xs font-semibold uppercase tracking-widest text-stone">
             Overview
           </h2>
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
@@ -399,7 +403,7 @@ export default function DashboardPage() {
         {/* ── Intent Breakdown ── */}
         {Object.keys(stats.intentBreakdown).length > 0 && (
           <section>
-            <h2 className="mb-4 text-xs font-semibold uppercase tracking-widest text-neutral-400">
+            <h2 className="mb-4 text-xs font-semibold uppercase tracking-widest text-stone">
               By Intent
             </h2>
             <div className="flex flex-wrap gap-3">
@@ -495,7 +499,7 @@ export default function DashboardPage() {
             </button>
           )}
 
-          <p className="ml-auto text-sm text-neutral-400">
+          <p className="ml-auto text-sm text-stone">
             {visibleLeads.length} of {stats.total} lead
             {stats.total !== 1 ? 's' : ''}
           </p>
@@ -503,8 +507,8 @@ export default function DashboardPage() {
 
         {/* ── Leads Table ── */}
         <section>
-          {/* The empty state uses text-stone, not text-neutral-400 — the latter
-              is 2.52:1 on white and failed the contrast audit. */}
+          {/* text-stone, like every other quiet label on this page.
+              text-neutral-400 is 2.52:1 on white and fails the audit. */}
           {visibleLeads.length === 0 ? (
             <div className="rounded-xl border border-neutral-200 bg-white py-16 text-center text-stone">
               No leads match your filters.
@@ -620,7 +624,7 @@ export default function DashboardPage() {
                           {/* Follow-ups (hidden on small) */}
                           <td className="px-4 py-3 hidden md:table-cell">
                             {lead.followUps.total === 0 ? (
-                              <span className="text-neutral-400">—</span>
+                              <span className="text-stone">—</span>
                             ) : (
                               <div className="flex flex-col text-xs">
                                 <span className="font-medium text-neutral-700">
@@ -658,7 +662,7 @@ export default function DashboardPage() {
                           </td>
 
                           {/* Expand toggle */}
-                          <td className="px-4 py-3 text-right text-neutral-400">
+                          <td className="px-4 py-3 text-right text-stone">
                             <span className="text-xs">{isExpanded ? '▲' : '▼'}</span>
                           </td>
                         </tr>
@@ -733,7 +737,7 @@ export default function DashboardPage() {
                                   the dashboard does not fetch every client's
                                   transcript to render one. */}
                               <div className="mt-5 border-t border-neutral-200 pt-4">
-                                <h3 className="mb-3 text-xs font-semibold uppercase tracking-widest text-neutral-400">
+                                <h3 className="mb-3 text-xs font-semibold uppercase tracking-widest text-stone">
                                   Conversation
                                 </h3>
                                 <LeadHistoryPanel leadId={lead.id} />
@@ -783,7 +787,7 @@ function Detail({
 }) {
   return (
     <div>
-      <p className="text-xs font-semibold uppercase tracking-wider text-neutral-400">
+      <p className="text-xs font-semibold uppercase tracking-wider text-stone">
         {label}
       </p>
       <p className="mt-0.5 text-sm text-neutral-800">{children}</p>

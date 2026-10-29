@@ -92,13 +92,19 @@ export function BuyersGuideSection() {
               transition={{ duration: 0.6, delay: index * 0.1 }}
               className="group relative rounded-lg border border-neutral-200 bg-white p-8 transition-all duration-300 hover:border-cerulean hover:shadow-lg"
             >
-              {/* Step number */}
+              {/* Step number, as a watermark behind the card content rather
+                  than as copy. It measures 1.26:1 on white and it is supposed
+                  to: the step order is carried by the document order and the
+                  heading, so the numeral is decoration. Darkening it to clear
+                  4.5:1 turns it into a solid grey numeral and loses the
+                  effect.
+                  contrast-ok: decorative watermark numeral on bg-white, step order is also conveyed by document order and the step heading */}
               <div className="mb-4 font-serif text-5xl text-neutral-200 transition-colors group-hover:text-cerulean/30">
                 {step.number}
               </div>
 
               {/* Icon */}
-              <div className="mb-4 text-neutral-400 transition-colors group-hover:text-cerulean">
+              <div className="mb-4 text-silver transition-colors group-hover:text-cerulean">
                 {step.icon}
               </div>
 

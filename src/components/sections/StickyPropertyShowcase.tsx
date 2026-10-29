@@ -89,7 +89,7 @@ export function StickyPropertyShowcase() {
                 className="h-full w-full object-cover"
               />
               {/* Overlay Badge */}
-              <div className="absolute left-6 top-6 rounded-2xl bg-navy px-4 py-2 shadow-lg">
+              <div className="absolute left-6 top-6 rounded-2xl bg-accent px-4 py-2 shadow-lg">
                 <span className="font-sans text-sm font-light uppercase tracking-wider text-linen">
                   Flagship Property
                 </span>

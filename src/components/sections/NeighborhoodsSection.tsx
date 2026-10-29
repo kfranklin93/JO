@@ -109,7 +109,7 @@ export function NeighborhoodsSection() {
         >
           <Link
             href="/properties"
-            className="inline-flex items-center gap-2 rounded-lg border-2 border-navy bg-white px-8 py-4 font-sans text-sm font-medium uppercase tracking-wider text-navy transition-all hover:border-cerulean hover:bg-cerulean hover:text-white hover:shadow-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cerulean"
+            className="inline-flex items-center gap-2 rounded-lg border-2 border-navy bg-white px-8 py-4 font-sans text-sm font-medium uppercase tracking-wider text-navy transition-all hover:border-cerulean hover:bg-cerulean hover:text-bone hover:shadow-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cerulean"
           >
             <span>Explore All Areas</span>
             <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>

@@ -77,11 +77,11 @@ export function StickyScrollCTA() {
                 initial={{ scale: 0.9, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ delay: 0.2 }}
-                className="mb-3 inline-flex items-center gap-2 rounded-2xl bg-navy/10 px-3 py-1 text-xs font-light text-navy"
+                className="mb-3 inline-flex items-center gap-2 rounded-2xl bg-accent/10 px-3 py-1 text-xs font-light text-accent"
               >
                 <span className="relative flex h-2 w-2">
-                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-navy opacity-75"></span>
-                  <span className="relative inline-flex h-2 w-2 rounded-full bg-navy"></span>
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent opacity-75"></span>
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-accent"></span>
                 </span>
                 {currentMessage.urgency}
               </motion.div>
@@ -93,7 +93,7 @@ export function StickyScrollCTA() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3 }}
-              className="mb-4 font-sans text-sm font-normal text-navy"
+              className="mb-4 font-sans text-sm font-normal text-accent"
             >
               {currentMessage.message}
             </motion.p>
@@ -113,9 +113,9 @@ export function StickyScrollCTA() {
             </Link>
 
             {/* Progress Indicator */}
-            <div className="mt-4 h-1 w-full overflow-hidden rounded-full bg-navy/10">
+            <div className="mt-4 h-1 w-full overflow-hidden rounded-full bg-accent/10">
               <motion.div
-                className="h-full bg-navy"
+                className="h-full bg-accent"
                 initial={{ width: '0%' }}
                 animate={{ width: `${scrollDepth}%` }}
                 transition={{ duration: 0.3 }}

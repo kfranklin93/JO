@@ -172,7 +172,7 @@ export function LeadHistoryPanel({ leadId }: { leadId: string }) {
 
   if (error) {
     return (
-      <p role="alert" className="py-4 font-sans text-sm font-medium text-bronze">
+      <p role="alert" className="py-4 font-sans text-sm font-medium text-red-600">
         {error}
       </p>
     );
@@ -210,8 +210,8 @@ export function LeadHistoryPanel({ leadId }: { leadId: string }) {
             'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cerulean',
             'disabled:cursor-not-allowed disabled:opacity-50',
             data.assistant.muted
-              ? 'bg-cerulean text-white hover:bg-accent-hover'
-              : 'border-2 border-navy text-navy hover:bg-navy hover:text-white',
+              ? 'bg-cerulean text-bone hover:bg-accent-hover'
+              : 'border-2 border-accent text-accent hover:bg-accent hover:text-bone',
           )}
         >
           {data.assistant.muted ? 'Let the assistant reply' : 'I’ll handle this one'}
