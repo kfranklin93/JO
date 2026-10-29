@@ -43,8 +43,8 @@ export function HeroSection() {
               {siteConfig.fullName}
             </h1>
 
-            {/* Tagline */}
-            <p className="mt-6 font-sans text-xl text-neutral-700 sm:text-2xl">
+            {/* Tagline — the signature line, so Instrument Serif, not Archivo */}
+            <p className="mt-6 font-signature text-xl text-neutral-700 sm:text-2xl">
               {siteConfig.tagline}
             </p>
 

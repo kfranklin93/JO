@@ -207,8 +207,18 @@
   --color-muted-foreground: #F2ECE0;
   
   /* Font families */
-  --font-serif: var(--font-bellefair), Playfair Display, Georgia, serif;
-  --font-sans: var(--font-montserrat), Arial, sans-serif;
+  /*
+   * `--font-serif` is the display/wordmark token — the name predates the brand
+   * sheet and is kept because roughly a hundred call sites say `font-serif`.
+   * It now carries Archivo Expanded, which is the wdth 125 end of the variable
+   * Archivo family rather than a family of its own, so the width has to be
+   * pinned: Tailwind emits this sub-property as `font-variation-settings` on
+   * every `font-serif` utility. Without it Archivo renders at normal width.
+   */
+  --font-serif: var(--font-archivo), Archivo, Helvetica Neue, Arial, sans-serif;
+  --font-serif--font-variation-settings: 'wdth' 125;
+  --font-sans: var(--font-archivo), Arial, sans-serif;
+  --font-signature: var(--font-instrument-serif), Georgia, serif;
   --font-mono: var(--font-geist-mono), monospace;
   
   /* Box shadow */

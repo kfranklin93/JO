@@ -1,19 +1,28 @@
 import type { Metadata } from 'next';
-import { Bellefair, Montserrat, Geist_Mono } from 'next/font/google';
+import { Archivo, Instrument_Serif, Geist_Mono } from 'next/font/google';
 import { defaultMetadata } from '@/config/seo';
 import './globals.css';
 
-// Luxury Brand Fonts
-const bellefair = Bellefair({
-  weight: '400',
-  variable: '--font-bellefair',
+// Joey's brand faces.
+//
+// "Archivo Expanded" on the brand sheet is the wdth 125 end of the *variable*
+// Archivo family, not a separate Google Fonts family. So the family is loaded
+// with its `wdth` axis exposed here, and the display width is pinned to 125 by
+// `--font-serif--font-variation-settings` in the @theme block of globals.css.
+// Dropping `axes` would load a font that works and renders at normal width,
+// which is not the brand face.
+const archivo = Archivo({
+  variable: '--font-archivo',
   subsets: ['latin'],
+  axes: ['wdth'],
   display: 'swap',
 });
 
-const montserrat = Montserrat({
-  weight: ['300', '400', '500', '600', '700'],
-  variable: '--font-montserrat',
+// Signature/tagline face. Regular and italic only — no weight range.
+const instrumentSerif = Instrument_Serif({
+  weight: '400',
+  style: ['normal', 'italic'],
+  variable: '--font-instrument-serif',
   subsets: ['latin'],
   display: 'swap',
 });
@@ -34,7 +43,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${bellefair.variable} ${montserrat.variable} ${geistMono.variable} h-full scroll-smooth`}
+      className={`${archivo.variable} ${instrumentSerif.variable} ${geistMono.variable} h-full scroll-smooth`}
     >
       <body className="min-h-screen font-sans antialiased">
         {children}

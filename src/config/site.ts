@@ -2,8 +2,12 @@ export const siteConfig = {
   name: 'GoWithJoeyO',
   fullName: 'Joey Oberndorfer',
   title: 'Joey Oberndorfer | Top Real Estate Agent in Atlanta & Greater Metro',
-  tagline: "Built on results. Driven by connection. Let's win together. 🏠🔑",
-  subtitle: 'eXp ICON Agent | Zillow Rising Star',
+  tagline: 'Built to close.',
+  // Positioning line, from the brand sheet. The eXp ICON Agent and Zillow
+  // Rising Star credentials that used to live here are genuine local-search
+  // ranking signals, so they stay in `description` below (which feeds page
+  // metadata and every JSON-LD schema) and in `awards`. They are not lost.
+  subtitle: 'REALTOR · ADVISOR · INVESTOR',
   description:
     'Award-winning real estate specialist in Atlanta. Former law enforcement officer turned top producer with 60+ closed deals and $23.9M in volume. eXp ICON Agent and Zillow Rising Star Award winner.',
   url: process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000',
