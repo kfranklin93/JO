@@ -187,6 +187,12 @@ export function EnhancedHeroSection() {
               {' • '}
               {siteConfig.subtitle}
             </p>
+            {/* The signature line, so Instrument Serif italic rather than
+                Archivo — the one place the brand sheet calls for the
+                signature face. Champagne is 6.5:1 on the hunter wash. */}
+            <p className="mt-3 font-signature text-3xl italic text-champagne sm:text-4xl">
+              {siteConfig.tagline}
+            </p>
             <div className="mt-4 flex flex-wrap items-center justify-center gap-6">
               <a
                 href={`tel:${siteConfig.contact.phone}`}

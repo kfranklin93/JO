@@ -82,13 +82,10 @@ export function Header({ sticky = true, className }: HeaderProps) {
               aria-label={`${siteConfig.name} - Home`}
             >
               {/* JOEY UPDATE: Logo placeholder - replace with actual logo file when ready */}
-              {/* Stays eXp Navy after actions moved to hunter. This mark is
-                  brokerage identity, which is the one thing `--color-navy` is
-                  retained for, so it does not follow the action colour. It
-                  does sit a few pixels from hunter CTAs in the nav, so if the
-                  two darks read as a mistake rather than as a logo, this is
-                  the line to change. */}
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-navy transition-transform duration-300 hover:scale-105">
+              {/* Hunter: navy is not a brand colour, and next to the hunter
+                  CTAs a few pixels away this badge read as a second dark.
+                  The linen "JO" is 13:1 on hunter. */}
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-hunter transition-transform duration-300 hover:scale-105">
                 <span className="font-serif text-lg font-bold text-linen" aria-hidden="true">
                   JO
                 </span>

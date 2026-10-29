@@ -160,11 +160,11 @@ export function Navigation({ items, className }: NavigationProps) {
                         dropdownRefs.current.set(item.label, el);
                       }
                     }}
-                    /* Navy on purpose after the hunter repoint: this dropdown
-                       is nav chrome hanging off the eXp logo mark, and it
-                       carries no hunter fill. Its items set their own
-                       text-linen/text-champagne. */
-                    className="absolute left-0 top-full z-50 mt-4 w-56 rounded-2xl bg-navy backdrop-blur-md py-3 shadow-2xl shadow-navy/30 border border-champagne/20"
+                    /* Hunter, the brand's dark panel fill. The items set
+                       their own colours and both clear AA on it: text-linen
+                       13:1, text-champagne 6.5:1, as does the champagne/20
+                       border. */
+                    className="absolute left-0 top-full z-50 mt-4 w-56 rounded-2xl bg-hunter backdrop-blur-md py-3 shadow-2xl shadow-navy/30 border border-champagne/20"
                     role="menu"
                     aria-orientation="vertical"
                   >

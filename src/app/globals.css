@@ -87,13 +87,15 @@
    * brokerage colour and has to stay available as a literal token for the
    * places that genuinely mean eXp rather than "a dark surface".
    *
-   * That list is now short. Navy was also doing duty as the generic dark
-   * section fill — the hero wash, the legal-page mastheads, the closing CTA
-   * panels — and every one of those has moved to hunter, because hunter is
-   * the brand's dark surface and navy next to it read as a second, competing
-   * one. What is left on navy is the logo marks in the header and footer and
-   * the navigation dropdown panel, which are brokerage chrome rather than
-   * page surface, and which are the owner's call rather than ours.
+   * That list is now empty of solid fills. Navy was also doing duty as the
+   * generic dark section fill — the hero wash, the legal-page mastheads, the
+   * closing CTA panels — and every one of those has moved to hunter, because
+   * hunter is the brand's dark surface and navy next to it read as a second,
+   * competing one. The last three holdouts, the logo marks in the header and
+   * footer and the navigation dropdown panel, went hunter too: chrome is not
+   * a reason to keep a non-brand colour on screen. What remains is
+   * translucent tints (`bg-navy/5` placeholders, `shadow-navy/30`), which
+   * composite to a neutral dark and carry no hue of their own.
    *
    * Anything that still sets `bg-navy` is saying eXp; anything that sets
    * `bg-primary`/`bg-accent` is saying "this is an action"; anything that

@@ -19,14 +19,7 @@ const archivo = Archivo({
 });
 
 // Signature/tagline face. Regular and italic only — no weight range.
-//
-// FOLLOW-UP (owner of EnhancedHeroSection.tsx): this face is applied only by the
-// `font-signature` utility, and the single call site is HeroSection.tsx, which no
-// route imports. The live hero renders no tagline and no `font-signature`, so
-// Instrument Serif currently styles zero glyphs while still being preloaded. The
-// load and the --font-signature token stay here for whoever adds the signature
-// line to the live hero; that file is owned by another workflow, so it is not
-// touched from here.
+// Applied by the `font-signature` utility on the hero signature line.
 const instrumentSerif = Instrument_Serif({
   weight: '400',
   style: ['normal', 'italic'],
