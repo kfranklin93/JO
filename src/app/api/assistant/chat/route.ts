@@ -42,8 +42,14 @@ import { captureLead } from '@/lib/services/lead-capture';
 import { recordChatTurn, sessionLeadId } from '@/lib/services/chat-store';
 import { bookingLink } from '@/lib/services/booking-link';
 import { assistantMuteState } from '@/lib/services/assistant-mute';
-import { book, offerSlots, type NotBookableDetail } from '@/lib/services/booking';
+import {
+  book,
+  bookableSlots,
+  offerSlots,
+  type NotBookableDetail,
+} from '@/lib/services/booking';
 import { describeSlot } from '@/lib/services/slot-label';
+import { parseIsoInstant, resolveSlotLabel } from '@/lib/services/slot-resolve';
 import {
   checkAndCount,
   checkAndCountSession,
@@ -106,6 +112,49 @@ function offeredSlot(slot: { startsAt: Date }): OfferedSlot {
     start_time: slot.startsAt.toISOString(),
     label: describeSlot(slot.startsAt),
   };
+}
+
+/**
+ * The instant `book_appointment` was asked for, if the request names one.
+ *
+ * ## Why a string from the model is not simply a date
+ *
+ * Tool calls are not persisted — `chat_messages` holds a role and text, and
+ * `sanitizeHistory` replays only that — so on any turn after the one that
+ * called `check_availability`, the ISO instants it returned are no longer in
+ * the model's context. What survives is the sentence it wrote: "3:00 PM Eastern
+ * Time". The client then replies "3:30 works", and the model passes the only
+ * form of the time it still has, which is the human one.
+ *
+ * That is the production bug in full. The label is off the slot grid, `book()`
+ * refuses it, and a client who picked a genuinely free slot is told it is
+ * unavailable — followed by the same times being offered again.
+ *
+ * So an exact instant is used as given, and anything else is matched back
+ * against the slots that are free right now. Resolution cannot invent a
+ * bookable time: it either names one member of that set or nothing. A phrasing
+ * that fits several slots — "3:30 PM", which is free most days — resolves to
+ * nothing on purpose, because picking a day for the client is worse than asking
+ * them which one. See src/lib/services/slot-resolve.ts.
+ */
+async function requestedInstant(
+  requested: string,
+  now: Date,
+): Promise<Date | undefined> {
+  const stated = parseIsoInstant(requested);
+  if (stated) return stated;
+
+  const resolution = resolveSlotLabel(requested, await bookableSlots(now));
+  if (resolution.outcome === 'resolved') return resolution.slot.startsAt;
+
+  // Worth a line in the log either way: `ambiguous` is a client who named a
+  // real time without a day, and `no_match` is a string that named no time at
+  // all. The reply is the same refusal, but they are different problems.
+  console.log(
+    `[assistant:chat] book_appointment start_time "${requested}" was ${resolution.outcome}`,
+  );
+
+  return undefined;
 }
 
 /**
@@ -249,24 +298,32 @@ export async function POST(req: NextRequest) {
       const forLead = capturedLeadId ?? leadId;
       if (!forLead) return { status: 'no_lead' as const };
 
-      const startsAt = new Date(startTime);
-      if (Number.isNaN(startsAt.getTime())) {
-        // A model-invented string rather than a copied one. It is not on the
-        // calendar because it is not a time at all, which is the honest status
-        // for it, and real alternatives make it actionable.
-        const slots = await offerSlots(new Date());
+      const now = new Date();
+      const startsAt = await requestedInstant(startTime, now);
+
+      if (!startsAt) {
+        // Either not a time at all, or a time stated too loosely to identify
+        // one free slot. Not on the calendar is the honest status for both —
+        // nothing has been taken and no window has closed — and real
+        // alternatives give the client a way to say which one they meant.
+        const slots = await offerSlots(now);
         return {
           status: 'not_on_the_calendar' as const,
           alternatives: slots.slice(0, 4).map(offeredSlot),
         };
       }
 
-      const result = await book({
-        leadId: forLead,
-        startsAt,
-        createdBy: 'assistant',
-        notes: `Booked through the website assistant (session ${sessionId}).`,
-      });
+      const result = await book(
+        {
+          leadId: forLead,
+          startsAt,
+          createdBy: 'assistant',
+          notes: `Booked through the website assistant (session ${sessionId}).`,
+        },
+        // The same instant the slot was resolved against, so a slot that was
+        // free a millisecond ago cannot be validated against a later clock.
+        now,
+      );
 
       if (result.ok) {
         return {

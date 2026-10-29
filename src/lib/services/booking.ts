@@ -610,3 +610,23 @@ export async function offerSlots(
   const booked = await scheduledFrom(now);
   return offerableSlots(now, { booked, limit });
 }
+
+/**
+ * Free slots as {@link book} itself validates them, for working out which slot
+ * a client meant rather than for showing anybody a list.
+ *
+ * `freeSlots`, not `offerableSlots`, and the difference is the point. This is
+ * the set a booking may land on, so resolving against it means a client who
+ * picks a time that has since aged past the offer margin — but is still inside
+ * Joey's real two-hour rule — gets the booking they asked for instead of a
+ * refusal. The narrower offer set would decline a slot `book()` would have
+ * accepted, which is the direction of error that started all of this.
+ *
+ * Uncapped on purpose: a resolver has to see every free slot to know whether a
+ * phrasing matches one of them or several, and a limit would turn "ambiguous"
+ * into a confident wrong answer about whichever slots happened to fit.
+ */
+export async function bookableSlots(now: Date = new Date()): Promise<Slot[]> {
+  const booked = await scheduledFrom(now);
+  return freeSlots(now, { booked });
+}

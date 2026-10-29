@@ -124,6 +124,43 @@ describe('system prompt — booking instructions', () => {
     );
   });
 
+  /**
+   * The multi-turn failure, which the staleness rule above did not cover.
+   *
+   * Nothing persists a tool call: `chat_messages` holds a role and text, and
+   * the chat route replays only that. So a turn after check_availability ran,
+   * the ISO instants are gone from the model's context and its only trace of
+   * them is the sentence it wrote — "3:00 PM Eastern Time". Asked to book, it
+   * passes that label, which is not on the slot grid, and a client who picked a
+   * free slot is told it is unavailable. The server now resolves such a label
+   * back to a free slot, but this rule is the primary fix: with a fresh call in
+   * the same turn the model has real values to copy.
+   */
+  it('requires a fresh check_availability in the same turn as a booking', () => {
+    expect(section).toMatch(
+      /Call check_availability again in the SAME reply as book_appointment/,
+    );
+    expect(section).toMatch(/take\s+the start_time from that fresh result/);
+    expect(section).toMatch(
+      /Do not rebuild a\s+start_time out of something you said earlier in the conversation/,
+    );
+  });
+
+  it('keeps the order when the client picks a time from an older message', () => {
+    expect(section).toMatch(
+      /check_availability first, find their choice in what it returns now/,
+    );
+  });
+
+  it('makes it ask which day rather than choose one', () => {
+    // A bare "3:30 PM" names a time and not a day, and 3:30 is free on most
+    // days of the horizon. Picking one would book somebody onto a day they
+    // never agreed to, which is worse than one more question.
+    expect(section).toMatch(/If the client names a time without a day/);
+    expect(section).toMatch(/ask which day before you book/);
+    expect(section).toMatch(/do not pass a day-less time to book_appointment/);
+  });
+
   it('forbids re-offering a slot it has already called unavailable', () => {
     expect(section).toMatch(
       /NEVER offer a time again once you have told the client it was unavailable/,
