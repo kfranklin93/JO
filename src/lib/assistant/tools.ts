@@ -15,6 +15,11 @@
 import { env } from "@/config/env";
 import { LEAD_INTENTS } from "@/lib/validation/lead";
 import { bookingLink } from "@/lib/services/booking-link";
+// Type-only, so this adds no runtime dependency on the email layer. Imported
+// rather than re-spelled because a second copy of this union would eventually
+// disagree with the one the booking service actually returns, and the whole
+// point of threading it here is that the model's wording follows the fact.
+import type { ConfirmationOutcome } from "@/lib/services/email-service";
 import type { ToolName, ToolParamSchema, ToolCall, ToolExecutor } from "./types";
 
 export interface ToolParamSchemaDef extends ToolParamSchema {}
@@ -184,7 +189,7 @@ export const TOOL_DEFINITIONS: Record<ToolName, ToolDefinition> = {
   },
   check_availability: {
     description:
-      "List the consultation times Joey actually has free. Call this before offering any time, and offer ONLY the times it returns. Never invent, estimate, or describe availability from memory — you do not know his calendar, this tool does.",
+      "List the consultation times Joey actually has free. Call this immediately before offering any time, and offer ONLY the times this latest call returns — an earlier list in this conversation is stale and must not be reused. Never invent, estimate, or describe availability from memory — you do not know his calendar, this tool does.",
     schema: {
       type: "object",
       properties: {},
@@ -270,12 +275,43 @@ export interface BookingHooks {
   book: (startTime: string) => Promise<BookingToolResult>;
 }
 
-/** What the host's booking hook reports back. */
+/**
+ * What the host's booking hook reports back.
+ *
+ * JOEY UPDATE — one status per real outcome, replacing `not_available`.
+ *
+ * `not_available` collapsed four different failures into one word, and the
+ * model had to invent which had happened. Observed in production: it told a
+ * client their 3:15 had been taken when the appointments table was empty. The
+ * slot had simply aged into Joey's minimum-notice window while they were
+ * talking. Nothing was ever taken, and a client was told something untrue about
+ * Joey's calendar.
+ *
+ * So the statuses below are mutually exclusive and each maps to exactly one
+ * client-safe sentence in {@link BOOKING_REASONS}. "Somebody got there first"
+ * is reachable from `slot_taken` and from nowhere else.
+ */
 export type BookingToolResult =
-  | { status: "booked"; starts_at: string; label: string }
-  | { status: "already_booked"; starts_at: string; label: string }
+  | {
+      status: "booked";
+      starts_at: string;
+      label: string;
+      /** What actually happened to the client's confirmation email. */
+      confirmation: ConfirmationOutcome;
+    }
+  | {
+      status: "already_booked";
+      starts_at: string;
+      label: string;
+      confirmation: ConfirmationOutcome;
+    }
+  /** Somebody genuinely holds it. */
   | { status: "slot_taken"; alternatives: OfferedSlot[] }
-  | { status: "not_available"; alternatives: OfferedSlot[] }
+  /** It was free when offered and is now inside the minimum-notice window. */
+  | { status: "too_soon"; alternatives: OfferedSlot[] }
+  | { status: "in_the_past"; alternatives: OfferedSlot[] }
+  /** Off the grid, outside business hours, or past the horizon. */
+  | { status: "not_on_the_calendar"; alternatives: OfferedSlot[] }
   | { status: "no_lead" }
   | { status: "unavailable" };
 
@@ -315,11 +351,79 @@ function noBookingConfigured(): Record<string, unknown> {
   };
 }
 
+/**
+ * JOEY UPDATE — the one true sentence for each way a booking can fail.
+ *
+ * The model is told to relay these rather than compose its own explanation. It
+ * is a language model asked why a calendar said no; left to narrate, it picks
+ * the most natural-sounding reason, and the most natural-sounding reason is
+ * "somebody got there first" whether or not anybody did.
+ *
+ * Each is written to be said to a client as-is, so there is nothing for the
+ * model to improve on. Note that only `slot_taken` mentions another person.
+ */
+const BOOKING_REASONS = {
+  slot_taken: "Someone else booked that time first.",
+  too_soon:
+    "That time is now inside Joey's minimum-notice window, so it can no longer " +
+    "be held — it was free when it was offered, and the booking window has " +
+    "since closed on it.",
+  in_the_past: "That time has already passed.",
+  not_on_the_calendar: "That time is not one of Joey's bookable slots.",
+  unavailable: "Joey's calendar could not be reached, so no time was held.",
+} as const;
+
+/**
+ * What the model may say about the confirmation email, per actual outcome.
+ *
+ * The failure that started this investigation: the assistant told a client a
+ * confirmation email was on its way when there was no email code in the
+ * booking path at all. There is now, and it can still be suppressed or fail, so
+ * the claim is gated on the fact rather than on the booking having succeeded.
+ */
+const CONFIRMATION_GUIDANCE: Record<ConfirmationOutcome, string> = {
+  sent: "A confirmation email has been sent to the client, so you may say so.",
+  suppressed:
+    "NO confirmation email was sent: this client previously asked us to stop " +
+    "emailing them. Do NOT say a confirmation is on its way. Confirm the time " +
+    "itself and say Joey will be in touch at it.",
+  failed:
+    "The booking is held, but the confirmation email did NOT send. Do NOT say " +
+    "a confirmation has been sent or is on its way. Confirm the time itself " +
+    "and offer to have Joey confirm it directly.",
+  not_attempted:
+    "No confirmation email was sent on this request. Do NOT claim one has been " +
+    "sent. Confirm the time itself.",
+};
+
+/** The shared shape for every outcome where a time could not be held. */
+function bookingFailure(
+  status: "slot_taken" | "too_soon" | "in_the_past" | "not_on_the_calendar",
+  alternatives: OfferedSlot[],
+): Record<string, unknown> {
+  return {
+    status,
+    reason: BOOKING_REASONS[status],
+    alternatives,
+    message:
+      "The time was NOT booked. Tell the client the reason above as it is " +
+      "written — do not substitute your own explanation of why, and do not " +
+      "guess at Joey's schedule. Then offer only the alternatives listed here, " +
+      "and never re-offer the time that just failed.",
+  };
+}
+
 /** Turn a host booking result into something the model can act on. */
 function bookAppointmentResult(result: BookingToolResult): Record<string, unknown> {
   switch (result.status) {
     case "booked":
-      return { status: "booked", starts_at: result.starts_at, confirmed_for: result.label };
+      return {
+        status: "booked",
+        starts_at: result.starts_at,
+        confirmed_for: result.label,
+        confirmation_email: result.confirmation,
+        message: CONFIRMATION_GUIDANCE[result.confirmation],
+      };
 
     case "already_booked":
       // Idempotent. The model retrying must be told yes, not that it clashed.
@@ -327,26 +431,17 @@ function bookAppointmentResult(result: BookingToolResult): Record<string, unknow
         status: "already_booked",
         starts_at: result.starts_at,
         confirmed_for: result.label,
-        message: "This client already holds that time. Confirm it rather than rebooking.",
+        confirmation_email: result.confirmation,
+        message:
+          "This client already holds that time. Confirm it rather than rebooking. " +
+          CONFIRMATION_GUIDANCE[result.confirmation],
       };
 
     case "slot_taken":
-      return {
-        status: "slot_taken",
-        alternatives: result.alternatives,
-        message:
-          "Somebody booked that time first. Apologise briefly, offer these " +
-          "alternatives, and do not claim the original time is held.",
-      };
-
-    case "not_available":
-      return {
-        status: "not_available",
-        alternatives: result.alternatives,
-        message:
-          "That time is not bookable. Offer only the alternatives listed here. " +
-          "Do not explain Joey's schedule or guess why.",
-      };
+    case "too_soon":
+    case "in_the_past":
+    case "not_on_the_calendar":
+      return bookingFailure(result.status, result.alternatives);
 
     case "no_lead":
       return {
@@ -359,10 +454,12 @@ function bookAppointmentResult(result: BookingToolResult): Record<string, unknow
     case "unavailable":
       return {
         status: "unavailable",
+        reason: BOOKING_REASONS.unavailable,
         message:
-          "The calendar could not be reached. Do NOT say the time is booked. " +
-          "Tell the client Joey will confirm directly and make sure you have " +
-          "their contact details.",
+          "The calendar could not be reached. Do NOT say the time is booked, and " +
+          "do NOT say it was taken — nothing is known either way. Tell the client " +
+          "the reason above as it is written, say Joey will confirm directly, and " +
+          "make sure you have their contact details.",
       };
   }
 }

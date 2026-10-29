@@ -140,6 +140,16 @@ describe('booking tool definitions', () => {
     expect(Object.keys(properties)).toEqual(['start_time']);
   });
 
+  it('tells the model an earlier availability list is stale', () => {
+    // The licence the old wording gave it: "offer only the times it returns"
+    // was satisfied by a list from three turns earlier, which is how a slot it
+    // had already refused got offered again.
+    expect(TOOL_DEFINITIONS.check_availability.description).toMatch(
+      /this latest call returns/i,
+    );
+    expect(TOOL_DEFINITIONS.check_availability.description).toMatch(/stale/i);
+  });
+
   it('tells the model in both descriptions not to originate a time', () => {
     expect(TOOL_DEFINITIONS.check_availability.description).toMatch(
       /never invent, estimate, or describe availability from memory/i,
@@ -225,6 +235,7 @@ describe('book_appointment — result mapping', () => {
       status: 'booked',
       starts_at: SLOTS[0]!.start_time,
       label: SLOTS[0]!.label,
+      confirmation: 'sent',
     });
 
     const result = await executor.execute({
@@ -232,11 +243,9 @@ describe('book_appointment — result mapping', () => {
       input: { start_time: SLOTS[0]!.start_time },
     });
 
-    expect(result).toEqual({
-      status: 'booked',
-      starts_at: SLOTS[0]!.start_time,
-      confirmed_for: SLOTS[0]!.label,
-    });
+    expect(result.status).toBe('booked');
+    expect(result.starts_at).toBe(SLOTS[0]!.start_time);
+    expect(result.confirmed_for).toBe(SLOTS[0]!.label);
     // The exact string, unreformatted. A model that copied a value and had it
     // rewritten on the way through would be booking a time nobody offered.
     expect(book).toHaveBeenCalledWith(SLOTS[0]!.start_time);
@@ -247,6 +256,7 @@ describe('book_appointment — result mapping', () => {
       status: 'already_booked',
       starts_at: SLOTS[0]!.start_time,
       label: SLOTS[0]!.label,
+      confirmation: 'not_attempted',
     });
 
     const result = await executor.execute({
@@ -269,20 +279,7 @@ describe('book_appointment — result mapping', () => {
 
     expect(result.status).toBe('slot_taken');
     expect(result.alternatives).toEqual(SLOTS);
-    expect(String(result.message)).toMatch(/do not claim/i);
-  });
-
-  it('confines the model to the alternatives when a time is not bookable', async () => {
-    const { executor } = withBooking({ status: 'not_available', alternatives: SLOTS });
-
-    const result = await executor.execute({
-      name: 'book_appointment',
-      input: { start_time: '2026-03-12T04:00:00.000Z' },
-    });
-
-    expect(result.status).toBe('not_available');
-    expect(result.alternatives).toEqual(SLOTS);
-    expect(String(result.message)).toMatch(/only the alternatives/i);
+    expect(String(result.reason)).toMatch(/someone else booked that time first/i);
   });
 
   it('sends the model to capture_lead when there is nobody to book for', async () => {
@@ -310,8 +307,189 @@ describe('book_appointment — result mapping', () => {
 
     expect(result.status).toBe('unavailable');
     expect(String(result.message)).toMatch(/Do NOT say the time is booked/i);
+    expect(String(result.reason)).toMatch(/could not be reached/i);
   });
 
+});
+
+/**
+ * The reason a booking failed, which the model must relay rather than narrate.
+ *
+ * The production failure in full: the assistant offered 3:00–4:45 PM, the client
+ * picked 3:15, and the assistant answered "that time isn't available" while
+ * re-listing 3:15 in the same message. On the next attempt it said "that
+ * specific time just got taken". The appointments table was empty. Nothing had
+ * been taken — the slot had aged into Joey's two-hour notice window during the
+ * conversation — and a client was told something untrue about Joey's calendar.
+ *
+ * The cause was one status, `not_available`, standing for four different
+ * outcomes, and prompt text that offered the model both explanations for all of
+ * them. These tests pin the replacement: one status per outcome, each carrying
+ * the sentence to say.
+ */
+describe('book_appointment — the reason it failed', () => {
+  async function failWith(result: BookingToolResult) {
+    const { executor } = withBooking(result);
+    return executor.execute({
+      name: 'book_appointment',
+      input: { start_time: SLOTS[0]!.start_time },
+    });
+  }
+
+  it('says the notice window closed when the slot aged out mid-conversation', async () => {
+    const result = await failWith({ status: 'too_soon', alternatives: SLOTS });
+
+    expect(result.status).toBe('too_soon');
+    expect(String(result.reason)).toMatch(/minimum-notice window/i);
+    // The honest part: it was a real slot when it was offered.
+    expect(String(result.reason)).toMatch(/free when it was offered/i);
+  });
+
+  it('says the time has passed rather than that it was taken', async () => {
+    const result = await failWith({ status: 'in_the_past', alternatives: SLOTS });
+
+    expect(result.status).toBe('in_the_past');
+    expect(String(result.reason)).toMatch(/already passed/i);
+  });
+
+  it('says a time off the grid is not one of Joey’s slots', async () => {
+    const result = await failWith({
+      status: 'not_on_the_calendar',
+      alternatives: SLOTS,
+    });
+
+    expect(result.status).toBe('not_on_the_calendar');
+    expect(String(result.reason)).toMatch(/not one of Joey's bookable slots/i);
+  });
+
+  it.each([
+    ['too_soon'],
+    ['in_the_past'],
+    ['not_on_the_calendar'],
+  ] as const)(
+    'never offers "somebody got there first" as an explanation for %s',
+    async (status) => {
+      // The assertion that would have caught the live bug. Only a genuinely
+      // taken slot may be described as taken, and nothing else in the result
+      // may put that wording in reach.
+      const result = await failWith({ status, alternatives: SLOTS });
+
+      const text = JSON.stringify(result);
+      expect(text).not.toMatch(/someone else/i);
+      expect(text).not.toMatch(/somebody/i);
+      expect(text).not.toMatch(/\btaken\b/i);
+      expect(text).not.toMatch(/got there first/i);
+    },
+  );
+
+  it.each([
+    ['slot_taken'],
+    ['too_soon'],
+    ['in_the_past'],
+    ['not_on_the_calendar'],
+  ] as const)('forbids re-offering the failed time and narrating %s', async (status) => {
+    const result = await failWith({ status, alternatives: SLOTS });
+
+    expect(result.alternatives).toEqual(SLOTS);
+    expect(String(result.message)).toMatch(/do not substitute your own explanation/i);
+    expect(String(result.message)).toMatch(/never re-offer the time that just failed/i);
+    expect(String(result.message)).toMatch(/only the alternatives/i);
+  });
+
+  it('gives every failure a reason, so the model never has to supply one', async () => {
+    for (const status of [
+      'slot_taken',
+      'too_soon',
+      'in_the_past',
+      'not_on_the_calendar',
+    ] as const) {
+      const result = await failWith({ status, alternatives: SLOTS });
+
+      expect(typeof result.reason).toBe('string');
+      expect(String(result.reason).length).toBeGreaterThan(0);
+    }
+  });
+});
+
+/**
+ * Whether the model may say a confirmation email was sent.
+ *
+ * This is the complaint that started the investigation: the assistant told a
+ * client a booking confirmation email was on its way, at a time when there was
+ * no email code in the booking path at all. There is now, and it can still be
+ * suppressed by an opt-out or fail at the provider, so the claim has to follow
+ * the fact rather than the booking.
+ */
+describe('book_appointment — the confirmation email claim', () => {
+  async function bookedWith(confirmation: 'sent' | 'suppressed' | 'failed' | 'not_attempted') {
+    const { executor } = withBooking({
+      status: 'booked',
+      starts_at: SLOTS[0]!.start_time,
+      label: SLOTS[0]!.label,
+      confirmation,
+    });
+
+    return executor.execute({
+      name: 'book_appointment',
+      input: { start_time: SLOTS[0]!.start_time },
+    });
+  }
+
+  it('reports the actual outcome rather than leaving it to be assumed', async () => {
+    expect((await bookedWith('sent')).confirmation_email).toBe('sent');
+    expect((await bookedWith('failed')).confirmation_email).toBe('failed');
+    expect((await bookedWith('suppressed')).confirmation_email).toBe('suppressed');
+  });
+
+  it('permits the claim only when an email actually went out', async () => {
+    expect(String((await bookedWith('sent')).message)).toMatch(
+      /confirmation email has been sent/i,
+    );
+  });
+
+  it.each([['failed'], ['suppressed'], ['not_attempted']] as const)(
+    'forbids the claim when the outcome was %s',
+    async (confirmation) => {
+      const result = await bookedWith(confirmation);
+
+      expect(String(result.message)).toMatch(/do NOT (say|claim)/i);
+      expect(String(result.message)).not.toMatch(/you may say so/i);
+    },
+  );
+
+  it('still confirms the booking itself when the email failed', async () => {
+    // The booking is committed. A failed email must not be reported to the
+    // client as a failed booking.
+    const result = await bookedWith('failed');
+
+    expect(result.status).toBe('booked');
+    expect(result.confirmed_for).toBe(SLOTS[0]!.label);
+    expect(String(result.message)).toMatch(/booking is held/i);
+    expect(String(result.message)).toMatch(/confirm the time itself/i);
+  });
+
+  it('explains the opt-out case so the silence is not read as a failure', async () => {
+    const result = await bookedWith('suppressed');
+
+    expect(String(result.message)).toMatch(/asked us to stop emailing/i);
+  });
+
+  it('makes no claim about an email on an idempotent rebooking', async () => {
+    const { executor } = withBooking({
+      status: 'already_booked',
+      starts_at: SLOTS[0]!.start_time,
+      label: SLOTS[0]!.label,
+      confirmation: 'not_attempted',
+    });
+
+    const result = await executor.execute({
+      name: 'book_appointment',
+      input: { start_time: SLOTS[0]!.start_time },
+    });
+
+    expect(result.confirmation_email).toBe('not_attempted');
+    expect(String(result.message)).toMatch(/do NOT claim one has been sent/i);
+  });
 });
 
 /**
@@ -355,6 +533,7 @@ describe('booking tools — with Composio enabled', () => {
       status: 'booked' as const,
       starts_at: startTime,
       label: SLOTS[0]!.label,
+      confirmation: 'sent' as const,
     }));
 
     const executor = createToolExecutor({ booking: { availability, book } });
@@ -363,11 +542,10 @@ describe('booking tools — with Composio enabled', () => {
       input: { start_time: SLOTS[0]!.start_time },
     });
 
-    expect(result).toEqual({
-      status: 'booked',
-      starts_at: SLOTS[0]!.start_time,
-      confirmed_for: SLOTS[0]!.label,
-    });
+    expect(result.status).toBe('booked');
+    expect(result.starts_at).toBe(SLOTS[0]!.start_time);
+    expect(result.confirmed_for).toBe(SLOTS[0]!.label);
+    expect(result.confirmation_email).toBe('sent');
     expect(book).toHaveBeenCalledWith(SLOTS[0]!.start_time);
   });
 

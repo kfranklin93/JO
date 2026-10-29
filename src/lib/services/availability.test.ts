@@ -2,9 +2,12 @@ import { describe, expect, it } from 'vitest';
 import {
   BUSINESS_HOURS,
   MIN_NOTICE_MINUTES,
+  OFFER_BUFFER_MINUTES,
+  OFFER_NOTICE_MINUTES,
   SLOT_MINUTES,
   freeSlots,
   isBookable,
+  offerableSlots,
   slotsByDate,
   type AvailabilityWindow,
 } from './availability';
@@ -138,6 +141,128 @@ describe('minimum notice', () => {
 
   it('defaults to two hours, so nobody books before Joey sees the alert', () => {
     expect(MIN_NOTICE_MINUTES).toBe(120);
+  });
+});
+
+/**
+ * The offer buffer, and why there are two notice windows.
+ *
+ * Reconstructed from the production transcript this fixes. The assistant offered
+ * 3:00–4:45 PM, which were genuinely free at the moment they were offered. The
+ * client read the list, asked a question, gave their name and email, and picked
+ * 3:15. By then 3:15 was inside the two-hour notice window, so `book()`
+ * correctly refused it — and the client was told a time they had just been
+ * offered did not exist.
+ *
+ * The fix is to offer with a margin and book without one. The asymmetry only
+ * ever runs in the safe direction: an offer is more conservative than the rule,
+ * never less, so a client who picks promptly cannot be refused. These tests pin
+ * both edges of that, because a buffer applied to the wrong function would make
+ * the system *more* permissive than Joey allows, which is worse than the bug.
+ */
+describe('the offer buffer', () => {
+  /**
+   * 09:00 Eastern on a Monday in January.
+   *
+   * Chosen so the two windows land in different places. The rule permits 11:00
+   * onward; the margin permits 12:00 onward, and 12:00 is in the midday gap, so
+   * the first thing on offer is 13:00. A later start would put both windows
+   * past the gap and the test would pass without the buffer existing.
+   */
+  const MON_9AM = new Date('2026-01-12T14:00:00.000Z');
+
+  /** The first slot each window would offer, as an Eastern wall clock. */
+  function offeredTimes(now: Date) {
+    return offerableSlots(now, { windows: MONDAY_ONLY, horizonDays: 0 }).map((slot) =>
+      zonedTimeString(slot.startsAt),
+    );
+  }
+
+  function bookableTimes(now: Date) {
+    return freeSlots(now, { windows: MONDAY_ONLY, horizonDays: 0 }).map((slot) =>
+      zonedTimeString(slot.startsAt),
+    );
+  }
+
+  it('is an hour on top of the real notice, not instead of it', () => {
+    expect(OFFER_BUFFER_MINUTES).toBe(60);
+    expect(OFFER_NOTICE_MINUTES).toBe(MIN_NOTICE_MINUTES + OFFER_BUFFER_MINUTES);
+    // The direction that matters. An offer window shorter than the booking rule
+    // would offer times Joey has not agreed to honour.
+    expect(OFFER_NOTICE_MINUTES).toBeGreaterThan(MIN_NOTICE_MINUTES);
+  });
+
+  it('withholds a slot that is bookable now but will not be in an hour', () => {
+    // At 09:00 the rule permits 11:00 onward. The margin pushes the first
+    // offer to 13:00, because 11:00 and 11:45 are the slots a conversation can
+    // outlive and 12:00 is the midday gap.
+    expect(bookableTimes(MON_9AM)).toContain('11:00');
+    expect(offeredTimes(MON_9AM)).not.toContain('11:00');
+    expect(offeredTimes(MON_9AM)[0]).toBe('13:00');
+  });
+
+  it('never offers a slot already inside the real notice window', () => {
+    // The property that would have prevented the live failure outright: nothing
+    // on offer is ever something `book()` would refuse as too soon.
+    const slots = offerableSlots(MON_9AM, { windows: MONDAY_ONLY, horizonDays: 2 });
+    const earliestBookable = MON_9AM.getTime() + MIN_NOTICE_MINUTES * 60_000;
+
+    expect(slots.length).toBeGreaterThan(0);
+    for (const slot of slots) {
+      expect(slot.startsAt.getTime()).toBeGreaterThanOrEqual(earliestBookable);
+    }
+  });
+
+  it('keeps a slot offered at the edge of the buffer bookable', () => {
+    // The earliest thing offered, picked an instant later: it must book. A
+    // buffer that made offers *less* bookable would be the same bug in a
+    // different place.
+    const [earliest] = offerableSlots(MON_9AM, {
+      windows: MONDAY_ONLY,
+      horizonDays: 0,
+    });
+
+    expect(earliest).toBeDefined();
+    expect(isBookable(earliest!.startsAt, MON_9AM, { windows: MONDAY_ONLY })).toBe(
+      true,
+    );
+  });
+
+  it('keeps that same slot bookable after a full buffer’s worth of conversation', () => {
+    // The whole point of choosing an hour. A slot offered at 09:00 is still
+    // bookable at 10:00, so a client who takes their time is not refused.
+    const [earliest] = offerableSlots(MON_9AM, {
+      windows: MONDAY_ONLY,
+      horizonDays: 0,
+    });
+    const anHourLater = new Date(MON_9AM.getTime() + OFFER_BUFFER_MINUTES * 60_000);
+
+    expect(isBookable(earliest!.startsAt, anHourLater, { windows: MONDAY_ONLY })).toBe(
+      true,
+    );
+  });
+
+  it('leaves the booking rule itself untouched', () => {
+    // `freeSlots` and `isBookable` are the booking path and must still answer
+    // to the real two hours. If the margin leaked into them, a client who
+    // picked promptly would start being refused.
+    const noon = new Date('2026-01-12T17:00:00.000Z'); // 12:00 Eastern
+    const twoPm = new Date('2026-01-12T19:00:00.000Z'); // 14:00 Eastern
+
+    expect(isBookable(twoPm, noon, { windows: MONDAY_ONLY })).toBe(true);
+    expect(bookableTimes(noon)).toContain('14:00');
+    // ...and the same instant is not yet on offer, which is the asymmetry.
+    expect(offeredTimes(noon)).not.toContain('14:00');
+  });
+
+  it('honours an explicit notice override, so a test can state both windows', () => {
+    const times = offerableSlots(MON_9AM, {
+      windows: MONDAY_ONLY,
+      horizonDays: 0,
+      minNoticeMinutes: 0,
+    }).map((slot) => zonedTimeString(slot.startsAt));
+
+    expect(times[0]).toBe('09:00');
   });
 });
 

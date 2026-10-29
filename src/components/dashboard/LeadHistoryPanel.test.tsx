@@ -73,7 +73,7 @@ describe('LeadHistoryPanel — bookings', () => {
 
     expect(await screen.findByText('Bookings')).toBeInTheDocument();
     expect(screen.getByText('Thu, Mar 12')).toBeInTheDocument();
-    expect(screen.getByText('3:00 PM EDT')).toBeInTheDocument();
+    expect(screen.getByText('3:00 PM Eastern Time')).toBeInTheDocument();
     expect(screen.getByText('Phone call')).toBeInTheDocument();
     expect(screen.getByText('Scheduled')).toBeInTheDocument();
   });
@@ -83,7 +83,7 @@ describe('LeadHistoryPanel — bookings', () => {
 
     await screen.findByText('Bookings');
 
-    expect(screen.getByText(/\bEDT\b/)).toBeInTheDocument();
+    expect(screen.getByText(/Eastern Time/)).toBeInTheDocument();
     expect(screen.queryByText(/7:00 PM/)).not.toBeInTheDocument();
     expect(screen.queryByText(/19:00/)).not.toBeInTheDocument();
   });

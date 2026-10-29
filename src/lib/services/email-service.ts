@@ -5,6 +5,12 @@ import { requireEnv } from '@/lib/utils/require-env';
 import { createUnsubscribeToken } from '@/lib/auth/unsubscribe-token';
 import { isSuppressed, normalizeEmail } from '@/lib/services/email-preferences';
 import { bookingLine } from '@/lib/services/booking-link';
+import { SLOT_MINUTES } from '@/lib/services/availability';
+import {
+  describeSlot,
+  describeSlotDay,
+  describeSlotShort,
+} from '@/lib/services/slot-label';
 
 // Initialize Resend client
 let resendClient: Resend | null = null;
@@ -178,6 +184,196 @@ export async function sendFollowUpEmail(
       'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
     },
   });
+}
+
+/**
+ * What happened to a client's appointment confirmation.
+ *
+ * Four values rather than a boolean because the assistant has to say something
+ * different for each, and because `false` was being read as "probably sent".
+ * `'not_attempted'` is the idempotent rebooking case: the row already existed,
+ * so no second confirmation went out and no claim may be made about one.
+ */
+export type ConfirmationOutcome = 'sent' | 'suppressed' | 'failed' | 'not_attempted';
+
+/** The client an appointment belongs to, as the two templates below need them. */
+export interface AppointmentEmailLead {
+  name: string | null;
+  email: string;
+  phone: string | null;
+  /** Their stated goal, already normalised to the canonical intent vocabulary. */
+  intent: string;
+  /** What they said in their own words, if anything. */
+  notes: string | null;
+}
+
+/** One booking, in the shape the appointment emails render. */
+export interface AppointmentEmailDetails {
+  startsAt: Date;
+  /** `phone`, `video` or `in_person`. */
+  channel: string;
+  lead: AppointmentEmailLead;
+}
+
+/** How the consultation happens, as a person would say it. */
+function channelPhrase(channel: string): string {
+  if (channel === 'video') return 'video call';
+  if (channel === 'in_person') return 'in-person meeting';
+  return 'phone call';
+}
+
+/**
+ * Confirm a booking to the client.
+ *
+ * Sent after the appointment row is committed, so this cannot and must not
+ * affect whether the booking stands. It returns what happened instead of
+ * throwing, and the assistant keys its wording off that — the failure that
+ * prompted this function was the assistant telling a client a confirmation
+ * email was on its way when no email code existed at all.
+ *
+ * Honours the opt-out list, for the same reason `sendFollowUpEmail` does and
+ * with the same consequence: somebody who asked us to stop emailing gets
+ * `'suppressed'`, not a confirmation. The judgement is deliberate. A booking
+ * confirmation is transactional and a narrow argument could be made for
+ * overriding an opt-out, but the honest position is that we were asked to stop
+ * and the time was already spoken aloud in the conversation — so the right
+ * answer is to say plainly that no email was sent rather than to send one
+ * anyway. Joey's notification is unaffected, so he still knows to expect them.
+ *
+ * Fails closed when the suppression list cannot be read, which reports
+ * `'failed'` rather than sending blind.
+ */
+export async function sendAppointmentConfirmation(
+  details: AppointmentEmailDetails,
+): Promise<ConfirmationOutcome> {
+  const { lead, startsAt } = details;
+  const when = describeSlot(startsAt);
+
+  try {
+    if (await isSuppressed(lead.email)) {
+      console.log(
+        `[email] suppressed, no appointment confirmation to ${normalizeEmail(lead.email)}`,
+      );
+      return 'suppressed';
+    }
+  } catch (err) {
+    console.error('[email] could not check the opt-out list, so nothing was sent:', err);
+    return 'failed';
+  }
+
+  const greeting = lead.name ? `Hi ${lead.name},` : 'Hi there,';
+
+  // Built as text and escaped on the way into HTML, which is how the follow-up
+  // path handles lead-supplied names too. The only interpolation is the name.
+  const body = `${greeting}
+
+You're booked in with Joey. Here are the details:
+
+When: ${when}
+How long: ${SLOT_MINUTES} minutes
+Format: ${channelPhrase(details.channel)}
+
+If you need to move it or something comes up, just reply to this email or call
+and we'll sort it out.`;
+
+  const formatted = formatEmailWithSignature(body);
+
+  // Joey's own contact details, not the lead's — but still run through the
+  // link sanitisers rather than interpolated raw, so a mistyped environment
+  // variable cannot produce an active href. No unsubscribe footer: this is a
+  // transactional confirmation for something the client just asked for, and
+  // anyone who had opted out was already turned away above.
+  const mail = safeMailto(env.JOEY_EMAIL);
+  const tel = safeTel(env.JOEY_PHONE);
+  const contact = [
+    mail
+      ? `<a href="mailto:${escapeAttr(mail)}">${escapeHtml(env.JOEY_EMAIL)}</a>`
+      : '',
+    tel ? `<a href="tel:${escapeAttr(tel)}">${escapeHtml(env.JOEY_PHONE)}</a>` : '',
+  ].filter(Boolean);
+
+  const html =
+    `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">` +
+    `<h2>Your consultation is confirmed</h2>` +
+    `<p>${escapeHtml(greeting)}</p>` +
+    `<p><strong>When:</strong> ${escapeHtml(when)}<br>` +
+    `<strong>How long:</strong> ${SLOT_MINUTES} minutes<br>` +
+    `<strong>Format:</strong> ${escapeHtml(channelPhrase(details.channel))}</p>` +
+    `<p>Need to move it? Reply to this email` +
+    (contact.length > 0 ? ` or reach Joey at ${contact.join(' or ')}` : '') +
+    `.</p>` +
+    `<hr>` +
+    textToHtml(formatEmailWithSignature('')) +
+    `</div>`;
+
+  try {
+    const sent = await sendEmail({
+      to: lead.email,
+      subject: `Confirmed: your ${SLOT_MINUTES}-minute consultation on ${describeSlotDay(startsAt)}`,
+      html,
+      text: formatted,
+    });
+
+    return sent ? 'sent' : 'failed';
+  } catch (err) {
+    // A missing RESEND_API_KEY throws, and an unverified sending domain fails.
+    // Neither may reach the caller as an exception: the appointment is already
+    // in the database.
+    console.error('[email] appointment confirmation did not send:', err);
+    return 'failed';
+  }
+}
+
+/**
+ * Tell Joey an appointment exists.
+ *
+ * He was getting `notifyJoeyOfNewLead` and nothing else, so a booking made
+ * through the assistant reached his calendar without reaching him. The time,
+ * who it is with, how to contact them and what they want — enough to pick up
+ * the phone without opening the dashboard.
+ *
+ * Never throws, for the same reason as the confirmation above.
+ */
+export async function notifyJoeyOfAppointment(
+  details: AppointmentEmailDetails,
+): Promise<boolean> {
+  const { lead, startsAt } = details;
+  const when = describeSlot(startsAt);
+  const who = lead.name ?? lead.email;
+
+  const mail = safeMailto(lead.email);
+  const tel = safeTel(lead.phone);
+
+  const rows = [
+    `<h2>New appointment booked</h2>`,
+    `<p><strong>When:</strong> ${escapeHtml(when)} (${SLOT_MINUTES} minutes)</p>`,
+    `<p><strong>Format:</strong> ${escapeHtml(channelPhrase(details.channel))}</p>`,
+    `<p><strong>Name:</strong> ${escapeHtml(lead.name ?? 'Not given')}</p>`,
+    `<p><strong>Email:</strong> <a href="mailto:${escapeAttr(mail)}">${escapeHtml(lead.email)}</a></p>`,
+    lead.phone
+      ? `<p><strong>Phone:</strong> <a href="tel:${escapeAttr(tel)}">${escapeHtml(lead.phone)}</a></p>`
+      : `<p><strong>Phone:</strong> Not given</p>`,
+    `<p><strong>They want:</strong> ${escapeHtml(lead.intent)}</p>`,
+    lead.notes ? `<p><strong>In their words:</strong> ${escapeHtml(lead.notes)}</p>` : '',
+  ]
+    .filter(Boolean)
+    .join('\n');
+
+  try {
+    return await sendEmail({
+      to: env.JOEY_EMAIL,
+      subject: `📅 ${describeSlotShort(startsAt)} — consultation with ${who}`,
+      html: `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+      ${rows}
+    </div>
+  `,
+      replyTo: lead.email,
+    });
+  } catch (err) {
+    console.error('[email] appointment notification to Joey did not send:', err);
+    return false;
+  }
 }
 
 /**

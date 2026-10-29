@@ -97,7 +97,7 @@ describe('AppointmentsPanel', () => {
     render(<AppointmentsPanel />);
 
     expect(await screen.findByText('Thu, Mar 12')).toBeInTheDocument();
-    expect(screen.getByText('3:00 PM EDT')).toBeInTheDocument();
+    expect(screen.getByText('3:00 PM Eastern Time')).toBeInTheDocument();
     // The failure being guarded against: the raw UTC hour, or a browser-local
     // rendering of it.
     expect(screen.queryByText(/7:00 PM/)).not.toBeInTheDocument();
@@ -110,7 +110,7 @@ describe('AppointmentsPanel', () => {
     render(<AppointmentsPanel />);
 
     // Both rows, not just the first: the zone belongs to every time on screen.
-    expect(await screen.findAllByText(/\bEDT\b/)).toHaveLength(2);
+    expect(await screen.findAllByText(/Eastern Time/)).toHaveLength(2);
   });
 
   it('uses semantic list markup', async () => {

@@ -104,7 +104,63 @@ describe('system prompt — booking instructions', () => {
     expect(section).toMatch(
       /Call check_availability BEFORE you offer or confirm any time/,
     );
-    expect(section).toMatch(/offer ONLY\s+the times it returned/);
+    expect(section).toMatch(/offer ONLY\s+the times the MOST RECENT check_availability result returned/);
+  });
+
+  /**
+   * Observed live: the assistant offered 3:00–4:45 PM, refused the client's
+   * 3:15, and re-listed 3:15 in the same message. The old instruction — offer
+   * only times check_availability returned "in this conversation" — is what
+   * permitted it, because a list from three turns earlier satisfies that.
+   */
+  it('confines the model to the newest availability result, not the conversation', () => {
+    expect(section).toMatch(/An earlier list in this conversation is stale/);
+    expect(section).toMatch(
+      /Call check_availability again before every new offer/,
+    );
+    expect(section).toMatch(/Never scroll back to a list you already gave/);
+    expect(prompt).toMatch(
+      /NEVER present a day or a time as available unless check_availability returned\s+it in its most recent result/,
+    );
+  });
+
+  it('forbids re-offering a slot it has already called unavailable', () => {
+    expect(section).toMatch(
+      /NEVER offer a time again once you have told the client it was unavailable/,
+    );
+    expect(section).toMatch(/If it reappears in a later\s+check_availability result, skip it/);
+  });
+
+  /**
+   * The other half of the same failure. The prompt used to say that for
+   * slot_taken, not_available or unavailable the model should "say so plainly —
+   * somebody got there first, or that time cannot be held", which handed it
+   * both explanations for every failure. It picked the false one and told a
+   * client their slot had been taken while the appointments table was empty.
+   */
+  it('makes the model relay the tool’s reason rather than narrate one', () => {
+    expect(section).toMatch(/its result carries a "reason"\s+field/);
+    expect(section).toMatch(/Relay THAT reason to the client, in those words/);
+    expect(section).toMatch(/Do not compose your\s+own explanation/);
+    expect(section).toMatch(
+      /only\s+say somebody else booked it when the reason says somebody else booked it/,
+    );
+  });
+
+  it('no longer offers the model a menu of explanations for a failure', () => {
+    expect(section).not.toMatch(/somebody got there first, or that time cannot be held/);
+  });
+
+  it('gates the confirmation-email claim on the tool’s actual outcome', () => {
+    // The complaint that started this: the assistant said a confirmation email
+    // had been sent when no email code existed in the booking path at all.
+    expect(section).toMatch(/A booked result carries "confirmation_email"/);
+    expect(section).toMatch(
+      /Say a confirmation email has\s+been sent ONLY when that value is "sent"/,
+    );
+    expect(prompt).toMatch(
+      /NEVER tell a client a confirmation email was sent unless book_appointment\s+returned confirmation_email "sent"/,
+    );
   });
 
   it('forbids describing availability from memory', () => {
@@ -118,7 +174,7 @@ describe('system prompt — booking instructions', () => {
 
   it('forbids claiming a booking that did not happen', () => {
     expect(section).toMatch(/Never\s+claim a booking that did not happen/);
-    expect(section).toMatch(/never re-offer the time that just\s+failed/);
+    expect(section).toMatch(/never re-offer the time that\s+just\s+failed/);
     expect(prompt).toMatch(
       /NEVER tell a client a time is booked unless book_appointment returned booked/,
     );
@@ -126,7 +182,14 @@ describe('system prompt — booking instructions', () => {
 
   it('shows a timezone-qualified example time', () => {
     expect(section).toMatch(/Joey's local business timezone/);
-    expect(section).toContain('Thursday, March 12 at 2:00 PM EDT');
+    expect(section).toContain('Thursday, March 12 at 2:00 PM Eastern Time');
+  });
+
+  it('shows the example in the wording the labels actually produce', () => {
+    // Joey's decision: plain Eastern year-round. An example reading EDT would
+    // teach the model to rewrite the label it was handed.
+    expect(section).not.toMatch(/\bEDT\b/);
+    expect(section).not.toMatch(/\bEST\b/);
   });
 
   it('states the availability hard rule alongside the existing ones', () => {

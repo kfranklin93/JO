@@ -36,12 +36,13 @@ import {
   LeadCaptureValidationError,
   toLeadSubmissionInput,
   type LocalCaptureHook,
+  type OfferedSlot,
 } from '@/lib/assistant/tools';
 import { captureLead } from '@/lib/services/lead-capture';
 import { recordChatTurn, sessionLeadId } from '@/lib/services/chat-store';
 import { bookingLink } from '@/lib/services/booking-link';
 import { assistantMuteState } from '@/lib/services/assistant-mute';
-import { book, offerSlots } from '@/lib/services/booking';
+import { book, offerSlots, type NotBookableDetail } from '@/lib/services/booking';
 import { describeSlot } from '@/lib/services/slot-label';
 import {
   checkAndCount,
@@ -92,6 +93,37 @@ const FAIL_WARM_REPLY =
 const EMPTY_REPLY_FALLBACK =
   "Thanks — I've passed this to Joey and he'll follow up with you personally. " +
   'Anything else I can help with in the meantime?';
+
+/**
+ * One slot in the shape the model sees.
+ *
+ * The machine instant and the spoken label are produced together, here and
+ * nowhere else in this file, so the time the model reads out and the value it
+ * hands back cannot come to describe different hours.
+ */
+function offeredSlot(slot: { startsAt: Date }): OfferedSlot {
+  return {
+    start_time: slot.startsAt.toISOString(),
+    label: describeSlot(slot.startsAt),
+  };
+}
+
+/**
+ * Which tool status each kind of "never on offer" becomes.
+ *
+ * A total map rather than a conditional, so adding a `NotBookableDetail`
+ * without deciding what the client is told is a compile error. The previous
+ * code turned all of these into one `not_available`, and the model filled the
+ * gap by telling a client their slot had been taken when nothing had been.
+ */
+const NOT_BOOKABLE_STATUS: Record<
+  NotBookableDetail,
+  'too_soon' | 'in_the_past' | 'not_on_the_calendar'
+> = {
+  too_soon: 'too_soon',
+  in_the_past: 'in_the_past',
+  not_on_the_calendar: 'not_on_the_calendar',
+};
 
 /** Same 429 shape as the parent route: a real Retry-After, a vague body. */
 function tooManyRequests(limit: RequestLimitResult): NextResponse {
@@ -211,10 +243,7 @@ export async function POST(req: NextRequest) {
   const bookingHooks = {
     availability: async () => {
       const slots = await offerSlots(new Date());
-      return slots.map((slot) => ({
-        start_time: slot.startsAt.toISOString(),
-        label: describeSlot(slot.startsAt),
-      }));
+      return slots.map(offeredSlot);
     },
     book: async (startTime: string) => {
       const forLead = capturedLeadId ?? leadId;
@@ -222,15 +251,13 @@ export async function POST(req: NextRequest) {
 
       const startsAt = new Date(startTime);
       if (Number.isNaN(startsAt.getTime())) {
-        // A model-invented string rather than a copied one. Reported as "not
-        // available" with real alternatives, which is both true and actionable.
+        // A model-invented string rather than a copied one. It is not on the
+        // calendar because it is not a time at all, which is the honest status
+        // for it, and real alternatives make it actionable.
         const slots = await offerSlots(new Date());
         return {
-          status: 'not_available' as const,
-          alternatives: slots.slice(0, 4).map((slot) => ({
-            start_time: slot.startsAt.toISOString(),
-            label: describeSlot(slot.startsAt),
-          })),
+          status: 'not_on_the_calendar' as const,
+          alternatives: slots.slice(0, 4).map(offeredSlot),
         };
       }
 
@@ -246,21 +273,24 @@ export async function POST(req: NextRequest) {
           status: result.alreadyBooked ? ('already_booked' as const) : ('booked' as const),
           starts_at: result.appointment.startsAt.toISOString(),
           label: describeSlot(result.appointment.startsAt),
+          // The real outcome, not an assumption that a committed booking was
+          // also confirmed by email. The prompt keys the model's wording off it.
+          confirmation: result.confirmation,
         };
       }
 
       if (result.reason === 'unavailable') return { status: 'unavailable' as const };
 
-      return {
-        status:
-          result.reason === 'slot_taken'
-            ? ('slot_taken' as const)
-            : ('not_available' as const),
-        alternatives: result.alternatives.map((slot) => ({
-          start_time: slot.startsAt.toISOString(),
-          label: describeSlot(slot.startsAt),
-        })),
-      };
+      const alternatives = result.alternatives.map(offeredSlot);
+
+      if (result.reason === 'slot_taken') {
+        return { status: 'slot_taken' as const, alternatives };
+      }
+
+      // `not_bookable` carries which kind, so the model is never left to pick
+      // between "taken" and "cannot be held" — the choice it got wrong in
+      // production. See NotBookableDetail in src/lib/services/booking.ts.
+      return { status: NOT_BOOKABLE_STATUS[result.detail], alternatives };
     },
   };
 

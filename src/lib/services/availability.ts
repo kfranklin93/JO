@@ -80,6 +80,42 @@ export const SLOT_MINUTES = 15;
  */
 export const MIN_NOTICE_MINUTES = 120;
 
+/**
+ * Extra notice a slot needs before it may be *offered*, on top of
+ * {@link MIN_NOTICE_MINUTES}.
+ *
+ * ## Why there are two notice windows, which is not a bug
+ *
+ * {@link MIN_NOTICE_MINUTES} is the rule: nothing may be booked inside two
+ * hours. This is a margin on top of it, applied only when slots are offered.
+ * The asymmetry is the fix for an observed production failure.
+ *
+ * A conversation takes time. The assistant offered 3:00–4:45 PM, the client
+ * read it, asked a question, gave their name and email, and only then picked
+ * 3:15. By that point 3:15 was inside the two-hour window, so `book()`
+ * correctly refused a slot that had been genuinely free when it was offered.
+ * From the client's side the assistant listed a time and then denied it
+ * existed.
+ *
+ * Offering with a margin and booking without one means the boundary is crossed
+ * before the offer is made rather than during the conversation. A client who
+ * picks promptly is never refused, because `book()` still validates against the
+ * real two hours — the margin only ever makes the offer *more* conservative,
+ * never the booking more permissive. That direction matters: the reverse would
+ * let the assistant offer something Joey cannot honour.
+ *
+ * Sixty minutes, chosen against the transcript that prompted this: that session
+ * ran sixteen messages, and a web chat where somebody steps away mid-thread and
+ * comes back is ordinary. An hour covers that with room to spare while still
+ * leaving same-day afternoon slots on offer. It cannot be a guarantee — a
+ * client who disappears for three hours and then picks will still be refused,
+ * and `book()` saying no is the correct answer in that case.
+ */
+export const OFFER_BUFFER_MINUTES = 60;
+
+/** Total notice a slot needs before {@link offerableSlots} will offer it. */
+export const OFFER_NOTICE_MINUTES = MIN_NOTICE_MINUTES + OFFER_BUFFER_MINUTES;
+
 /** How far into the future slots are offered. */
 export const BOOKING_HORIZON_DAYS = 21;
 
@@ -214,6 +250,25 @@ export function freeSlots(now: Date, options: SlotOptions = {}): Slot[] {
  */
 function sortSlots(slots: Slot[]): Slot[] {
   return slots.sort((a, b) => a.startsAt.getTime() - b.startsAt.getTime());
+}
+
+/**
+ * Free slots that are safe to *offer* to somebody mid-conversation.
+ *
+ * {@link freeSlots} with {@link OFFER_NOTICE_MINUTES} instead of
+ * {@link MIN_NOTICE_MINUTES}. Every path that shows a time to a client goes
+ * through here; {@link freeSlots} and {@link isBookable} stay on the real rule,
+ * so a booking is validated against what Joey actually requires and an offer is
+ * made with a margin. See the note on {@link OFFER_BUFFER_MINUTES} for why.
+ *
+ * Pure, for the same reason {@link freeSlots} is: the boundary behaviour is the
+ * whole point of the function and it has to be assertable at the exact minute.
+ *
+ * A caller may still pass `minNoticeMinutes` to override the margin — the
+ * options spread last — which is what lets a test state both windows explicitly.
+ */
+export function offerableSlots(now: Date, options: SlotOptions = {}): Slot[] {
+  return freeSlots(now, { minNoticeMinutes: OFFER_NOTICE_MINUTES, ...options });
 }
 
 /**

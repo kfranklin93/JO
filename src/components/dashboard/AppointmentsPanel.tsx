@@ -16,9 +16,10 @@
  * one mistake this panel must not make, and it is invisible until somebody
  * misses a call.
  *
- * The times print their zone (`3:00 PM EDT`) for the same reason: a correct
- * hour with no zone on screen still leaves the reader guessing which clock it
- * belongs to.
+ * The times print their zone (`3:00 PM Eastern Time`) for the same reason: a
+ * correct hour with no zone on screen still leaves the reader guessing which
+ * clock it belongs to. Plain "Eastern Time" rather than EST/EDT is Joey's
+ * decision — see src/lib/services/slot-label.ts.
  *
  * Colours come from the `@theme` tokens in globals.css, never raw hex. Note the
  * error text is navy rather than gold: champagne measures 1.99:1 as text on
