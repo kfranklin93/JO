@@ -151,7 +151,19 @@ export function ValueProposition() {
                 className="h-full w-full object-cover"
               />
             </div>
-            <div className="absolute -bottom-8 -right-8 h-40 w-40 rounded-2xl border border-champagne" aria-hidden="true" />
+            {/* Decorative offset frame, and `hidden lg:block` for a real
+                reason: the grid is one column below `lg`, so the photograph
+                fills the width and this square's `-right-8` offset hangs 30px
+                past the viewport. That is horizontal page scroll on a phone,
+                measured at 390px — `scrollWidth` 421 against a 390
+                `clientWidth`. It only has room to sit outside the photo once
+                the layout is two columns. Clipping it with `overflow-hidden`
+                on the parent was the alternative and would have cut it off on
+                desktop too, where sitting outside the frame is the point. */}
+            <div
+              className="absolute -bottom-8 -right-8 hidden h-40 w-40 rounded-2xl border border-champagne lg:block"
+              aria-hidden="true"
+            />
           </motion.div>
         </div>
       </div>
