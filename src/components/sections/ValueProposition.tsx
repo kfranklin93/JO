@@ -48,6 +48,22 @@ import { siteConfig } from '@/config/site';
  * says only that it exists, that it is his, and that it reads inventory, which
  * is what its name says. Anything further has to come from Joey.
  *
+ * ## There is no photograph to put beside it
+ *
+ * The original was a two-column grid: this copy on the left, a portrait from
+ * `/images/hero/joey-profile.jpg` on the right inside a gold offset frame. That
+ * file is 238 bytes — a stub, not an image — so the column rendered a broken
+ * image icon, confirmed on screen at 1440x900 before this was changed. Almost
+ * every asset under `public/images/` is in the same state: the property shots
+ * are 237-243 bytes, the testimonial avatars are 34 bytes, and of the three
+ * files large enough to be real only `joey-hero-instagram.jpg` is an actual
+ * photograph — `joey-office.jpg` and `joey-hero.jpg` are flat grey rectangles.
+ *
+ * So the column is gone and this is a single centred column. Writing less is
+ * the rule here rather than substituting the hero's photograph into a second
+ * slot or inventing a decorative panel to fill the space. The layout comes back
+ * when Joey supplies a portrait; the gap is in the report for him.
+ *
  * ## Colours
  *
  * Onyx surface. Bone text (16.6:1) and champagne for the accents and the
@@ -72,100 +88,80 @@ export function ValueProposition() {
 
   return (
     <section className="bg-onyx py-32 sm:py-40">
-      <div className="mx-auto max-w-7xl px-8 lg:px-12">
-        <div className="grid gap-20 lg:grid-cols-2 lg:gap-28">
-          <motion.div
-            initial={{ opacity: 0, x: -30 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8 }}
-            className="flex flex-col justify-center"
-          >
-            <span className="font-sans text-sm font-light uppercase tracking-[0.3em] text-champagne">
-              The 0-4-7 Month Inventory Guide
-            </span>
-            <h2 className="mt-6 font-serif text-5xl text-linen sm:text-6xl">
-              Real Estate as a<br />
-              <span className="text-champagne">Wealth-Building Strategy.</span>
-            </h2>
-            <div className="mt-8 space-y-6 font-sans text-lg font-light leading-relaxed text-linen/80">
-              <p>
-                {siteConfig.fullName} is an active real estate investor in
-                rentals and flips, so he looks at every deal{' '}
-                <strong className="font-normal text-linen">numbers first</strong>.
-                Every move should build your financial future, not just close a
-                deal.
-              </p>
-              <p>
-                He reads inventory through his own framework, the{' '}
-                <strong className="font-normal text-linen">
-                  0-4-7 Month Inventory Guide
-                </strong>
-                . What it means for your home depends on the home — its
-                condition, the market right now, and recent sales near you —
-                so he goes through it with you personally rather than handing
-                you a generic online estimate.
-              </p>
-              {/* Joey's philosophy, from the `who-is-joey` entry. Set in the
+      <div className="mx-auto max-w-3xl px-8 lg:px-12">
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.8 }}
+          className="flex flex-col justify-center"
+        >
+          <span className="text-champagne font-sans text-sm font-light tracking-[0.3em] uppercase">
+            The 0-4-7 Month Inventory Guide
+          </span>
+          <h2 className="text-linen mt-6 font-serif text-5xl sm:text-6xl">
+            Real Estate as a<br />
+            <span className="text-champagne">Wealth-Building Strategy.</span>
+          </h2>
+          <div className="text-linen/80 mt-8 space-y-6 font-sans text-lg leading-relaxed font-light">
+            <p>
+              {siteConfig.fullName} is an active real estate investor in rentals
+              and flips, so he looks at every deal{' '}
+              <strong className="text-linen font-normal">numbers first</strong>.
+              Every move should build your financial future, not just close a
+              deal.
+            </p>
+            <p>
+              He reads inventory through his own framework, the{' '}
+              <strong className="text-linen font-normal">
+                0-4-7 Month Inventory Guide
+              </strong>
+              . What it means for your home depends on the home — its condition,
+              the market right now, and recent sales near you — so he goes
+              through it with you personally rather than handing you a generic
+              online estimate.
+            </p>
+            {/* Joey's philosophy, from the `who-is-joey` entry. Set in the
                   display face and champagne, which is how the same sentence is
                   set on the contact page — one sentence, one treatment. Note
                   `font-serif` is the display token and resolves to Archivo
                   Expanded, not a serif; the name predates the brand sheet. */}
-              <p className="font-serif text-xl leading-relaxed text-champagne sm:text-2xl">
-                Preparation Creates Confidence. Execution Creates Wins.
-              </p>
-            </div>
+            <p className="text-champagne font-serif text-xl leading-relaxed sm:text-2xl">
+              Preparation Creates Confidence. Execution Creates Wins.
+            </p>
+          </div>
 
-            <div className="mt-12 flex flex-col items-start gap-6 sm:flex-row sm:items-center sm:gap-8">
-              <MagneticButton
-                href="/get-started"
-                variant="champagne"
-                size="md"
-                onClick={handleChatClick}
+          <div className="mt-12 flex flex-col items-start gap-6 sm:flex-row sm:items-center sm:gap-8">
+            <MagneticButton
+              href="/get-started"
+              variant="champagne"
+              size="md"
+              onClick={handleChatClick}
+            >
+              <span>Ask About the 0-4-7 Guide</span>
+            </MagneticButton>
+            <Link
+              href="/about"
+              className="text-champagne hover:text-champagne/80 inline-flex items-center gap-2 font-sans text-base font-normal transition-colors"
+            >
+              <span>More about Joey</span>
+              <svg
+                className="h-5 w-5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                aria-hidden="true"
               >
-                <span>Ask About the 0-4-7 Guide</span>
-              </MagneticButton>
-              <Link
-                href="/about"
-                className="inline-flex items-center gap-2 font-sans text-base font-normal text-champagne transition-colors hover:text-champagne/80"
-              >
-                <span>More about Joey</span>
-                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-              </Link>
-            </div>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, x: 30 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8 }}
-            className="relative"
-          >
-            <div className="aspect-[4/5] overflow-hidden rounded-2xl border border-linen/20">
-              <img
-                src="/images/hero/joey-profile.jpg"
-                alt={siteConfig.fullName}
-                className="h-full w-full object-cover"
-              />
-            </div>
-            {/* Decorative offset frame, and `hidden lg:block` for a real
-                reason: the grid is one column below `lg`, so the photograph
-                fills the width and this square's `-right-8` offset hangs 30px
-                past the viewport. That is horizontal page scroll on a phone,
-                measured at 390px — `scrollWidth` 421 against a 390
-                `clientWidth`. It only has room to sit outside the photo once
-                the layout is two columns. Clipping it with `overflow-hidden`
-                on the parent was the alternative and would have cut it off on
-                desktop too, where sitting outside the frame is the point. */}
-            <div
-              className="absolute -bottom-8 -right-8 hidden h-40 w-40 rounded-2xl border border-champagne lg:block"
-              aria-hidden="true"
-            />
-          </motion.div>
-        </div>
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 5l7 7-7 7"
+                />
+              </svg>
+            </Link>
+          </div>
+        </motion.div>
       </div>
     </section>
   );

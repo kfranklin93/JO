@@ -46,6 +46,20 @@ import { motion } from 'framer-motion';
  * deliberate, not an oversight — a visitor who has just read the trust
  * argument should not have to scroll back to the top to act on it.
  *
+ * ## The card images are gone, because the files are not images
+ *
+ * Each card opened with a 4:3 photograph from `public/images/properties/`.
+ * Those four files are 237 to 243 bytes each — stubs, not photographs — so the
+ * cards rendered three broken-image boxes, confirmed on screen at 1440x900
+ * before this was changed. The gap is not local to this section: the portrait
+ * at `/images/hero/joey-profile.jpg` is 238 bytes, the six testimonial avatars
+ * are 34 bytes each (TestimonialsSection has been rendering those broken on
+ * the live homepage), and of the three files big enough to be real only
+ * `joey-hero-instagram.jpg` is an actual photograph.
+ *
+ * Writing less beats inventing more, so the cards are text. They come back as
+ * image cards when Joey supplies photographs; the gap is in the report for him.
+ *
  * ## Colours
  *
  * Bone-white surface with bone cards, matching the three sections below it,
@@ -57,7 +71,6 @@ const categories = [
   {
     title: 'Homes on the Market',
     description: 'Current listings across Metro Atlanta.',
-    image: '/images/properties/now-selling.jpg',
     href: '/properties',
     cta: 'Browse Listings',
   },
@@ -65,7 +78,6 @@ const categories = [
     title: 'Buying in Georgia',
     description:
       'Cobb, Fulton, DeKalb and Gwinnett, and anywhere else in the state. Joey walks every buyer through pre-approval personally and builds the plan with you.',
-    image: '/images/properties/flagship.jpg',
     href: '/buy-home',
     cta: 'Start as a Buyer',
   },
@@ -73,7 +85,6 @@ const categories = [
     title: 'Selling Your Home',
     description:
       'Price and timing depend on your home, the market right now, and recent sales near you. Joey reviews your home personally.',
-    image: '/images/properties/legacy.jpg',
     href: '/sell-home',
     cta: 'Start as a Seller',
   },
@@ -100,26 +111,21 @@ export function PropertyCategories() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: index * 0.1 }}
-              className="group relative overflow-hidden rounded-2xl border border-navy/10 bg-linen"
+              className="group relative flex flex-col overflow-hidden rounded-2xl border border-navy/10 bg-linen"
             >
-              <div className="aspect-[4/3] overflow-hidden bg-navy/5">
-                <img
-                  src={category.image}
-                  alt=""
-                  aria-hidden="true"
-                  className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                />
-              </div>
-              <div className="p-10">
+              <div className="flex flex-1 flex-col p-10">
                 <h3 className="font-serif text-3xl text-navy">
                   {category.title}
                 </h3>
                 <p className="mt-4 font-sans font-light text-stone">
                   {category.description}
                 </p>
+                {/* `mt-auto` rather than a fixed margin: the three
+                    descriptions are different lengths, and without it the
+                    three links sit at three different heights. */}
                 <Link
                   href={category.href}
-                  className="mt-8 inline-flex items-center gap-2 font-sans text-sm font-normal text-accent underline underline-offset-4 transition-colors hover:text-accent-hover"
+                  className="mt-auto inline-flex items-center gap-2 pt-8 font-sans text-sm font-normal text-accent underline underline-offset-4 transition-colors hover:text-accent-hover"
                 >
                   <span>{category.cta}</span>
                   <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
