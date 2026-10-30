@@ -210,12 +210,9 @@ vi.mock('@/lib/services/sms-service', () => ({
 // Imported after the mocks are registered, not at the top of the file: both
 // modules read `@/config/env` on the way in, and a static import would evaluate
 // them before `testEnv` exists.
-const {
-  ASSISTANT_CHAT_SOURCE,
-  captureLead,
-  updateCapturedLead,
-  FOLLOW_UP_SCHEDULE,
-} = await import('./lead-capture');
+const { captureLead, updateCapturedLead, FOLLOW_UP_SCHEDULE } = await import(
+  './lead-capture'
+);
 const { MissingEnvError } = await import('@/lib/utils/require-env');
 
 /** Raw input as a non-HTTP caller would build it: a plain object, no Request. */
@@ -606,23 +603,6 @@ describe('captureLead — the immediate touchpoint', () => {
       emailNotification: true,
       smsAlert: false,
     });
-  });
-});
-
-describe('captureLead — which touchpoint the lead arrived through', () => {
-  it('stores the public form by default, as every caller did before', async () => {
-    await captureLead(validInput);
-
-    expect(leadInsertValues()).toMatchObject({ source: 'website_form' });
-  });
-
-  it('stores the chat source when the assistant captured the lead', async () => {
-    // Without this, a conversation and a form submission are the same row in
-    // Joey's dashboard. Needs the matching enum label in the database first —
-    // see src/lib/db/lead-source-schema.sql.
-    await captureLead(validInput, { source: ASSISTANT_CHAT_SOURCE });
-
-    expect(leadInsertValues()).toMatchObject({ source: 'assistant_chat' });
   });
 });
 

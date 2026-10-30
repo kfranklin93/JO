@@ -38,11 +38,7 @@ import {
   type LocalCaptureHook,
   type OfferedSlot,
 } from '@/lib/assistant/tools';
-import {
-  ASSISTANT_CHAT_SOURCE,
-  captureLead,
-  updateCapturedLead,
-} from '@/lib/services/lead-capture';
+import { captureLead, updateCapturedLead } from '@/lib/services/lead-capture';
 import { recordChatTurn, sessionLeadId } from '@/lib/services/chat-store';
 import { bookingLink } from '@/lib/services/booking-link';
 import { assistantMuteState } from '@/lib/services/assistant-mute';
@@ -329,7 +325,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const outcome = await captureLead(submission, { source: ASSISTANT_CHAT_SOURCE });
+    const outcome = await captureLead(submission);
     if (!outcome.ok) throw new LeadCaptureValidationError(outcome.fieldErrors);
     capturedLeadId = outcome.leadId;
     return { lead_id: outcome.leadId };

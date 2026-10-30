@@ -44,7 +44,6 @@ const updateCapturedLead = vi.fn();
 vi.mock('@/lib/services/lead-capture', () => ({
   captureLead,
   updateCapturedLead,
-  ASSISTANT_CHAT_SOURCE: 'assistant_chat',
 }));
 
 const book = vi.fn();
@@ -178,31 +177,18 @@ describe('capture_lead — one conversation, one lead', () => {
     expect(updateCapturedLead).not.toHaveBeenCalled();
   });
 
-  it('records that the lead came in through the chat, not a form', async () => {
-    const { capture } = await turn();
-
-    await capture(CAPTURE_INPUT);
-
-    expect(captureLead).toHaveBeenCalledWith(expect.anything(), {
-      source: 'assistant_chat',
-    });
-  });
-
   it('maps the assistant’s field names before validating', async () => {
     const { capture } = await turn();
 
     await capture({ ...CAPTURE_INPUT, notes: 'Wants three bedrooms.' });
 
     // `notes` becomes `additionalNotes`; nothing is defaulted in.
-    expect(captureLead).toHaveBeenCalledWith(
-      {
-        name: CAPTURE_INPUT.name,
-        email: CAPTURE_INPUT.email,
-        intent: CAPTURE_INPUT.intent,
-        additionalNotes: 'Wants three bedrooms.',
-      },
-      { source: 'assistant_chat' },
-    );
+    expect(captureLead).toHaveBeenCalledWith({
+      name: CAPTURE_INPUT.name,
+      email: CAPTURE_INPUT.email,
+      intent: CAPTURE_INPUT.intent,
+      additionalNotes: 'Wants three bedrooms.',
+    });
   });
 
   it('folds a second call in the same turn into the first row', async () => {

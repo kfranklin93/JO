@@ -22,7 +22,6 @@ interface LeadRow {
   phone: string | null;
   intent: string;
   status: string;
-  source: string;
   location: string | null;
   budget: string | null;
   timeline: string | null;
@@ -60,24 +59,6 @@ const INTENT_COLORS: Record<string, string> = {
   insurance: 'bg-amber-100 text-amber-800',
   closing: 'bg-purple-100 text-purple-800',
   other: 'bg-neutral-100 text-neutral-600',
-};
-
-/**
- * How each `lead_source` value reads.
- *
- * Every value of the database enum has an entry, so a row can never render a
- * blank where its source should be. An unmapped value falls back to the raw
- * label rather than nothing — see the lookup below.
- */
-const SOURCE_LABELS: Record<string, string> = {
-  website_form: 'Website form',
-  assistant_chat: 'Website chat',
-  sms_inbound: 'Text message',
-  phone_call: 'Phone call',
-  referral: 'Referral',
-  social_media: 'Social media',
-  open_house: 'Open house',
-  other: 'Other',
 };
 
 const STATUS_COLORS: Record<string, string> = {
@@ -735,10 +716,6 @@ export default function DashboardPage() {
                                 {lead.timeline && (
                                   <Detail label="Timeline">{lead.timeline}</Detail>
                                 )}
-
-                                <Detail label="Came From">
-                                  {SOURCE_LABELS[lead.source] ?? lead.source}
-                                </Detail>
 
                                 <Detail label="Submitted">
                                   {formatDate(lead.createdAt)}

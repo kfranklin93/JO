@@ -33,16 +33,7 @@ export const leadSourceEnum = pgEnum('lead_source', [
   'referral',
   'social_media',
   'open_house',
-  'other',
-  // A lead the website assistant captured in conversation, so a chat lead is
-  // distinguishable from a form submission. Listed last because
-  // `ALTER TYPE ... ADD VALUE` appends, and this list is kept in the order the
-  // database actually holds.
-  //
-  // Apply src/lib/db/lead-source-schema.sql BEFORE deploying code that writes
-  // this value: a label Postgres does not know yet fails the insert, which
-  // would stop the assistant capturing leads at all.
-  'assistant_chat'
+  'other'
 ]);
 
 export const conversationTypeEnum = pgEnum('conversation_type', [

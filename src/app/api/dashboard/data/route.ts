@@ -99,11 +99,6 @@ export async function GET(request: NextRequest) {
         phone: lead.phone ?? null,
         intent: lead.propertyInterest ?? 'other',
         status: lead.status,
-        // Which touchpoint this person came in through. Until the assistant
-        // started recording 'assistant_chat', every row said 'website_form'
-        // whether it was a form or a conversation, so this was not worth
-        // showing. It is now.
-        source: lead.source,
         location: null as string | null, // not in schema at top-level; comes from formData if present
         budget: null as string | null,
         timeline: lead.timeline ?? null,

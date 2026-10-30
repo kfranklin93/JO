@@ -32,7 +32,6 @@
 
 import { eq } from 'drizzle-orm';
 import { db, leads, followUps } from '@/lib/db';
-import type { leadSourceEnum } from '@/lib/db/schema';
 import { markSent, recordFailure } from '@/lib/db/follow-up-queue';
 import { sendImmediateFollowUp } from '@/lib/services/follow-up-scheduler';
 import type { Lead } from '@/lib/services/follow-up-scheduler';
@@ -49,26 +48,6 @@ import { requireEnv } from '@/lib/utils/require-env';
 
 /** The touchpoint this call sends itself, rather than leaving to the cron. */
 export const IMMEDIATE_TEMPLATE_TYPE = 'immediate';
-
-/** A label the database's `lead_source` enum accepts. */
-export type LeadSourceValue = (typeof leadSourceEnum)['enumValues'][number];
-
-/**
- * Where a lead arrived from, when the caller does not say.
- *
- * The public form and every other HTTP caller land here, which is what they
- * stored before this became a parameter at all.
- */
-export const DEFAULT_LEAD_SOURCE: LeadSourceValue = 'website_form';
-
-/**
- * The source a lead captured in conversation records.
- *
- * Requires the matching enum label in the database — see
- * src/lib/db/lead-source-schema.sql, which must be applied before any deploy
- * that writes this.
- */
-export const ASSISTANT_CHAT_SOURCE: LeadSourceValue = 'assistant_chat';
 
 /**
  * Every follow-up touchpoint created alongside a new lead.
@@ -166,10 +145,7 @@ async function recordImmediateOutcome(
  * The WebSocket driver in src/lib/db/index.ts supports transactions; the
  * neon-http driver would not.
  */
-async function persistLead(
-  submission: LeadSubmission,
-  source: LeadSourceValue
-): Promise<PersistedLead> {
+async function persistLead(submission: LeadSubmission): Promise<PersistedLead> {
   return db.transaction(async (tx) => {
     const rows = await tx
       .insert(leads)
@@ -191,11 +167,15 @@ async function persistLead(
         },
         status: 'new',
         // The DB `lead_source` enum and the `LeadSource` type enum in
-        // src/types/lead.ts use different vocabularies, so this is the DB
-        // value, chosen by the caller rather than translated. It used to be the
-        // literal 'website_form', which made a chat lead indistinguishable from
-        // a form submission in the dashboard.
-        source,
+        // src/types/lead.ts use different vocabularies. Both forms are website
+        // forms, so this is set directly rather than translated.
+        //
+        // A lead the assistant captures in conversation also lands here, which
+        // leaves it indistinguishable from a form submission in the dashboard.
+        // The `lead_source` enum has no chat value and adding one means editing
+        // src/lib/db/schema.ts, so it stays as it is until the owner
+        // authorises that.
+        source: 'website_form',
       })
       .returning();
 
@@ -254,17 +234,13 @@ async function persistLead(
  * instead. Calling this twice for one conversation is what put six rows and
  * sixteen queued emails behind one person.
  *
- * @param options.source which touchpoint this lead arrived through. Defaults to
- *   the public form, which is what every caller stored before this existed.
- *
  * @throws MissingEnvError when the deployment lacks DATABASE_URL or
  *   RESEND_API_KEY — before anything is written.
  * @throws whatever the driver throws if the transaction cannot commit. Nothing
  *   is persisted and no integration has run in that case.
  */
 export async function captureLead(
-  rawInput: unknown,
-  options: { source?: LeadSourceValue } = {}
+  rawInput: unknown
 ): Promise<LeadCaptureOutcome> {
   const parsed = leadSubmissionSchema.safeParse(rawInput);
   if (!parsed.success) {
@@ -277,10 +253,7 @@ export async function captureLead(
 
   requireEnv('DATABASE_URL', 'RESEND_API_KEY');
 
-  const { lead: savedLead, immediateFollowUpId } = await persistLead(
-    submission,
-    options.source ?? DEFAULT_LEAD_SOURCE
-  );
+  const { lead: savedLead, immediateFollowUpId } = await persistLead(submission);
 
   console.log('New lead saved to database:', savedLead.id);
 
@@ -502,8 +475,11 @@ export async function updateCapturedLead(
   requireEnv('DATABASE_URL');
 
   return db.transaction(async (tx) => {
-    // Read and write in one transaction so two turns landing together cannot
-    // both see the same field as empty and both fill it.
+    // Read and write in one transaction so the row cannot be half-updated. The
+    // SELECT takes no row lock, so at READ COMMITTED two turns arriving
+    // together can both read a field as empty and the later UPDATE wins. That
+    // decides only which of two values lands in one column — it cannot produce
+    // a second lead row or a second drip, which is what this path is for.
     const [existing] = await tx
       .select()
       .from(leads)

@@ -40,7 +40,6 @@ const updateCapturedLead = vi.fn();
 vi.mock('@/lib/services/lead-capture', () => ({
   captureLead,
   updateCapturedLead,
-  ASSISTANT_CHAT_SOURCE: 'assistant_chat',
 }));
 
 /** The booking service, mocked so no database is touched. */
