@@ -289,11 +289,19 @@ export default function DashboardPage() {
               </span>
             </div>
 
-            {/* ── View Switcher ── */}
+            {/* ── View Switcher ──
+                `aria-pressed` on all three, because the only other signal that
+                a tab is the active one is its hunter fill. Colour alone fails
+                WCAG 1.4.1, and a screen reader got nothing at all: three
+                buttons that read identically whichever view was open. It has
+                to be on every button, not just the selected one — a group where
+                only one carries the attribute tells assistive tech the other
+                two are not toggles. */}
             <div className="flex rounded-xl border border-neutral-200 bg-neutral-50 p-1">
               <button
                 type="button"
                 onClick={() => setActiveView('overview')}
+                aria-pressed={activeView === 'overview'}
                 className={`rounded-lg px-4 py-1.5 font-sans text-xs font-semibold uppercase tracking-[0.1em] transition-all ${
                   activeView === 'overview'
                     ? 'bg-cerulean text-bone shadow-sm'
@@ -305,6 +313,7 @@ export default function DashboardPage() {
               <button
                 type="button"
                 onClick={() => setActiveView('ai-conversations')}
+                aria-pressed={activeView === 'ai-conversations'}
                 className={`flex items-center gap-1.5 rounded-lg px-4 py-1.5 font-sans text-xs font-semibold uppercase tracking-[0.1em] transition-all ${
                   activeView === 'ai-conversations'
                     ? 'bg-cerulean text-bone shadow-sm'
@@ -319,6 +328,7 @@ export default function DashboardPage() {
               <button
                 type="button"
                 onClick={() => setActiveView('appointments')}
+                aria-pressed={activeView === 'appointments'}
                 className={`flex items-center gap-1.5 rounded-lg px-4 py-1.5 font-sans text-xs font-semibold uppercase tracking-[0.1em] transition-all ${
                   activeView === 'appointments'
                     ? 'bg-cerulean text-bone shadow-sm'

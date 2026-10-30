@@ -27,10 +27,18 @@ export function FinalCTA() {
           {/* `closedDeals` is already the string '60+', so the trailing literal
               `+` that used to sit after this interpolation rendered "60++".
               The sentence also counted the wrong thing: `closedDeals` is
-              closed transactions, not clients, so it now says homes closed. */}
+              closed transactions, not clients.
+              "see why 60+ Atlanta homes have closed with Joey" survived that
+              fix and a reviewer flagged it: homes do not have reasons, so the
+              sentence invited the reader to find out why a number happened.
+              It states the count plainly now and then says what Joey does,
+              which is the part a visitor is deciding about. Both halves are
+              sourced — the figure from siteConfig.stats, and managing a deal
+              from contract to closing from the `closing-services` entry in
+              src/lib/assistant/answer-playbook-content.ts. */}
           <p className="mx-auto mt-8 max-w-2xl font-sans text-lg text-linen/80">
-            Experience Joey's proven first-tour approach. Schedule your exclusive viewing today
-            and see why {siteConfig.stats.closedDeals} Atlanta homes have closed with Joey.
+            Joey has closed {siteConfig.stats.closedDeals} homes across Metro Atlanta,
+            and he manages every deal personally from contract to closing.
           </p>
           <div className="mt-12 flex flex-col gap-4 sm:flex-row sm:justify-center sm:gap-6">
             <MagneticButton
@@ -56,18 +64,23 @@ export function FinalCTA() {
             </MagneticButton>
           </div>
 
-          <div className="mt-16 flex flex-wrap items-center justify-center gap-8 border-t border-white/10 pt-12">
+          {/* Bone, not white. Three white-alpha utilities survived the move to
+              hunter — this rule and the two dividers below. A white hairline on
+              a warm dark green reads cool and slightly blue next to the bone
+              text beside it; bone at the same alpha is the same hue as
+              everything else on the surface. */}
+          <div className="mt-16 flex flex-wrap items-center justify-center gap-8 border-t border-bone/10 pt-12">
             <div className="flex items-center gap-2 text-linen/80">
               <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
                 <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
               </svg>
               <span className="font-sans text-sm">5-Star Rated Agent</span>
             </div>
-            <div className="h-4 w-[1px] bg-white/20" aria-hidden="true" />
+            <div className="h-4 w-[1px] bg-bone/20" aria-hidden="true" />
             <div className="font-sans text-sm text-linen/80">
               24-Hour Response Guarantee
             </div>
-            <div className="h-4 w-[1px] bg-white/20" aria-hidden="true" />
+            <div className="h-4 w-[1px] bg-bone/20" aria-hidden="true" />
             {/* Was `{stats.conversionRate} First-Tour Success Rate`, which
                 rendered "One-Tour First-Tour Success Rate" — the token holds
                 the descriptor 'One-Tour', not a rate, so interpolating it in

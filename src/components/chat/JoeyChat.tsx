@@ -5,11 +5,20 @@
  *
  * ## Position
  *
- * Bottom-left, which is not where a chat launcher usually goes. `FloatingConnectCTA`
- * already occupies `bottom-8 right-8` at `z-40` on the marketing pages, and two
- * round buttons stacked on each other is worse than an unconventional corner.
- * Moving that component was not in scope; if it is ever retired, this belongs on
- * the right.
+ * Bottom-right, where users look for a chat launcher. It sat bottom-left for one
+ * reason: `FloatingConnectCTA` held `bottom-8 right-8` at the same `z-40`, and
+ * two round buttons stacked on each other is worse than an unconventional
+ * corner. That component is retired — it opened a form, while this panel
+ * answers, qualifies, captures the lead and books, so it was the weaker of two
+ * routes to the same outcome and both together filled a phone's thumb zone.
+ * This is now the only persistent entry point on the marketing pages, which is
+ * what lets it take the conventional corner.
+ *
+ * ## The label names the outcome
+ *
+ * "Chat with Joey", not "Ask a question". Answering a question is the least
+ * valuable thing the panel does; the visible label and the accessible name are
+ * the same string, so they cannot drift apart.
  *
  * ## Non-modal, deliberately
  *
@@ -55,6 +64,15 @@ const OPENING_MESSAGE =
   "Hey! I'm the AI assistant on Joey's team. Ask me anything about buying, " +
   'selling, or how Joey works — and I can get you time with him directly.';
 
+/**
+ * Launcher labels.
+ *
+ * One string each, read by both the visible `<span>` and the screen-reader one,
+ * so the accessible name can never drift from the label on screen.
+ */
+const LAUNCHER_LABEL_CLOSED = 'Chat with Joey';
+const LAUNCHER_LABEL_OPEN = 'Close chat';
+
 /** Shown when the request never reached the model, so the reply box stays honest. */
 const NETWORK_NOTICE =
   "I couldn't get that through just now. Mind trying again?";
@@ -86,6 +104,8 @@ export function JoeyChat({ defaultOpen = false }: JoeyChatProps) {
   const disclosureId = React.useId();
 
   const reduceMotion = useReducedMotion();
+
+  const launcherLabel = isOpen ? LAUNCHER_LABEL_OPEN : LAUNCHER_LABEL_CLOSED;
 
   const nextId = () => {
     nextIdRef.current += 1;
@@ -229,7 +249,7 @@ export function JoeyChat({ defaultOpen = false }: JoeyChatProps) {
         aria-expanded={isOpen}
         aria-controls={panelId}
         className={cn(
-          'fixed bottom-8 left-8 z-40 flex min-h-11 items-center gap-3 rounded-full',
+          'fixed bottom-8 right-8 z-40 flex min-h-11 items-center gap-3 rounded-full',
           'bg-cerulean px-6 py-4 font-sans text-sm font-medium tracking-wider text-bone uppercase',
           'shadow-soft transition-colors hover:bg-accent-hover',
           'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-cerulean',
@@ -249,12 +269,19 @@ export function JoeyChat({ defaultOpen = false }: JoeyChatProps) {
             d="M8 10.5h8M8 14h5m-9 6.5 2.3-2.3A9 9 0 1 1 21 12a9 9 0 0 1-9 9H4Z"
           />
         </svg>
-        <span className="hidden sm:inline">
-          {isOpen ? 'Close chat' : 'Ask a question'}
-        </span>
-        <span className="sm:hidden sr-only">
-          {isOpen ? 'Close chat' : 'Ask a question'}
-        </span>
+        {/* One element, not two.
+            This was `hidden sm:inline` beside `sm:hidden sr-only`, on the
+            reasoning that the label shows on desktop and is read aloud on
+            mobile. But `sr-only` hides visually while staying in the
+            accessibility tree, and `sm:hidden` only removes the second span
+            from `sm` up in the *visual* sense — so on a desktop both spans were
+            announced and the button's accessible name was the label twice over:
+            "Chat with JoeyChat with Joey".
+            `sr-only sm:not-sr-only` is the same intent in one element: below
+            `sm` the label is read but not drawn, from `sm` up it is drawn.
+            There is only ever one string, so the accessible name and the
+            visible label cannot disagree. */}
+        <span className="sr-only sm:not-sr-only">{launcherLabel}</span>
       </button>
 
       <AnimatePresence>
@@ -268,9 +295,9 @@ export function JoeyChat({ defaultOpen = false }: JoeyChatProps) {
             aria-labelledby={titleId}
             aria-describedby={disclosureId}
             className={cn(
-              'fixed bottom-28 left-4 z-40 flex w-[calc(100vw-2rem)] max-w-sm flex-col',
+              'fixed bottom-28 right-4 z-40 flex w-[calc(100vw-2rem)] max-w-sm flex-col',
               'overflow-hidden rounded-xl border border-navy/10 bg-linen shadow-soft',
-              'sm:left-8 sm:w-96',
+              'sm:right-8 sm:w-96',
             )}
           >
             <header className="flex items-start justify-between gap-3 border-b border-navy/10 bg-white px-4 py-3">

@@ -49,7 +49,7 @@ afterEach(() => {
 
 /** Open the panel and return the composer. */
 async function openPanel(user: ReturnType<typeof userEvent.setup>) {
-  await user.click(screen.getByRole('button', { name: /ask a question/i }));
+  await user.click(screen.getByRole('button', { name: /chat with joey/i }));
   return screen.getByLabelText(/your message/i);
 }
 
@@ -65,7 +65,7 @@ describe('JoeyChat — opening and closing', () => {
 
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
 
-    await user.click(screen.getByRole('button', { name: /ask a question/i }));
+    await user.click(screen.getByRole('button', { name: /chat with joey/i }));
 
     expect(screen.getByRole('dialog')).toBeInTheDocument();
   });
@@ -74,7 +74,7 @@ describe('JoeyChat — opening and closing', () => {
     const user = userEvent.setup();
     render(<JoeyChat />);
 
-    const launcher = screen.getByRole('button', { name: /ask a question/i });
+    const launcher = screen.getByRole('button', { name: /chat with joey/i });
     expect(launcher).toHaveAttribute('aria-expanded', 'false');
 
     await user.click(launcher);

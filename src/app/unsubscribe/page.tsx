@@ -41,14 +41,30 @@ export default async function UnsubscribePage({
   // address it was not signed for.
   const email = resolved === 'confirm' ? readUnsubscribeToken(token) : undefined;
 
+  // One heading, chosen by state.
+  //
+  // Each of the four states used to open with its own `<h1>`, and the confirm
+  // state had two of them — five in the file. Only one ever rendered, so no
+  // visitor saw a duplicate, but the page had no stable document outline: the
+  // single most important element on it was written five times, and adding a
+  // state meant remembering to write a sixth. The heading is now derived once
+  // and rendered once, and each branch below contributes only its prose.
+  const heading =
+    resolved === 'done'
+      ? "You\u2019re unsubscribed"
+      : resolved === 'error'
+        ? 'Something went wrong'
+        : resolved === 'invalid' || !email
+          ? "This link isn\u2019t valid"
+          : 'Unsubscribe from emails?';
+
   return (
     <main className="flex min-h-screen items-center justify-center bg-linen px-6 py-16">
       <div className="w-full max-w-md rounded-xl border border-navy/10 bg-white px-8 py-10 shadow-soft">
+        <h1 className="font-serif text-2xl text-navy">{heading}</h1>
+
         {resolved === 'confirm' && email ? (
           <>
-            <h1 className="font-serif text-2xl text-navy">
-              Unsubscribe from emails?
-            </h1>
             <p className="mt-3 font-sans text-sm text-stone">
               We&rsquo;ll stop sending market updates and follow-ups to{' '}
               <span className="font-medium text-navy">{email}</span>.
@@ -82,46 +98,34 @@ export default async function UnsubscribePage({
         ) : null}
 
         {resolved === 'confirm' && !email ? (
-          <>
-            <h1 className="font-serif text-2xl text-navy">This link isn&rsquo;t valid</h1>
-            <p className="mt-3 font-sans text-sm text-stone">
-              It may have been altered on the way here. You can reply to any email
-              from Joey and ask to be removed — that works just as well.
-            </p>
-          </>
+          <p className="mt-3 font-sans text-sm text-stone">
+            It may have been altered on the way here. You can reply to any email
+            from Joey and ask to be removed — that works just as well.
+          </p>
         ) : null}
 
         {resolved === 'done' ? (
-          <>
-            <h1 className="font-serif text-2xl text-navy">You&rsquo;re unsubscribed</h1>
-            <p className="mt-3 font-sans text-sm text-stone">
-              You won&rsquo;t get any more automatic emails from us. If you ever want
-              back on the list, just get in touch through the site.
-            </p>
-          </>
+          <p className="mt-3 font-sans text-sm text-stone">
+            You won&rsquo;t get any more automatic emails from us. If you ever want
+            back on the list, just get in touch through the site.
+          </p>
         ) : null}
 
         {resolved === 'invalid' ? (
-          <>
-            <h1 className="font-serif text-2xl text-navy">This link isn&rsquo;t valid</h1>
-            <p className="mt-3 font-sans text-sm text-stone">
-              You can reply to any email from Joey and ask to be removed — that
-              works just as well.
-            </p>
-          </>
+          <p className="mt-3 font-sans text-sm text-stone">
+            You can reply to any email from Joey and ask to be removed — that
+            works just as well.
+          </p>
         ) : null}
 
+        {/* Deliberately does not claim success. A false confirmation here is
+            how someone ends up reporting the next email as spam. */}
         {resolved === 'error' ? (
-          <>
-            <h1 className="font-serif text-2xl text-navy">Something went wrong</h1>
-            {/* Deliberately does not claim success. A false confirmation here is
-                how someone ends up reporting the next email as spam. */}
-            <p className="mt-3 font-sans text-sm text-stone">
-              We couldn&rsquo;t record that just now, so you may still receive emails.
-              Please try the link again, or reply to any email from Joey and
-              he&rsquo;ll take you off the list himself.
-            </p>
-          </>
+          <p className="mt-3 font-sans text-sm text-stone">
+            We couldn&rsquo;t record that just now, so you may still receive emails.
+            Please try the link again, or reply to any email from Joey and
+            he&rsquo;ll take you off the list himself.
+          </p>
         ) : null}
       </div>
     </main>

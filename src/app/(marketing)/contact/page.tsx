@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { StructuredData } from '@/components/seo/StructuredData';
+import { ServicesInquiryLauncher } from '@/components/sections/ServicesInquiryLauncher';
 import { StartTheConversationCTA } from '@/components/sections/StartTheConversationCTA';
 import { getBreadcrumbSchema, realEstateAgentSchema } from '@/config/structured-data';
 import { siteConfig } from '@/config/site';
@@ -93,6 +94,21 @@ export default function ContactPage() {
               </dd>
             </div>
           </dl>
+
+          {/* The services inquiry form's only entry point. It used to open
+              from the floating button that sat opposite the chat launcher on
+              every page; that button is retired, and this is where the form
+              lives now. See ServicesInquiryLauncher for why it is kept
+              alongside /get-started rather than folded into it. */}
+          <div className="mt-14">
+            <p className="font-sans text-lg font-light leading-relaxed text-stone">
+              Rather write it out? Say whether you&rsquo;re buying, selling, or
+              just have a question, and send Joey the details.
+            </p>
+            <div className="mt-6">
+              <ServicesInquiryLauncher />
+            </div>
+          </div>
         </div>
       </section>
 
