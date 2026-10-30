@@ -18,7 +18,7 @@ import { siteConfig } from '@/config/site';
 export const metadata: Metadata = {
   title: 'Contact Joey Oberndorfer | Metro Atlanta Realtor',
   description:
-    'Reach Joey Oberndorfer, licensed Georgia Realtor with eXp Realty, eXp ICON Agent and Zillow Rising Star. Call, text or email — your choice.',
+    'Reach Joey Oberndorfer, licensed Georgia Realtor with eXp Realty, eXp ICON Agent and Zillow Rising Star Award winner. Call, text or email — your choice.',
 };
 
 export default function ContactPage() {
@@ -123,7 +123,7 @@ export default function ContactPage() {
 
       <StartTheConversationCTA
         heading="Get in Touch"
-        body="Joey's assistant can answer your question now and get you time with him directly — or send him your details and he'll come back to you."
+        body="Joey's assistant can answer your question now and book you a 15-minute consultation with him. Prefer a form? Send your details instead and tell him what you need."
         chatLabel="Start a Conversation"
       />
     </>

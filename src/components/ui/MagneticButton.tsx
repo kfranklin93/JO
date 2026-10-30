@@ -13,7 +13,13 @@ export interface MagneticButtonProps {
   size?: 'sm' | 'md' | 'lg';
   className?: string;
   href?: string;
-  onClick?: () => void;
+  /**
+   * Click handler. Runs on the link too when `href` is also given, which is how
+   * a caller builds a progressively enhanced control: the `href` is what a
+   * click does before hydration or with JS off, and the handler calls
+   * `preventDefault()` to take over once it is listening.
+   */
+  onClick?: (event: React.MouseEvent<HTMLElement>) => void;
   disabled?: boolean;
   type?: 'button' | 'submit' | 'reset';
 }
@@ -168,7 +174,9 @@ export function MagneticButton({
   if (href && !disabled) {
     return (
       <div ref={containerRef} className="inline-block">
-        <Link href={href} className={baseClasses}>
+        {/* Spread rather than passed: `exactOptionalPropertyTypes` makes an
+            explicit `undefined` a type error on Link's own handler. */}
+        <Link href={href} className={baseClasses} {...(onClick ? { onClick } : {})}>
           {content}
         </Link>
       </div>

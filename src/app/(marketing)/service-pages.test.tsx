@@ -20,35 +20,71 @@
  *  - the industry's usual word for what Joey is paid. He says "compensation",
  *    and the other word must not appear in rendered copy anywhere
  *
+ * Every one of those checks runs against the exported `metadata` as well as the
+ * rendered DOM. A description is copy — it is what a searcher reads before
+ * clicking, and it is where `/home-insurance` has to repeat that Joey is not an
+ * insurance agent — but it never appears in `container.textContent`, so a
+ * description that broke the rule used to ship green.
+ *
  * The CTA test mounts `JoeyChat` alongside the page, because the next step on
  * every one of these pages is "open the chat panel" and the panel is mounted by
  * the layout, not by the page. Asserting the button exists would not prove the
- * click does anything.
+ * click does anything. The chat CTA is a `/get-started` link that its handler
+ * takes over, so the next step still works before hydration — hence the
+ * `getByRole('link')` and the separate assertion that the href is there.
  */
 
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { JoeyChat } from '@/components/chat/JoeyChat';
-import BuyHomePage from './buy-home/page';
-import SellHomePage from './sell-home/page';
-import ContactPage from './contact/page';
-import ClosingServicesPage from './closing-services/page';
-import HomeInsurancePage from './home-insurance/page';
+import BuyHomePage, { metadata as buyHomeMetadata } from './buy-home/page';
+import SellHomePage, { metadata as sellHomeMetadata } from './sell-home/page';
+import ContactPage, { metadata as contactMetadata } from './contact/page';
+import ClosingServicesPage, {
+  metadata as closingServicesMetadata,
+} from './closing-services/page';
+import HomeInsurancePage, {
+  metadata as homeInsuranceMetadata,
+} from './home-insurance/page';
 
-/** Each page, with the label on its chat CTA. */
+/**
+ * Each page, with the label on its chat CTA and its exported metadata.
+ *
+ * The metadata is carried here because it is copy too — it is the text a
+ * searcher reads before deciding whether to click, and on `/home-insurance` it
+ * is where the licensing disclaimer has to survive. Assertions that only read
+ * the rendered DOM cannot see it.
+ */
 const PAGES = [
-  { route: '/buy-home', Page: BuyHomePage, chatLabel: 'Ask About Buying' },
-  { route: '/sell-home', Page: SellHomePage, chatLabel: 'Ask About Selling' },
-  { route: '/contact', Page: ContactPage, chatLabel: 'Start a Conversation' },
+  {
+    route: '/buy-home',
+    Page: BuyHomePage,
+    metadata: buyHomeMetadata,
+    chatLabel: 'Ask About Buying',
+  },
+  {
+    route: '/sell-home',
+    Page: SellHomePage,
+    metadata: sellHomeMetadata,
+    chatLabel: 'Ask About Selling',
+  },
+  {
+    route: '/contact',
+    Page: ContactPage,
+    metadata: contactMetadata,
+    chatLabel: 'Start a Conversation',
+  },
   {
     route: '/closing-services',
     Page: ClosingServicesPage,
+    metadata: closingServicesMetadata,
     chatLabel: 'Ask About Closing',
   },
   {
     route: '/home-insurance',
     Page: HomeInsurancePage,
+    metadata: homeInsuranceMetadata,
     chatLabel: 'Ask About Insurance',
   },
 ] as const;
@@ -64,7 +100,7 @@ const PAGES = [
  */
 const REPLACED_FEE_WORD = ['com', 'mission'].join('');
 
-describe.each(PAGES)('$route', ({ Page, chatLabel }) => {
+describe.each(PAGES)('$route', ({ Page, metadata, chatLabel }) => {
   it('renders exactly one h1', () => {
     render(<Page />);
 
@@ -83,6 +119,22 @@ describe.each(PAGES)('$route', ({ Page, chatLabel }) => {
     expect(container.textContent?.toLowerCase()).not.toContain(REPLACED_FEE_WORD);
   });
 
+  it('carries a title and description, with no stand-in copy in either', () => {
+    // The stubs had no metadata at all, which is how a page ends up in search
+    // results titled after its route.
+    const metaText = `${String(metadata.title)} ${metadata.description}`;
+
+    expect(metadata.title).toBeTruthy();
+    expect(metadata.description).toBeTruthy();
+    expect(metaText).not.toMatch(/placeholder/i);
+  });
+
+  it('never says the replaced fee word in its metadata either', () => {
+    const metaText = `${String(metadata.title)} ${metadata.description}`.toLowerCase();
+
+    expect(metaText).not.toContain(REPLACED_FEE_WORD);
+  });
+
   it('ends with a next step that opens the chat assistant', async () => {
     const user = userEvent.setup();
     render(
@@ -94,9 +146,21 @@ describe.each(PAGES)('$route', ({ Page, chatLabel }) => {
 
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
 
-    await user.click(screen.getByRole('button', { name: chatLabel }));
+    await user.click(screen.getByRole('link', { name: chatLabel }));
 
     expect(screen.getByRole('dialog')).toBeInTheDocument();
+  });
+
+  it('offers the lead form as a next step that needs no JavaScript', () => {
+    // The chat CTA is an enhanced link and the form link beside it is a plain
+    // one. Between them, every visitor has somewhere to go — but only if both
+    // keep pointing at /get-started, which nothing else asserts.
+    const { container } = render(<Page />);
+    const hrefs = Array.from(container.querySelectorAll('a')).map((a) =>
+      a.getAttribute('href')
+    );
+
+    expect(hrefs).toContain('/get-started');
   });
 });
 
@@ -109,9 +173,18 @@ describe('licensing boundaries', () => {
     expect(container.textContent).toMatch(/not an insurance agent/i);
   });
 
+  it('/home-insurance says so in its description as well as on the page', () => {
+    // A searcher reads the description before anything on the page, so the
+    // disclaimer has to hold there too. The rendered-DOM assertion above
+    // cannot see it.
+    expect(homeInsuranceMetadata.description).toMatch(/not an insurance agent/i);
+  });
+
   it('/home-insurance does not offer to advise on coverage', () => {
     const { container } = render(<HomeInsurancePage />);
-    const text = container.textContent ?? '';
+    const text = `${container.textContent ?? ''} ${String(
+      homeInsuranceMetadata.title
+    )} ${homeInsuranceMetadata.description}`;
 
     expect(text).not.toMatch(/\bpremium/i);
     expect(text).not.toMatch(/\bquote\b/i);
@@ -122,5 +195,16 @@ describe('licensing boundaries', () => {
     const { container } = render(<ClosingServicesPage />);
 
     expect(container.textContent).toMatch(/not a title or escrow company/i);
+  });
+
+  it('/closing-services does not claim title or escrow services in its description', () => {
+    const metaText = `${String(closingServicesMetadata.title)} ${
+      closingServicesMetadata.description
+    }`;
+
+    // He manages the process and refers partners. The description must not
+    // read as an offer of the services themselves.
+    expect(metaText).toMatch(/manages every deal/i);
+    expect(metaText).not.toMatch(/\b(title|escrow) (services|company)\b/i);
   });
 });

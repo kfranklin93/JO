@@ -1,7 +1,9 @@
 // @vitest-environment jsdom
 
+import type * as React from 'react';
 import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { MagneticButton, type MagneticButtonProps } from './MagneticButton';
 
 /**
@@ -129,6 +131,23 @@ describe('MagneticButton variants', () => {
   it('renders a link when given an href', () => {
     render(<MagneticButton href="/contact">Go</MagneticButton>);
     expect(screen.getByRole('link')).toHaveAttribute('href', '/contact');
+  });
+
+  it('runs onClick on the link too, so an href can be a fallback', async () => {
+    // How the service-page CTAs stay alive before hydration: the href is the
+    // no-JS destination and the handler preventDefaults to take over. Dropping
+    // onClick on this branch would make the primary action do nothing but
+    // navigate.
+    const onClick = vi.fn((event: React.MouseEvent) => event.preventDefault());
+    render(
+      <MagneticButton href="/get-started" onClick={onClick}>
+        Act
+      </MagneticButton>
+    );
+
+    await userEvent.click(screen.getByRole('link'));
+
+    expect(onClick).toHaveBeenCalledOnce();
   });
 
   it('renders a button when given no href', () => {

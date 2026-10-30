@@ -69,7 +69,7 @@ export default function HomeInsurancePage() {
 
       <StartTheConversationCTA
         heading="Ask for an Introduction"
-        body="Tell Joey's assistant where you are in the process and it will arrange the introduction, along with time with Joey if you need it."
+        body="Tell Joey's assistant where you are in the process. It can take your details and book you a 15-minute consultation with Joey, who is happy to share the professionals he trusts."
         chatLabel="Ask About Insurance"
       />
     </>

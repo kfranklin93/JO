@@ -16,6 +16,17 @@ import { openJoeyChat } from '@/lib/chat/open-chat';
  * The form is still the secondary action. Some people will not type into a chat
  * box, and `/get-started` captures the same lead without one.
  *
+ * ## Why the chat button is a link
+ *
+ * All five pages prerender static, and the listener that opens the panel only
+ * exists after hydration. As a plain `<button>` the primary action was silently
+ * dead in that window — a click did nothing and the button looked no different
+ * before and after, so a fast visitor got no feedback at all. It carries
+ * `/get-started` as its `href` instead, and the handler calls
+ * `preventDefault()` before opening the panel. With JS listening, the click
+ * opens the chat; before that, or with JS off, the same click lands on the form
+ * that captures the same lead. Nothing about it changes on screen.
+ *
  * ## Colours
  *
  * Hunter surface, which makes a hunter action invisible — `primary` is hunter.
@@ -37,6 +48,12 @@ export function StartTheConversationCTA({
   body,
   chatLabel,
 }: StartTheConversationCTAProps) {
+  /** Open the panel instead of following the fallback href. */
+  const handleChatClick = (event: React.MouseEvent<HTMLElement>) => {
+    event.preventDefault();
+    openJoeyChat();
+  };
+
   return (
     <section className="bg-hunter py-24 lg:py-32">
       <div className="mx-auto max-w-3xl px-8 text-center lg:px-12">
@@ -47,7 +64,12 @@ export function StartTheConversationCTA({
           {body}
         </p>
         <div className="mt-10 flex flex-col items-center gap-4 sm:flex-row sm:justify-center sm:gap-6">
-          <MagneticButton variant="champagne" size="lg" onClick={openJoeyChat}>
+          <MagneticButton
+            href="/get-started"
+            variant="champagne"
+            size="lg"
+            onClick={handleChatClick}
+          >
             <span>{chatLabel}</span>
           </MagneticButton>
           <MagneticButton href="/get-started" variant="onDark" size="lg">

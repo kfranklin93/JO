@@ -127,7 +127,7 @@ export default function BuyHomePage() {
 
       <StartTheConversationCTA
         heading="Let's Build Your Plan"
-        body="Tell Joey's assistant what you're looking for and where. It can answer your questions and get time with Joey on the calendar."
+        body="Tell Joey's assistant what you're looking for and where. It can answer your questions and book you a 15-minute consultation with Joey."
         chatLabel="Ask About Buying"
       />
     </>

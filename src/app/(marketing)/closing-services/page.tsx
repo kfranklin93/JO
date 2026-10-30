@@ -57,8 +57,7 @@ export default function ClosingServicesPage() {
                 He manages the deal himself
               </h3>
               <p className="mt-4 font-sans text-lg font-light leading-relaxed text-stone">
-                Joey personally manages every deal from contract to closing. It
-                is not handed to a coordinator once the offer is accepted.
+                Joey personally manages every deal from contract to closing.
               </p>
             </div>
             <div>
@@ -97,7 +96,7 @@ export default function ClosingServicesPage() {
 
       <StartTheConversationCTA
         heading="Ask About Your Closing"
-        body="Under contract already, or trying to understand what happens after an offer is accepted? Joey's assistant can walk you through it and get you time with him."
+        body="Under contract already, or trying to understand what happens after an offer is accepted? Joey's assistant can answer from Joey's own answers and book you a 15-minute consultation with him."
         chatLabel="Ask About Closing"
       />
     </>

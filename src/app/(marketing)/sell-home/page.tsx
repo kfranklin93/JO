@@ -22,7 +22,7 @@ import { getBreadcrumbSchema } from '@/config/structured-data';
 export const metadata: Metadata = {
   title: 'Sell Your Home in Metro Atlanta | Joey Oberndorfer',
   description:
-    'Thinking of selling in Metro Atlanta? Joey Oberndorfer, eXp ICON Agent and Zillow Rising Star, reviews your home personally instead of giving a generic online estimate.',
+    'Thinking of selling in Metro Atlanta? Joey Oberndorfer, eXp ICON Agent and Zillow Rising Star Award winner, reviews your home personally instead of giving a generic online estimate.',
 };
 
 export default function SellHomePage() {
@@ -70,7 +70,7 @@ export default function SellHomePage() {
       <section className="bg-onyx py-20 lg:py-28">
         <div className="mx-auto max-w-4xl px-8 lg:px-12">
           <h2 className="font-serif text-4xl font-light text-bone lg:text-5xl">
-            What Joey&rsquo;s Compensation Looks Like
+            How Compensation Works
           </h2>
           <div className="mt-10 space-y-6">
             <p className="font-sans text-lg font-light leading-relaxed text-bone lg:text-xl">
@@ -87,7 +87,7 @@ export default function SellHomePage() {
 
       <StartTheConversationCTA
         heading="Start With Your Address"
-        body="Give Joey's assistant your property address and what you're hoping to do. It will take it from there and set up your seller consultation."
+        body="Give Joey's assistant your property address and what you're hoping to do. It can take your details and book you a 15-minute consultation with Joey."
         chatLabel="Ask About Selling"
       />
     </>
