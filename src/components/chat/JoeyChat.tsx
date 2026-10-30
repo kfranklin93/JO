@@ -37,6 +37,7 @@
 import * as React from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { cn } from '@/lib/utils/cn';
+import { OPEN_CHAT_EVENT } from '@/lib/chat/open-chat';
 
 interface ChatMessage {
   id: string;
@@ -106,6 +107,17 @@ export function JoeyChat({ defaultOpen = false }: JoeyChatProps) {
     document.addEventListener('keydown', onKeyDown);
     return () => document.removeEventListener('keydown', onKeyDown);
   }, [isOpen]);
+
+  // A CTA elsewhere on the page can ask the panel to open — see
+  // src/lib/chat/open-chat.ts for why this is an event rather than a context.
+  // It sets `true` rather than toggling, so a second CTA never closes a
+  // conversation already in progress.
+  React.useEffect(() => {
+    const onOpenRequest = () => setIsOpen(true);
+
+    window.addEventListener(OPEN_CHAT_EVENT, onOpenRequest);
+    return () => window.removeEventListener(OPEN_CHAT_EVENT, onOpenRequest);
+  }, []);
 
   // Focus follows the panel: into the composer on open, back to the launcher on
   // close, so a keyboard user is never dropped at the top of the document.

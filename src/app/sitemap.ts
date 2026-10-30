@@ -39,6 +39,19 @@ import { siteConfig } from '@/config/site';
 const ROUTES: { path: string; changeFrequency: MetadataRoute.Sitemap[number]['changeFrequency']; priority: number }[] = [
   { path: '', changeFrequency: 'weekly', priority: 1 },
 
+  /*
+   * The five service pages, promoted out of PLACEHOLDER_ROUTES below now that
+   * each carries real content drawn from Joey's approved answer playbook.
+   * Priority 0.9, as the note down there asked for: these are the pages that
+   * can win "sell my house in Marietta", and a searcher who lands on one now
+   * finds something real and a way to start a conversation.
+   */
+  { path: '/sell-home', changeFrequency: 'monthly', priority: 0.9 },
+  { path: '/buy-home', changeFrequency: 'monthly', priority: 0.9 },
+  { path: '/contact', changeFrequency: 'monthly', priority: 0.9 },
+  { path: '/closing-services', changeFrequency: 'monthly', priority: 0.9 },
+  { path: '/home-insurance', changeFrequency: 'monthly', priority: 0.9 },
+
   // Listings change often; the page is worth recrawling.
   { path: '/properties', changeFrequency: 'weekly', priority: 0.8 },
 
@@ -52,29 +65,19 @@ const ROUTES: { path: string; changeFrequency: MetadataRoute.Sitemap[number]['ch
 /**
  * Pages that exist as stubs and are NOT submitted for indexing yet.
  *
- * Every one of these is currently a ten-line component whose body says
- * "Placeholder page for …". An earlier version of this file listed them, which
- * was wrong in two ways: Google does not rank thin pages, so it bought nothing,
- * and a visitor arriving from a search result promising "Sell Your Home in
- * Metro Atlanta" would have landed on the word "Placeholder" — worse for Joey
- * than not ranking at all. Thin content in a sitemap also spends crawl budget
- * and drags site-quality signals for the pages that *are* real.
+ * Empty now, and kept rather than deleted because it is the mechanism for
+ * holding back the next unfinished page. The rule it carries: a route joins
+ * ROUTES above only once a visitor arriving from a search result would find
+ * something real on it. Google does not rank thin pages, so listing a stub buys
+ * nothing, spends crawl budget, and drags site-quality signals for the pages
+ * that *are* real — and a searcher who clicked "Sell Your Home in Metro
+ * Atlanta" and read the word "Placeholder" is worse for Joey than not ranking.
  *
- * These are the highest-value pages on the site once written — they are the
- * ones that can win "sell my house in Marietta" — so this list is a to-do, not
- * a decision. Move an entry into ROUTES above the moment its page has genuine
- * content, and give it a priority of 0.9.
- *
- * `/contact` is here for the same reason, though it is a stub of a different
- * kind: it needs the real contact details rather than prose.
+ * The five that were listed here — `/sell-home`, `/buy-home`, `/contact`,
+ * `/closing-services` and `/home-insurance` — were written from Joey's approved
+ * answer playbook and have moved up, each at priority 0.9.
  */
-const PLACEHOLDER_ROUTES = [
-  '/sell-home',
-  '/buy-home',
-  '/home-insurance',
-  '/closing-services',
-  '/contact',
-] as const;
+const PLACEHOLDER_ROUTES: readonly string[] = [];
 
 /** Exported so the test can assert these stay out until they are written. */
 export const HELD_BACK_FROM_SITEMAP: readonly string[] = PLACEHOLDER_ROUTES;

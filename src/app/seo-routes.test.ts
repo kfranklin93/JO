@@ -40,12 +40,30 @@ describe('sitemap', () => {
     }
   });
 
-  it('holds back the placeholder pages until they are written', async () => {
-    // These are ten-line stubs whose body text says "Placeholder page for …".
-    // Submitting them bought nothing — Google does not rank thin pages — and
-    // would have sent searchers to the word "Placeholder". They are the
-    // highest-value pages once written, so this is a to-do rather than a
-    // decision; the comment in sitemap.ts says how to promote one.
+  it('lists the five service pages now that they are written', () => {
+    // These were held back while they were stubs. They carry real content
+    // drawn from Joey's approved answer playbook, so they are the pages most
+    // worth ranking — if one disappears from here, Joey loses the searches it
+    // was built to win.
+    const paths = sitemap().map((entry) => entry.url);
+
+    for (const page of [
+      '/buy-home',
+      '/sell-home',
+      '/contact',
+      '/closing-services',
+      '/home-insurance',
+    ]) {
+      expect(paths).toContain(`https://gowithjoeyo.com${page}`);
+    }
+  });
+
+  it('holds back any page still listed as a placeholder', async () => {
+    // The held-back list is empty now that the five service pages are written.
+    // The assertion stays because the list is the mechanism for the next
+    // unfinished page: Google does not rank thin pages, so submitting one buys
+    // nothing and sends searchers to the word "Placeholder". The comment in
+    // sitemap.ts says how to promote a route once it is real.
     const { HELD_BACK_FROM_SITEMAP } = await import('./sitemap');
     const urls = sitemap().map((entry) => entry.url).join(' ');
 

@@ -63,3 +63,5 @@ next-env.d.ts
 # Written by `netlify build` when it bundles the edge function for the Next.js
 # middleware. A local build artifact, regenerated remotely on every deploy.
 deno.lock
+
+.agents/
