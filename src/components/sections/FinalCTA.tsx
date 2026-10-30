@@ -68,17 +68,37 @@ export function FinalCTA() {
               hunter — this rule and the two dividers below. A white hairline on
               a warm dark green reads cool and slightly blue next to the bone
               text beside it; bone at the same alpha is the same hue as
-              everything else on the surface. */}
+              everything else on the surface.
+
+              The two claims in this row have also changed, because a review
+              found them standing unsourced a few lines from the sentence above
+              that was rewritten for exactly that reason:
+
+                - "5-Star Rated Agent". No rating anywhere in
+                  src/config/site.ts or the answer playbook, and nothing on
+                  this site says who rated him or on what. It is the badge the
+                  star icon was drawn for, which is how it survived.
+                - "24-Hour Response Guarantee". A service guarantee, which is
+                  the category the brief forbids inventing outright, and the
+                  contact page deliberately states no response time — so the
+                  site promised one here and withheld it there.
+
+              Replaced with the two credentials that are real and that the
+              owner asked to keep: `awards[0]` and `awards[1]` in
+              src/config/site.ts, both genuine ranking signals, read from the
+              config rather than typed. If Joey does guarantee a response
+              window, or has a rating he wants shown, those sentences have to
+              come from him — the gap is in the report. */}
           <div className="mt-16 flex flex-wrap items-center justify-center gap-8 border-t border-bone/10 pt-12">
             <div className="flex items-center gap-2 text-linen/80">
               <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
                 <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
               </svg>
-              <span className="font-sans text-sm">5-Star Rated Agent</span>
+              <span className="font-sans text-sm">{siteConfig.awards[0]}</span>
             </div>
             <div className="h-4 w-[1px] bg-bone/20" aria-hidden="true" />
             <div className="font-sans text-sm text-linen/80">
-              24-Hour Response Guarantee
+              {siteConfig.awards[1]}
             </div>
             <div className="h-4 w-[1px] bg-bone/20" aria-hidden="true" />
             {/* Was `{stats.conversionRate} First-Tour Success Rate`, which

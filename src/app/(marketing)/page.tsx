@@ -20,8 +20,9 @@ import { FinalCTA } from '@/components/sections/FinalCTA';
  * visitor almost nothing to act on — the trust argument, the social proof and
  * the numbers, which is exactly the stretch where someone decides they want to
  * work with Joey and then has to find a way to say so. `ValueProposition` and
- * `PropertyCategories` are interleaved into it: one asks, one lets them browse,
- * and they break up a run of three sections that was read-only.
+ * `PropertyCategories` are interleaved into it: one opens the chat, one routes
+ * to the page for the side of the deal they are on, and they break up a run of
+ * three sections that was read-only.
  *
  * Both were already built and imported by nothing, so neither had ever
  * rendered. Both needed their copy fixed against Joey's approved answers
@@ -62,8 +63,11 @@ export default function HomePage() {
       {/* Social proof */}
       <TestimonialsSection />
 
-      {/* Browsing: listings, buying, selling. Light surface on purpose, so the
-          onyx scoreboard below it does not butt against another dark section. */}
+      {/* The three ways in: buying, selling, closing. Light surface on purpose,
+          so the onyx scoreboard below it does not butt against another dark
+          section. It carried a fourth card into /properties until a review
+          pointed out that page's four listings are invented — see the note in
+          the component. */}
       <PropertyCategories />
 
       {/* The scoreboard — the one place the performance figures are listed */}

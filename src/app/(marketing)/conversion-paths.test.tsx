@@ -20,8 +20,14 @@
  *  - the homepage still has exactly one `<h1>` and no stand-in copy
  *  - the middle of the page has something to act on, and the 0-4-7 Month
  *    Inventory Guide is on it
+ *  - nothing in the section placed there routes a visitor into /properties,
+ *    whose four listings are invented — the reason `FeaturedListings` was not
+ *    the section placed — and the 0-4-7 action asks for the consultation
+ *    rather than for an answer the assistant has no approved entry for
  *  - one persistent floating element, in the bottom-right corner, labelled for
- *    what it gets you
+ *    what it gets you, on every marketing route and through the real layout
+ *  - the closing CTA states credentials that exist in src/config/site.ts and
+ *    no rating or response guarantee that exists nowhere
  *  - `ServicesInquiryForm` is still reachable after the button that used to
  *    open it was retired
  *  - the dashboard view switcher says which view is active to something other
@@ -36,10 +42,37 @@ import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { JoeyChat } from '@/components/chat/JoeyChat';
 import { MobileMenu } from '@/components/layout/MobileMenu';
+import { PropertyCategories } from '@/components/sections/PropertyCategories';
+import { FinalCTA } from '@/components/sections/FinalCTA';
+import { siteConfig } from '@/config/site';
+import MarketingLayout from './layout';
 import HomePage from './page';
+import AboutPage from './about/page';
 import BuyHomePage from './buy-home/page';
 import SellHomePage from './sell-home/page';
 import ContactPage from './contact/page';
+import ClosingServicesPage from './closing-services/page';
+import HomeInsurancePage from './home-insurance/page';
+import GetStartedPage from './get-started/page';
+import PropertiesPage from './properties/page';
+
+/**
+ * The marketing layout renders `Header`, which calls `usePathname` to mark the
+ * active nav item. Mocked file-wide rather than per test, because the floating
+ * element assertion below renders the real layout — that is the whole point of
+ * it — and the dashboard test further down needs `useRouter` from the same
+ * module.
+ */
+vi.mock('next/navigation', () => ({
+  usePathname: () => '/',
+  useRouter: () => ({
+    push: () => {},
+    replace: () => {},
+    prefetch: () => {},
+    back: () => {},
+  }),
+  useSearchParams: () => new URLSearchParams(),
+}));
 
 /**
  * `whileInView` needs an IntersectionObserver, and jsdom has none. Without
@@ -198,17 +231,53 @@ describe('the homepage', () => {
     // test of the dead zone and not of the copy.
     render(<HomePage />);
 
-    expect(
-      await screen.findByRole('link', { name: /ask about the 0-4-7 guide/i })
-    ).toBeInTheDocument();
-
     for (const name of [
-      /browse listings/i,
+      /book 15 minutes with joey/i,
       /start as a buyer/i,
       /start as a seller/i,
+      /see how a closing runs/i,
     ]) {
       expect(await screen.findByRole('link', { name })).toBeInTheDocument();
     }
+  });
+
+  it('does not route the browsing section into the invented listings', async () => {
+    // The card that used to lead this section — "Homes on the Market /
+    // Current listings across Metro Atlanta" — pointed at /properties, which
+    // hard-codes four homes with neighbourhoods and asking prices that did not
+    // come from Joey. That is the same fabricated data that disqualified
+    // `FeaturedListings` from this slot, so a card into it undoes the reason
+    // this section was chosen.
+    //
+    // Asserted on the section rather than the page: NeighborhoodsSection links
+    // to /properties too, pre-existing and not this change's to remove.
+    const { container } = render(<PropertyCategories />);
+
+    const hrefs = Array.from(container.querySelectorAll('a')).map((a) =>
+      a.getAttribute('href')
+    );
+
+    expect(hrefs.length).toBeGreaterThan(0);
+    expect(hrefs).not.toContain('/properties');
+    for (const href of hrefs) {
+      expect(['/buy-home', '/sell-home', '/closing-services']).toContain(href);
+    }
+  });
+
+  it('offers the 0-4-7 section an action the chat can actually deliver', async () => {
+    // The label read "Ask About the 0-4-7 Guide". There is no playbook entry
+    // for the guide, and system-prompt.ts instructs the assistant to say it
+    // does not know rather than guess — so the section's primary button
+    // invited a question the panel behind it would decline. The consultation
+    // is the thing the panel can deliver.
+    render(<HomePage />);
+
+    expect(
+      await screen.findByRole('link', { name: /book 15 minutes with joey/i })
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole('link', { name: /ask about the 0-4-7 guide/i })
+    ).not.toBeInTheDocument();
   });
 
   it('asks the chat to open rather than navigating away', async () => {
@@ -223,7 +292,7 @@ describe('the homepage', () => {
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
 
     const cta = await screen.findByRole('link', {
-      name: /ask about the 0-4-7 guide/i,
+      name: /book 15 minutes with joey/i,
     });
     // The fallback href matters as much as the handler: the homepage
     // prerenders, and before hydration the click has to land somewhere.
@@ -236,23 +305,44 @@ describe('the homepage', () => {
 });
 
 describe('one floating entry point, bottom right', () => {
-  it('is the only fixed bottom element the marketing pages mount', () => {
-    // `FloatingConnectCTA` used to sit at bottom-8 right-8 while the chat sat
-    // at bottom-8 left-8, both z-40 — two permanent buttons in a phone's thumb
-    // zone offering two routes to the same outcome.
-    const { container } = render(
-      <>
-        <HomePage />
-        <JoeyChat />
-      </>
-    );
+  it.each([
+    { route: '/', Page: HomePage },
+    { route: '/buy-home', Page: BuyHomePage },
+    { route: '/sell-home', Page: SellHomePage },
+    { route: '/contact', Page: ContactPage },
+    { route: '/closing-services', Page: ClosingServicesPage },
+    { route: '/home-insurance', Page: HomeInsurancePage },
+    { route: '/about', Page: AboutPage },
+    { route: '/get-started', Page: GetStartedPage },
+    { route: '/properties', Page: PropertiesPage },
+  ])(
+    'is the only fixed bottom element on $route',
+    ({ Page }) => {
+      // `FloatingConnectCTA` used to sit at bottom-8 right-8 while the chat sat
+      // at bottom-8 left-8, both z-40 — two permanent buttons in a phone's
+      // thumb zone offering two routes to the same outcome.
+      //
+      // Rendered through the real marketing layout, and once per marketing
+      // route. An earlier version of this test rendered `HomePage` and
+      // `JoeyChat` side by side, which is not how either reaches a visitor:
+      // the chat is mounted by layout.tsx, so a second fixed element added
+      // there, or on any route other than the homepage, passed a test whose
+      // name claimed to cover every marketing page. `FeaturedListings` is the
+      // live example — placing it mounts `StickyBottomCTA` along the same edge.
+      const { container } = render(
+        <MarketingLayout>
+          <Page />
+        </MarketingLayout>
+      );
 
-    const fixedToBottom = Array.from(
-      container.querySelectorAll<HTMLElement>('[class*="fixed"]')
-    ).filter((el) => /(^|\s)bottom-\d/.test(el.className));
+      const fixedToBottom = Array.from(
+        container.querySelectorAll<HTMLElement>('[class*="fixed"]')
+      ).filter((el) => /(^|\s)bottom-\d/.test(el.className));
 
-    expect(fixedToBottom).toHaveLength(1);
-  });
+      expect(fixedToBottom).toHaveLength(1);
+      expect(fixedToBottom[0]?.className).toContain('right-8');
+    }
+  );
 
   it('sits in the bottom-right corner', () => {
     render(<JoeyChat />);
@@ -295,6 +385,23 @@ describe('the services inquiry form is not orphaned', () => {
   });
 });
 
+describe('the closing CTA promises only what Joey approved', () => {
+  it('states his real credentials and no rating or response guarantee', () => {
+    // Two claims sat in this trust row with no source anywhere in the repo:
+    // "5-Star Rated Agent", which no rating in src/config/site.ts or the
+    // answer playbook backs, and "24-Hour Response Guarantee", a service
+    // guarantee of the kind the brief forbids inventing — and one the contact
+    // page contradicts by deliberately stating no response time.
+    const { container } = render(<FinalCTA />);
+    const text = container.textContent ?? '';
+
+    expect(text).not.toMatch(/guarantee/i);
+    expect(text).not.toMatch(/\bstar rated\b/i);
+    expect(text).toContain(siteConfig.awards[0]);
+    expect(text).toContain(siteConfig.awards[1]);
+  });
+});
+
 describe('the dashboard view switcher', () => {
   const leads: unknown[] = [];
   const data = {
@@ -315,7 +422,7 @@ describe('the dashboard view switcher', () => {
     // was selected. `aria-pressed` has to be on all three: a group where only
     // the selected button carries it tells assistive tech the other two are
     // not toggles at all.
-    vi.doMock('next/navigation', () => ({ useRouter: () => ({ push: () => {} }) }));
+    // `next/navigation` is mocked at the top of this file.
     const { default: DashboardPage } = await import('@/app/dashboard/page');
 
     const user = userEvent.setup();

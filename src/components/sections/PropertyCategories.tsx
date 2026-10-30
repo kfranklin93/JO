@@ -5,26 +5,40 @@ import Link from 'next/link';
 import { motion } from 'framer-motion';
 
 /**
- * The browsing section in the middle of the homepage.
+ * The three ways into working with Joey, in the middle of the homepage.
  *
  * Built, never imported, and placed now to give the stretch of page that
- * carries the trust argument something to click. It is the browsing half of
- * that fix; ValueProposition is the other half.
+ * carries the trust argument something to click. ValueProposition is the other
+ * half of that fix.
  *
- * ## Why this rather than FeaturedListings
+ * ## There is no honest browsing card, so there is no browsing card
  *
- * `FeaturedListings` was the alternative and could not be placed. It renders
- * `featuredProperties` from src/data/properties.ts — three homes with street
- * names, bed and bath counts, square footage, asking prices and statuses like
- * "Open House Sat" and "Price Reduced", none of which came from Joey. Putting
- * invented listings and invented prices under a licensed agent's name on his
- * own homepage is not a copy problem. (The same fabricated pattern is already
- * live on /properties and wants his real data or deletion; that page is not
- * this change.) It is also the only mount point for `StickyBottomCTA`, which
- * would have put a second persistent element along the bottom edge in the same
- * change that reduced the floating elements to one.
+ * `FeaturedListings` was the alternative for this slot and could not be
+ * placed. It renders `featuredProperties` from src/data/properties.ts — three
+ * homes with street names, bed and bath counts, square footage, asking prices
+ * and statuses like "Open House Sat" and "Price Reduced", none of which came
+ * from Joey. Putting invented listings and invented prices under a licensed
+ * agent's name on his own homepage is not a copy problem. It is also the only
+ * mount point for `StickyBottomCTA`, which would have put a second persistent
+ * element along the bottom edge in the same change that reduced the floating
+ * elements to one.
  *
- * ## The three cards used to go nowhere
+ * This section then reproduced the same problem one link removed. Its first
+ * card, "Homes on the Market / Current listings across Metro Atlanta", pointed
+ * at /properties — which hard-codes four homes with neighbourhoods, bed counts
+ * and asking prices from $625,000 to $2,450,000, none of them Joey's. A review
+ * caught it: choosing this section specifically to avoid publishing invented
+ * listings, and then opening the homepage with a card into them, is the same
+ * mistake with an extra click in front of it.
+ *
+ * So the card is gone rather than repointed, because every honest fix needs
+ * data this repo does not have — Joey's real listings or an MLS feed. The slot
+ * went to `/closing-services`, which is the one remaining destination with an
+ * approved answer behind it. /properties itself is pre-existing, still linked
+ * from NeighborhoodsSection and the buyer page, and still wants his real data
+ * or deletion; that page is not this change, and it is in the report for him.
+ *
+ * ## The original three cards went nowhere at all
  *
  * They pointed at /properties/now-selling, /properties/future-visions and
  * /properties/legacy. None of those routes exists — there is one `/properties`
@@ -35,12 +49,12 @@ import { motion } from 'framer-motion';
  * pre-launch opportunities and development projects" described an offering no
  * approved answer mentions, and a "Sold" badge over
  * `siteConfig.stats.closedDeals` made the scoreboard figure look like a
- * property status. What is here now is the three destinations a visitor can
- * actually reach, described from the playbook in
+ * property status. What is here now is three destinations a visitor can
+ * actually reach, each described from the playbook in
  * src/lib/assistant/answer-playbook-content.ts: the counties and statewide
  * coverage are `service-area`, the pre-approval plan is `pre-approval-first`,
- * and reviewing a home personally instead of giving a generic online estimate
- * is `home-valuation`.
+ * reviewing a home personally instead of giving a generic online estimate is
+ * `home-valuation`, and the closing card is the `closing-services` sentence.
  *
  * Repeating the hero's buying and selling split this far down the page is
  * deliberate, not an oversight — a visitor who has just read the trust
@@ -62,18 +76,19 @@ import { motion } from 'framer-motion';
  *
  * ## Colours
  *
- * Bone-white surface with bone cards, matching the three sections below it,
- * and it sits between a neutral section and the onyx scoreboard so the dark
- * sections do not run together. Card text is onyx and stone on bone; the link
- * is `text-accent`, which resolves to hunter at 13.1:1.
+ * A review found this note describing a surface the classes do not set, so to
+ * be exact about what is here: the section is `bg-white` with `bg-linen`
+ * cards. That pairing is not a brand leftover — NeighborhoodsSection,
+ * BuyersGuideSection and TeamSection further down the page all use white with
+ * navy headings, and the contrast audit passes on it. The section immediately
+ * below this one is the onyx MarketStatsSection, which is the reason a light
+ * surface belongs here: the section above is neutral, so a dark one in this
+ * slot would run straight into the scoreboard.
+ *
+ * Card text is navy and stone on linen; the link is `text-accent`, which
+ * resolves to hunter at 13.1:1.
  */
 const categories = [
-  {
-    title: 'Homes on the Market',
-    description: 'Current listings across Metro Atlanta.',
-    href: '/properties',
-    cta: 'Browse Listings',
-  },
   {
     title: 'Buying in Georgia',
     description:
@@ -88,6 +103,13 @@ const categories = [
     href: '/sell-home',
     cta: 'Start as a Seller',
   },
+  {
+    title: 'Contract to Closing',
+    description:
+      'Joey personally manages every deal from contract to closing, has trusted closing partners when you need a resource, and attends every one of his closings in person.',
+    href: '/closing-services',
+    cta: 'See How a Closing Runs',
+  },
 ];
 
 export function PropertyCategories() {
@@ -98,8 +120,11 @@ export function PropertyCategories() {
           <h2 className="font-serif text-5xl text-navy sm:text-6xl">
             Where Would You Like to Start?
           </h2>
+          {/* Was "Browse what's available, or pick the side of the deal you're
+              on" — the browsing half went with the listings card. */}
           <p className="mt-6 font-sans text-lg font-light text-stone">
-            Browse what&rsquo;s available, or pick the side of the deal you&rsquo;re on
+            Pick the side of the deal you&rsquo;re on, and see how Joey runs it
+            through to closing
           </p>
         </div>
 

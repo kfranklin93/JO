@@ -40,13 +40,29 @@ import { siteConfig } from '@/config/site';
  *     the specific thing the owner asked to have cleaned up.
  *
  * What is left is sourced. The wealth-building framing, the investor
- * background and the philosophy line are `who-is-joey`; "numbers first" is
- * `investment-property`; condition, the current market and recent nearby sales
- * as what price and timing depend on, and reviewing the home personally rather
- * than giving a generic online estimate, are `home-valuation` — all in
+ * background, the "first-time buyer, seller, investor, or relocating" list and
+ * the philosophy line are `who-is-joey`; "numbers first" is
+ * `investment-property`; building the plan with you personally — your goals,
+ * your budget, your next steps — is `first-time-buyer`, all in
  * src/lib/assistant/answer-playbook-content.ts. Of the guide itself the page
  * says only that it exists, that it is his, and that it reads inventory, which
  * is what its name says. Anything further has to come from Joey.
+ *
+ * ## Two things a review caught, and why the copy got shorter
+ *
+ *   - A sentence here said what the guide means for your home "depends on the
+ *     home — its condition, the market right now, and recent sales near you".
+ *     Those three factors are real, but `home-valuation` makes them determine
+ *     **price and timing**, not the output of this framework. Moving them onto
+ *     the guide asserts mechanics for Joey's own named method that nobody
+ *     approved, so they are gone and the guide sentence now names it and stops.
+ *   - The action read "Ask About the 0-4-7 Guide". There is no playbook entry
+ *     for the guide, and system-prompt.ts tells the assistant to say it does
+ *     not know rather than guess — so the section's primary button invited a
+ *     question the panel behind it would decline. It offers the thing the panel
+ *     can actually deliver instead: the 15 minutes with Joey that
+ *     system-prompt.ts defines as the consultation. The label comes back to the
+ *     guide if Joey writes an approved answer about it.
  *
  * ## There is no photograph to put beside it
  *
@@ -111,15 +127,19 @@ export function ValueProposition() {
               Every move should build your financial future, not just close a
               deal.
             </p>
+            {/* Two sentences, and the second one is not about the guide. See
+                the note above on why: the guide has no approved answer, so the
+                page names it and stops. The plan sentence is `who-is-joey` and
+                `first-time-buyer`, both of which say he builds it with you
+                personally. */}
             <p>
               He reads inventory through his own framework, the{' '}
               <strong className="text-linen font-normal">
                 0-4-7 Month Inventory Guide
               </strong>
-              . What it means for your home depends on the home — its condition,
-              the market right now, and recent sales near you — so he goes
-              through it with you personally rather than handing you a generic
-              online estimate.
+              . First-time buyer, seller, investor, or relocating across the
+              world, he builds the plan with you personally — your goals, your
+              budget, your next steps.
             </p>
             {/* Joey's philosophy, from the `who-is-joey` entry. Set in the
                   display face and champagne, which is how the same sentence is
@@ -138,7 +158,7 @@ export function ValueProposition() {
               size="md"
               onClick={handleChatClick}
             >
-              <span>Ask About the 0-4-7 Guide</span>
+              <span>Book 15 Minutes with Joey</span>
             </MagneticButton>
             <Link
               href="/about"
