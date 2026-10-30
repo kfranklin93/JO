@@ -30,7 +30,9 @@
  * the same words.
  */
 
+import { eq } from 'drizzle-orm';
 import { db, leads, followUps } from '@/lib/db';
+import type { leadSourceEnum } from '@/lib/db/schema';
 import { markSent, recordFailure } from '@/lib/db/follow-up-queue';
 import { sendImmediateFollowUp } from '@/lib/services/follow-up-scheduler';
 import type { Lead } from '@/lib/services/follow-up-scheduler';
@@ -47,6 +49,26 @@ import { requireEnv } from '@/lib/utils/require-env';
 
 /** The touchpoint this call sends itself, rather than leaving to the cron. */
 export const IMMEDIATE_TEMPLATE_TYPE = 'immediate';
+
+/** A label the database's `lead_source` enum accepts. */
+export type LeadSourceValue = (typeof leadSourceEnum)['enumValues'][number];
+
+/**
+ * Where a lead arrived from, when the caller does not say.
+ *
+ * The public form and every other HTTP caller land here, which is what they
+ * stored before this became a parameter at all.
+ */
+export const DEFAULT_LEAD_SOURCE: LeadSourceValue = 'website_form';
+
+/**
+ * The source a lead captured in conversation records.
+ *
+ * Requires the matching enum label in the database — see
+ * src/lib/db/lead-source-schema.sql, which must be applied before any deploy
+ * that writes this.
+ */
+export const ASSISTANT_CHAT_SOURCE: LeadSourceValue = 'assistant_chat';
 
 /**
  * Every follow-up touchpoint created alongside a new lead.
@@ -144,7 +166,10 @@ async function recordImmediateOutcome(
  * The WebSocket driver in src/lib/db/index.ts supports transactions; the
  * neon-http driver would not.
  */
-async function persistLead(submission: LeadSubmission): Promise<PersistedLead> {
+async function persistLead(
+  submission: LeadSubmission,
+  source: LeadSourceValue
+): Promise<PersistedLead> {
   return db.transaction(async (tx) => {
     const rows = await tx
       .insert(leads)
@@ -166,9 +191,11 @@ async function persistLead(submission: LeadSubmission): Promise<PersistedLead> {
         },
         status: 'new',
         // The DB `lead_source` enum and the `LeadSource` type enum in
-        // src/types/lead.ts use different vocabularies. Both forms are website
-        // forms, so this is set directly rather than translated.
-        source: 'website_form',
+        // src/types/lead.ts use different vocabularies, so this is the DB
+        // value, chosen by the caller rather than translated. It used to be the
+        // literal 'website_form', which made a chat lead indistinguishable from
+        // a form submission in the dashboard.
+        source,
       })
       .returning();
 
@@ -221,13 +248,23 @@ async function persistLead(submission: LeadSubmission): Promise<PersistedLead> {
  *   3. Persist, atomically.
  *   4. Notify, outside the persistence path.
  *
+ * This is the INSERT path, and the only one that creates a follow-up drip. A
+ * caller holding a lead that already exists — the chat assistant, whose model
+ * re-calls `capture_lead` on later turns — must use {@link updateCapturedLead}
+ * instead. Calling this twice for one conversation is what put six rows and
+ * sixteen queued emails behind one person.
+ *
+ * @param options.source which touchpoint this lead arrived through. Defaults to
+ *   the public form, which is what every caller stored before this existed.
+ *
  * @throws MissingEnvError when the deployment lacks DATABASE_URL or
  *   RESEND_API_KEY — before anything is written.
  * @throws whatever the driver throws if the transaction cannot commit. Nothing
  *   is persisted and no integration has run in that case.
  */
 export async function captureLead(
-  rawInput: unknown
+  rawInput: unknown,
+  options: { source?: LeadSourceValue } = {}
 ): Promise<LeadCaptureOutcome> {
   const parsed = leadSubmissionSchema.safeParse(rawInput);
   if (!parsed.success) {
@@ -240,7 +277,10 @@ export async function captureLead(
 
   requireEnv('DATABASE_URL', 'RESEND_API_KEY');
 
-  const { lead: savedLead, immediateFollowUpId } = await persistLead(submission);
+  const { lead: savedLead, immediateFollowUpId } = await persistLead(
+    submission,
+    options.source ?? DEFAULT_LEAD_SOURCE
+  );
 
   console.log('New lead saved to database:', savedLead.id);
 
@@ -353,4 +393,244 @@ export async function captureLead(
       smsAlert: succeeded(smsResult),
     },
   };
+}
+
+/**
+ * A field the caller supplied a second, different value for.
+ *
+ * `kept` is what the row already held and still holds. `proposed` is what was
+ * offered and deliberately not written. See {@link updateCapturedLead}.
+ */
+export interface LeadFieldConflict {
+  field: string;
+  kept: string;
+  proposed: string;
+}
+
+/**
+ * The result of adding detail to a lead that already exists.
+ *
+ * `rejected` carries the same per-field errors `captureLead` returns, so a
+ * caller can keep one validation path. `missing` means the id named no row —
+ * which a caller holding a stale id should treat as "capture afresh", not as
+ * the client's fault.
+ */
+export type LeadUpdateOutcome =
+  | {
+      status: 'updated';
+      leadId: string;
+      /** Fields that were empty and now hold a value. */
+      filled: string[];
+      /** Fields whose stored value was kept against a different one. */
+      conflicts: LeadFieldConflict[];
+    }
+  | { status: 'rejected'; fieldErrors: Record<string, string> }
+  | { status: 'missing' };
+
+/** Empty for this purpose: never set, or set to whitespace. */
+function isBlank(value: unknown): boolean {
+  if (value === null || value === undefined) return true;
+  return String(value).trim() === '';
+}
+
+/** Case- and whitespace-insensitive, so "Buy " and "buy" are not a conflict. */
+function sameValue(held: unknown, proposed: string | number): boolean {
+  return (
+    String(held).trim().toLowerCase() === String(proposed).trim().toLowerCase()
+  );
+}
+
+/**
+ * Add detail to a lead that already exists, writing the lead row and nothing
+ * else.
+ *
+ * ## Why this is not `persistLead` with an upsert
+ *
+ * `persistLead` inserts the lead and its five follow-up touchpoints in one
+ * transaction. Reusing it to "update" is what produced the production damage
+ * this function exists to stop: four duplicate rows meant four drips, which
+ * queued sixteen follow-up emails to one address.
+ *
+ * So, explicitly, this writes:
+ *
+ *   - the `leads` row named by `leadId`: fields that are currently empty, the
+ *     `notes` audit line described below, and `updatedAt`.
+ *
+ * and this does NOT write, touch or send:
+ *
+ *   - any `follow_ups` row — no new drip, and no change to the existing one;
+ *   - the immediate follow-up email, Joey's new-lead email, the SMS alert, or
+ *     the Lofty CRM sync, all of which announce a lead that is not new;
+ *   - a fresh consent record, since the email address is never overwritten
+ *     here, so the address that consented is still the address on the row;
+ *   - `id`, `createdAt`, `status` or `source`. A conversation that keeps talking
+ *     is not a new lead and is not a lead from somewhere else.
+ *
+ * ## The rule for a field that already has a value
+ *
+ * Fill blanks; never overwrite. A stored value wins over a later, different one,
+ * and the difference is appended to the lead's `notes` with a timestamp so
+ * nothing is lost.
+ *
+ * The reason is that the server cannot tell a correction from a mistake. The
+ * model re-calls `capture_lead` mostly with what it already sent, so a value
+ * that differs is either the client correcting themselves or the model garbling
+ * what it was told. Overwriting would let the second case redirect a drip to an
+ * address the client never gave; dropping it silently would lose the first.
+ * Keeping the stored value and recording the proposal does neither: the drip
+ * keeps going to the address the person actually confirmed, and Joey can see in
+ * the row that a different one was offered.
+ *
+ * @throws MissingEnvError when DATABASE_URL is absent — before anything is
+ *   written. RESEND_API_KEY is not required, because this path sends nothing.
+ * @throws whatever the driver throws if the transaction cannot commit.
+ */
+export async function updateCapturedLead(
+  leadId: string,
+  rawInput: unknown
+): Promise<LeadUpdateOutcome> {
+  // The same validation the insert path runs, in the same order: a bad payload
+  // is reported as a bad payload even on a half-configured deploy, and a caller
+  // can put one field back to the client rather than guessing at a default.
+  const parsed = leadSubmissionSchema.safeParse(rawInput);
+  if (!parsed.success) {
+    return { status: 'rejected', fieldErrors: formatFieldErrors(parsed.error) };
+  }
+
+  const submission = parsed.data;
+
+  requireEnv('DATABASE_URL');
+
+  return db.transaction(async (tx) => {
+    // Read and write in one transaction so two turns landing together cannot
+    // both see the same field as empty and both fill it.
+    const [existing] = await tx
+      .select()
+      .from(leads)
+      .where(eq(leads.id, leadId))
+      .limit(1);
+
+    if (!existing) return { status: 'missing' as const };
+
+    const patch: Partial<typeof leads.$inferInsert> = {};
+    const filled: string[] = [];
+    const conflicts: LeadFieldConflict[] = [];
+
+    /** Fill one top-level column, or record that it already said otherwise. */
+    const considerColumn = (
+      field: string,
+      held: unknown,
+      proposed: string | undefined,
+      write: (value: string) => void
+    ): void => {
+      if (proposed === undefined) return;
+      if (isBlank(held)) {
+        write(proposed);
+        filled.push(field);
+        return;
+      }
+      if (!sameValue(held, proposed)) {
+        conflicts.push({
+          field,
+          kept: String(held).trim(),
+          proposed: proposed.trim(),
+        });
+      }
+    };
+
+    considerColumn('email', existing.email, submission.email, (value) => {
+      patch.email = value;
+    });
+    considerColumn('fullName', existing.fullName, submission.fullName, (value) => {
+      patch.fullName = value;
+    });
+    considerColumn('firstName', existing.firstName, submission.firstName, (value) => {
+      patch.firstName = value;
+    });
+    considerColumn('lastName', existing.lastName, submission.lastName, (value) => {
+      patch.lastName = value;
+    });
+    considerColumn('phone', existing.phone, submission.phone, (value) => {
+      patch.phone = value;
+    });
+    considerColumn('intent', existing.propertyInterest, submission.intent, (value) => {
+      patch.propertyInterest = value;
+    });
+    considerColumn('timeline', existing.timeline, submission.timeline, (value) => {
+      patch.timeline = value;
+    });
+
+    // `form_data` is where the insert path puts the softer details, so this
+    // path reads and rewrites the same keys rather than inventing columns.
+    const heldForm: Record<string, unknown> =
+      existing.formData !== null &&
+      typeof existing.formData === 'object' &&
+      !Array.isArray(existing.formData)
+        ? { ...(existing.formData as Record<string, unknown>) }
+        : {};
+
+    const nextForm = { ...heldForm };
+    let formChanged = false;
+
+    const considerFormField = (
+      field: string,
+      proposed: string | number | undefined
+    ): void => {
+      if (proposed === undefined) return;
+      const held = heldForm[field];
+      if (isBlank(held)) {
+        nextForm[field] = proposed;
+        formChanged = true;
+        filled.push(field);
+        return;
+      }
+      if (!sameValue(held, proposed)) {
+        conflicts.push({
+          field,
+          kept: String(held).trim(),
+          proposed: String(proposed).trim(),
+        });
+      }
+    };
+
+    considerFormField('budget', submission.budget);
+    considerFormField('location', submission.location);
+    considerFormField('bedrooms', submission.bedrooms);
+    considerFormField('bathrooms', submission.bathrooms);
+    considerFormField('propertyType', submission.propertyType);
+    // Notes are treated like every other field — filled when empty, recorded in
+    // the audit line when they differ — rather than concatenated. One rule is
+    // easier to reason about than a per-field exception, and nothing is lost
+    // either way: the new text ends up in `notes` if it is not written here.
+    considerFormField('additionalNotes', submission.additionalNotes);
+
+    if (formChanged) patch.formData = nextForm;
+
+    if (conflicts.length > 0) {
+      const detail = conflicts
+        .map((c) => `${c.field} kept "${c.kept}", offered "${c.proposed}"`)
+        .join('; ');
+      const line =
+        `[assistant ${new Date().toISOString()}] a later capture_lead offered ` +
+        `different values and the stored ones were kept — ${detail}`;
+      patch.notes =
+        existing.notes === null || existing.notes.trim() === ''
+          ? line
+          : `${existing.notes}\n${line}`;
+    }
+
+    if (Object.keys(patch).length === 0) {
+      // Nothing new was said. Not even `updated_at` is touched, so a repeated
+      // identical capture leaves no trace at all — which is what makes this
+      // idempotent rather than merely non-duplicating.
+      return { status: 'updated' as const, leadId, filled, conflicts };
+    }
+
+    await tx
+      .update(leads)
+      .set({ ...patch, updatedAt: new Date() })
+      .where(eq(leads.id, leadId));
+
+    return { status: 'updated' as const, leadId, filled, conflicts };
+  });
 }

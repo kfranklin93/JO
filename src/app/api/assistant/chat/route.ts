@@ -38,7 +38,11 @@ import {
   type LocalCaptureHook,
   type OfferedSlot,
 } from '@/lib/assistant/tools';
-import { captureLead } from '@/lib/services/lead-capture';
+import {
+  ASSISTANT_CHAT_SOURCE,
+  captureLead,
+  updateCapturedLead,
+} from '@/lib/services/lead-capture';
 import { recordChatTurn, sessionLeadId } from '@/lib/services/chat-store';
 import { bookingLink } from '@/lib/services/booking-link';
 import { assistantMuteState } from '@/lib/services/assistant-mute';
@@ -268,8 +272,64 @@ export async function POST(req: NextRequest) {
   // through and attached to the stored session.
   let capturedLeadId: string | undefined;
 
+  /**
+   * `capture_lead`, made idempotent per chat session.
+   *
+   * One conversation gets one lead row. The first call in a session inserts;
+   * every later one adds detail to that same row. The id comes from the chat
+   * session — never from the email address, because `leads.email` is
+   * deliberately non-unique: the same person is legitimately a buyer lead now
+   * and a seller lead in three years, and keying on the address would merge two
+   * real enquiries into one.
+   *
+   * Why later calls happen at all: tool results are not persisted. `chat_messages`
+   * stores a role and text, so on a later HTTP turn the model has no record that
+   * capture succeeded, and the prompt requires a captured lead before
+   * `book_appointment` — so it captures again rather than risk booking for
+   * nobody. That cross-turn amnesia is not fixed here; it is made harmless.
+   * Unconditional insertion is what put six rows and sixteen queued follow-up
+   * emails behind one person.
+   *
+   * `updateCapturedLead` writes the lead row only — no second follow-up drip,
+   * no repeat of the new-lead emails — and never overwrites a value the row
+   * already holds. See that function for the conflict rule.
+   *
+   * A session id that names a deleted lead reports `missing`, and this captures
+   * afresh rather than failing the turn.
+   */
   const captureLeadLocally: LocalCaptureHook = async (input) => {
-    const outcome = await captureLead(toLeadSubmissionInput(input));
+    const submission = toLeadSubmissionInput(input);
+
+    // `capturedLeadId` covers a second call inside this same turn; `leadId` is
+    // the session's bound lead, read below before the model runs.
+    const established = capturedLeadId ?? leadId;
+
+    if (established) {
+      const update = await updateCapturedLead(established, submission);
+
+      // Still a throw, exactly as on the insert path: the model has to see
+      // which field was wrong and ask the client again. Handing back an id for
+      // a write that did not happen is the failure a prior fix removed.
+      if (update.status === 'rejected') {
+        throw new LeadCaptureValidationError(update.fieldErrors);
+      }
+
+      if (update.status === 'updated') {
+        console.log(
+          `[assistant:chat] session=${sessionId} capture_lead folded into lead=${established}` +
+            ` filled=${update.filled.join(',') || 'nothing'}` +
+            ` conflicts=${update.conflicts.map((c) => c.field).join(',') || 'none'}`,
+        );
+        capturedLeadId = established;
+        return { lead_id: established };
+      }
+
+      console.warn(
+        `[assistant:chat] session=${sessionId} was bound to lead=${established}, which no longer exists — capturing a new one`,
+      );
+    }
+
+    const outcome = await captureLead(submission, { source: ASSISTANT_CHAT_SOURCE });
     if (!outcome.ok) throw new LeadCaptureValidationError(outcome.fieldErrors);
     capturedLeadId = outcome.leadId;
     return { lead_id: outcome.leadId };
@@ -281,13 +341,20 @@ export async function POST(req: NextRequest) {
    * The lead identity is closed over here rather than passed as a tool
    * argument, which is the security property: `book_appointment` takes a start
    * time and nothing else, so an injected "book this for rival@agency.com" has
-   * nowhere to put the address. The id is whichever lead this conversation has
-   * actually established — the one already on the session, or the one
-   * `capture_lead` just created in this same turn.
+   * nowhere to put the address.
    *
-   * Reading `capturedLeadId` at call time rather than closing over its value
-   * matters: the model can capture a lead and book in a single turn, and the
-   * variable is only assigned partway through.
+   * The session's bound lead wins, and the id captured in this request is the
+   * fallback for the first turn, when the session has none yet. That order is
+   * load-bearing: `recordChatTurn` binds the session with
+   * `coalesce(chat_sessions.lead_id, ...)`, so the session keeps the FIRST lead
+   * it ever saw. Preferring the request's id put the appointment on a duplicate
+   * row while the lead the session points at showed none — the production
+   * symptom. Capture is now idempotent per session, so the two agree on any
+   * turn that captures; this keeps them agreeing if they ever diverge again.
+   *
+   * Reading both at call time rather than closing over their values matters:
+   * the model can capture a lead and book in a single turn, and
+   * `capturedLeadId` is only assigned partway through.
    */
   const bookingHooks = {
     availability: async () => {
@@ -295,7 +362,7 @@ export async function POST(req: NextRequest) {
       return slots.map(offeredSlot);
     },
     book: async (startTime: string) => {
-      const forLead = capturedLeadId ?? leadId;
+      const forLead = leadId ?? capturedLeadId;
       if (!forLead) return { status: 'no_lead' as const };
 
       const now = new Date();

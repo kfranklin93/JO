@@ -50,6 +50,7 @@ const leadRows = [
     phone: '(770) 555-0188',
     propertyInterest: 'buy',
     status: 'new',
+    source: 'assistant_chat',
     timeline: 'short_term',
     createdAt: new Date(),
     lastContactedAt: null,
@@ -248,6 +249,13 @@ describe('GET /api/dashboard/data — valid session', () => {
       location: 'Marietta',
       followUps: { scheduled: 1, sent: 1, total: 2 },
     });
+  });
+  it('carries the touchpoint the lead came in through', async () => {
+    // Without this the dashboard cannot tell a conversation from a form
+    // submission, which is the whole reason 'assistant_chat' was added to the
+    // lead_source enum.
+    const body = await (await requestWithCookie(createSession())).json();
+    expect(body.leads[0].source).toBe('assistant_chat');
   });
 });
 

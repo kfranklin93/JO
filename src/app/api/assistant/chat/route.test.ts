@@ -38,7 +38,12 @@ const assistantMuteState = vi.fn();
 vi.mock('@/lib/services/assistant-mute', () => ({ assistantMuteState }));
 
 const captureLead = vi.fn();
-vi.mock('@/lib/services/lead-capture', () => ({ captureLead }));
+const updateCapturedLead = vi.fn();
+vi.mock('@/lib/services/lead-capture', () => ({
+  captureLead,
+  updateCapturedLead,
+  ASSISTANT_CHAT_SOURCE: 'assistant_chat',
+}));
 
 const { POST, resolveSessionId, sanitizeHistory } = await import('./route');
 
@@ -63,9 +68,11 @@ beforeEach(() => {
   assistantMuteState.mockReset();
   assistantMuteState.mockResolvedValue({ muted: false, reason: null });
   captureLead.mockReset();
+  updateCapturedLead.mockReset();
 
   vi.spyOn(console, 'log').mockImplementation(() => {});
   vi.spyOn(console, 'error').mockImplementation(() => {});
+  vi.spyOn(console, 'warn').mockImplementation(() => {});
 });
 
 afterEach(() => {

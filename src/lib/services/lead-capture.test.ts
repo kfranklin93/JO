@@ -29,6 +29,10 @@ vi.mock('@/config/env', () => ({ env: testEnv }));
 let insertedLeadRows: Array<{ id: string; createdAt: Date }>;
 /** Every insert issued, in order, keyed by table. */
 let recordedInserts: Array<{ table: string; values: unknown }>;
+/** Every update issued, in order, keyed by table. */
+let recordedUpdates: Array<{ table: string; values: Record<string, unknown> }>;
+/** The row the mocked `leads` select finds, or null for "no such lead". */
+let existingLeadRow: Record<string, unknown> | null;
 /** Forces the follow-up insert to reject. */
 let followUpInsertError: Error | null;
 /** Overrides what the follow-up insert's `RETURNING` yields. */
@@ -78,8 +82,30 @@ vi.mock('@/lib/db', () => {
     },
   });
 
+  /** The read the update path does before it decides what is empty. */
+  const select = () => ({
+    from: (_table: unknown) => ({
+      where: (_condition: unknown) => ({
+        limit: (_count: number) =>
+          Promise.resolve(existingLeadRow === null ? [] : [existingLeadRow]),
+      }),
+    }),
+  });
+
+  const update = (table: unknown) => ({
+    set: (values: unknown) => ({
+      where: (_condition: unknown) => {
+        recordedUpdates.push({
+          table: tableName(table),
+          values: values as Record<string, unknown>,
+        });
+        return Promise.resolve(undefined);
+      },
+    }),
+  });
+
   return {
-    leads: { __name: 'leads' },
+    leads: { __name: 'leads', id: 'leads.id' },
     followUps: {
       __name: 'followUps',
       id: 'follow_ups.id',
@@ -93,9 +119,21 @@ vi.mock('@/lib/db', () => {
           'db.insert called outside a transaction — lead writes must be atomic'
         );
       },
-      transaction: async <T,>(callback: (tx: { insert: typeof insert }) => Promise<T>) => {
+      update: () => {
+        throw new Error(
+          'db.update called outside a transaction — the read that decides what ' +
+            'is empty and the write that fills it must not be separable'
+        );
+      },
+      transaction: async <T,>(
+        callback: (tx: {
+          insert: typeof insert;
+          select: typeof select;
+          update: typeof update;
+        }) => Promise<T>
+      ) => {
         try {
-          return await callback({ insert });
+          return await callback({ insert, select, update });
         } catch (error) {
           transactionRejected = true;
           throw error;
@@ -172,7 +210,12 @@ vi.mock('@/lib/services/sms-service', () => ({
 // Imported after the mocks are registered, not at the top of the file: both
 // modules read `@/config/env` on the way in, and a static import would evaluate
 // them before `testEnv` exists.
-const { captureLead, FOLLOW_UP_SCHEDULE } = await import('./lead-capture');
+const {
+  ASSISTANT_CHAT_SOURCE,
+  captureLead,
+  updateCapturedLead,
+  FOLLOW_UP_SCHEDULE,
+} = await import('./lead-capture');
 const { MissingEnvError } = await import('@/lib/utils/require-env');
 
 /** Raw input as a non-HTTP caller would build it: a plain object, no Request. */
@@ -182,6 +225,42 @@ const validInput = {
   intent: 'buy',
   additionalNotes: 'Relocating in the spring, wants three bedrooms.',
 };
+
+/**
+ * The lead row as it stands after one chat turn has captured it.
+ *
+ * Shaped the way `persistLead` leaves it: the name and intent set, the softer
+ * details in `form_data`, everything the client has not said yet null.
+ */
+const STORED_LEAD_ROW = {
+  id: LEAD_ID,
+  email: 'rosa.alvarez@gowithjoeyo-test.invalid',
+  phone: null,
+  firstName: 'Rosa',
+  lastName: 'Alvarez',
+  fullName: 'Rosa Alvarez',
+  propertyInterest: 'buy',
+  timeline: null,
+  notes: null,
+  status: 'new',
+  source: 'website_form',
+  formData: {
+    budget: null,
+    location: null,
+    bedrooms: null,
+    bathrooms: null,
+    propertyType: null,
+    additionalNotes: 'Relocating in the spring, wants three bedrooms.',
+  },
+  createdAt: CREATED_AT,
+  updatedAt: CREATED_AT,
+};
+
+/** What the single UPDATE this path is allowed to issue actually set. */
+function leadUpdateValues(): Record<string, unknown> | undefined {
+  expect(recordedUpdates.filter((entry) => entry.table !== 'leads')).toEqual([]);
+  return recordedUpdates.find((entry) => entry.table === 'leads')?.values;
+}
 
 function leadInsertValues(): Record<string, unknown> | undefined {
   return recordedInserts.find((entry) => entry.table === 'leads')?.values as
@@ -210,6 +289,8 @@ beforeEach(() => {
   testEnv.RESEND_API_KEY = 're_test_key';
   insertedLeadRows = [{ id: LEAD_ID, createdAt: CREATED_AT }];
   recordedInserts = [];
+  recordedUpdates = [];
+  existingLeadRow = { ...STORED_LEAD_ROW };
   followUpInsertError = null;
   followUpReturningOverride = null;
   transactionRejected = false;
@@ -525,5 +606,209 @@ describe('captureLead — the immediate touchpoint', () => {
       emailNotification: true,
       smsAlert: false,
     });
+  });
+});
+
+describe('captureLead — which touchpoint the lead arrived through', () => {
+  it('stores the public form by default, as every caller did before', async () => {
+    await captureLead(validInput);
+
+    expect(leadInsertValues()).toMatchObject({ source: 'website_form' });
+  });
+
+  it('stores the chat source when the assistant captured the lead', async () => {
+    // Without this, a conversation and a form submission are the same row in
+    // Joey's dashboard. Needs the matching enum label in the database first —
+    // see src/lib/db/lead-source-schema.sql.
+    await captureLead(validInput, { source: ASSISTANT_CHAT_SOURCE });
+
+    expect(leadInsertValues()).toMatchObject({ source: 'assistant_chat' });
+  });
+});
+
+/**
+ * The update path: what a second `capture_lead` in one conversation does.
+ *
+ * This is the half of the duplicate-lead fix that can be stated about storage
+ * alone. The route decides *when* to update (see route-capture.test.ts); these
+ * tests pin what an update is allowed to write — above all that it writes no
+ * second follow-up drip, because four duplicate rows are what queued sixteen
+ * follow-up emails to one address.
+ */
+describe('updateCapturedLead — adding detail to a lead that exists', () => {
+  it('fills a field that was empty and says which', async () => {
+    const outcome = await updateCapturedLead(LEAD_ID, {
+      ...validInput,
+      phone: '(770) 555-0188',
+      timeline: '3 months',
+    });
+
+    expect(outcome).toMatchObject({ status: 'updated', leadId: LEAD_ID });
+    if (outcome.status !== 'updated') throw new Error('expected an update');
+    expect(outcome.filled.sort()).toEqual(['phone', 'timeline']);
+    expect(outcome.conflicts).toEqual([]);
+    expect(leadUpdateValues()).toMatchObject({
+      phone: '(770) 555-0188',
+      timeline: '3 months',
+    });
+  });
+
+  it('creates no follow-up drip and sends nothing', async () => {
+    // The whole point. `persistLead` writes the lead and its five touchpoints
+    // in one transaction, so reusing it here would have been a second drip.
+    await updateCapturedLead(LEAD_ID, {
+      ...validInput,
+      phone: '(770) 555-0188',
+    });
+
+    expect(recordedInserts).toEqual([]);
+    expect(sendImmediateFollowUp).not.toHaveBeenCalled();
+    expect(notifyJoeyOfNewLead).not.toHaveBeenCalled();
+    expect(sendSMSAlert).not.toHaveBeenCalled();
+    expect(sendLeadToLofty).not.toHaveBeenCalled();
+    expect(recordFreshConsent).not.toHaveBeenCalled();
+    expect(markSent).not.toHaveBeenCalled();
+  });
+
+  it('leaves the identity of the row alone', async () => {
+    await updateCapturedLead(LEAD_ID, {
+      ...validInput,
+      phone: '(770) 555-0188',
+    });
+
+    const written = leadUpdateValues() ?? {};
+    expect(written).not.toHaveProperty('id');
+    expect(written).not.toHaveProperty('createdAt');
+    expect(written).not.toHaveProperty('status');
+    expect(written).not.toHaveProperty('source');
+  });
+
+  it('fills a gap in form_data without dropping what is already there', async () => {
+    const outcome = await updateCapturedLead(LEAD_ID, {
+      ...validInput,
+      location: 'Marietta',
+      budget: '$450k',
+    });
+
+    if (outcome.status !== 'updated') throw new Error('expected an update');
+    expect(outcome.filled.sort()).toEqual(['budget', 'location']);
+    expect(leadUpdateValues()?.formData).toEqual({
+      budget: '$450k',
+      location: 'Marietta',
+      bedrooms: null,
+      bathrooms: null,
+      propertyType: null,
+      additionalNotes: STORED_LEAD_ROW.formData.additionalNotes,
+    });
+  });
+
+  it('writes nothing at all when the same details are captured again', async () => {
+    // Idempotent, not merely non-duplicating: a repeat identical capture leaves
+    // no trace, not even a touched updated_at.
+    const outcome = await updateCapturedLead(LEAD_ID, validInput);
+
+    expect(outcome).toEqual({
+      status: 'updated',
+      leadId: LEAD_ID,
+      filled: [],
+      conflicts: [],
+    });
+    expect(recordedUpdates).toEqual([]);
+  });
+
+  it('treats a differently-cased or padded value as the same value', async () => {
+    await updateCapturedLead(LEAD_ID, {
+      ...validInput,
+      name: '  rosa ALVAREZ  ',
+    });
+
+    expect(recordedUpdates).toEqual([]);
+  });
+});
+
+describe('updateCapturedLead — a field that already has a value', () => {
+  it('keeps the stored email and never overwrites it', async () => {
+    // The server cannot tell a client correcting themselves from a model
+    // garbling what it was told. Overwriting would let the second case
+    // redirect the drip to an address the client never gave.
+    const outcome = await updateCapturedLead(LEAD_ID, {
+      ...validInput,
+      email: 'rosa.alvarez+typo@gowithjoeyo-test.invalid',
+    });
+
+    if (outcome.status !== 'updated') throw new Error('expected an update');
+    expect(outcome.conflicts).toEqual([
+      {
+        field: 'email',
+        kept: STORED_LEAD_ROW.email,
+        proposed: 'rosa.alvarez+typo@gowithjoeyo-test.invalid',
+      },
+    ]);
+    expect(leadUpdateValues()).not.toHaveProperty('email');
+  });
+
+  it('records the value it refused in the lead’s notes, so nothing is lost', async () => {
+    await updateCapturedLead(LEAD_ID, {
+      ...validInput,
+      email: 'rosa.alvarez+typo@gowithjoeyo-test.invalid',
+      intent: 'sell',
+    });
+
+    const notes = leadUpdateValues()?.notes;
+    expect(notes).toMatch(/capture_lead offered/);
+    expect(notes).toContain('rosa.alvarez+typo@gowithjoeyo-test.invalid');
+    expect(notes).toContain('intent kept "buy", offered "sell"');
+  });
+
+  it('appends to notes already on the row rather than replacing them', async () => {
+    existingLeadRow = { ...STORED_LEAD_ROW, notes: 'Called once, no answer.' };
+
+    await updateCapturedLead(LEAD_ID, { ...validInput, intent: 'sell' });
+
+    expect(leadUpdateValues()?.notes).toMatch(/^Called once, no answer\.\n\[assistant /);
+  });
+});
+
+describe('updateCapturedLead — refusals', () => {
+  it('returns field errors rather than throwing, and writes nothing', async () => {
+    const outcome = await updateCapturedLead(LEAD_ID, {
+      ...validInput,
+      email: 'not-an-email',
+    });
+
+    expect(outcome).toMatchObject({ status: 'rejected' });
+    if (outcome.status !== 'rejected') throw new Error('expected a rejection');
+    expect(outcome.fieldErrors.email).toMatch(/valid email/i);
+    expect(recordedUpdates).toEqual([]);
+    expect(recordedInserts).toEqual([]);
+  });
+
+  it('reports a lead id that names no row, rather than inventing one', async () => {
+    existingLeadRow = null;
+
+    const outcome = await updateCapturedLead(LEAD_ID, validInput);
+
+    expect(outcome).toEqual({ status: 'missing' });
+    expect(recordedUpdates).toEqual([]);
+  });
+
+  it('needs DATABASE_URL and nothing else, because it sends no email', async () => {
+    delete testEnv.RESEND_API_KEY;
+
+    const outcome = await updateCapturedLead(LEAD_ID, {
+      ...validInput,
+      phone: '(770) 555-0188',
+    });
+
+    expect(outcome).toMatchObject({ status: 'updated' });
+  });
+
+  it('throws MissingEnvError without reading or writing when DATABASE_URL is absent', async () => {
+    delete testEnv.DATABASE_URL;
+
+    await expect(updateCapturedLead(LEAD_ID, validInput)).rejects.toThrow(
+      MissingEnvError
+    );
+    expect(recordedUpdates).toEqual([]);
   });
 });
