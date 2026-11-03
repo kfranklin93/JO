@@ -1,219 +1,230 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import Image from 'next/image';
-import { statusBadgeClasses } from '@/lib/utils/property-status';
+import { StructuredData } from '@/components/seo/StructuredData';
+import { getBreadcrumbSchema } from '@/config/structured-data';
+import {
+  RealScoutAdvancedSearch,
+  RealScoutYourListings,
+} from '@/components/widgets/RealScout';
+
+/**
+ * /properties — a search tool, not a listings showcase.
+ *
+ * ## What was here
+ *
+ * A hardcoded array of four homes — a Buckhead estate, a Marietta cottage, a
+ * Sandy Springs build and a Roswell townhome — each with a real
+ * neighbourhood, a specific asking price, a bed and bath count and a status
+ * badge. None of them existed. The page is in the sitemap and indexed, so a
+ * licensed agent's site was publishing four fabricated listings at four
+ * invented prices. Removing them is the point of this change.
+ *
+ * ## What is here now
+ *
+ * Two RealScout widgets from Joey's own account, in the order the owner asked
+ * for: his real inventory first, then a search of the wider market.
+ *
+ *   1. `realscout-your-listings` — Joey's listings and recent transactions.
+ *      Its `listing-status` deliberately includes `Sold` and `Rented`, so the
+ *      grid mixes active with closed. That is why the heading above it says
+ *      "listings and recent transactions": nothing on this page may claim
+ *      these are all homes currently for sale, because some of them are not.
+ *   2. `realscout-advanced-search` — beds, baths and price range.
+ *
+ * ## Why there is still prose
+ *
+ * Both widgets render inside a third-party web component, so none of their
+ * content is ours and none of it is crawlable as ours. A page whose entire
+ * body is two custom elements has nothing for a visitor who arrives before
+ * the script does and nothing for a search engine at all. Hence the two prose
+ * sections.
+ *
+ * **Every factual sentence in them is Joey's, traced to a source in this
+ * repo.** A previous pass on this page was rejected for four invented claims,
+ * and the sentence this page used to close with — "exclusive access to
+ * off-market listings" — was one of them: no source anywhere states it. Each
+ * paragraph below carries the playbook entry id it comes from. The rule is
+ * absolute: no statistic, guarantee, timeline or price that is not already in
+ * `src/lib/assistant/answer-playbook-content.ts` or `src/config/site.ts`.
+ */
 
 export const metadata: Metadata = {
-  title: 'Featured Properties | Joey Oberndorfer Real Estate',
-  description: 'Browse our exclusive collection of luxury properties in Metro Atlanta. Find your dream home with Joey Oberndorfer.',
+  // Was "Featured Properties", which described the four invented homes and
+  // is false now that the page features nothing of its own.
+  title: 'Search Atlanta Homes | Joey Oberndorfer Real Estate',
+  description:
+    "Search Metro Atlanta homes and see Joey Oberndorfer's listings and recent transactions. Joey serves all of Georgia, with deep expertise in Metro Atlanta.",
 };
 
-const properties = [
-  {
-    id: 1,
-    title: 'Modern Estate in Buckhead',
-    location: 'Buckhead, Atlanta',
-    price: '$2,450,000',
-    beds: 5,
-    baths: 4.5,
-    sqft: '4,800',
-    image: '/images/properties/flagship.jpg',
-    status: 'Available',
-  },
-  {
-    id: 2,
-    title: 'Historic Charm in Marietta',
-    location: 'Marietta Square',
-    price: '$875,000',
-    beds: 4,
-    baths: 3,
-    sqft: '3,200',
-    image: '/images/properties/legacy.jpg',
-    status: 'Available',
-  },
-  {
-    id: 3,
-    title: 'Contemporary Luxury in Sandy Springs',
-    location: 'Sandy Springs',
-    price: '$1,650,000',
-    beds: 4,
-    baths: 3.5,
-    sqft: '3,900',
-    image: '/images/properties/now-selling.jpg',
-    status: 'Under Contract',
-  },
-  {
-    id: 4,
-    title: 'Elegant Townhome in Roswell',
-    location: 'Historic Roswell',
-    price: '$625,000',
-    beds: 3,
-    baths: 2.5,
-    sqft: '2,400',
-    image: '/images/properties/future-visions.jpg',
-    status: 'Available',
-  },
-];
-
 export default function PropertiesPage() {
+  // Kept from the sibling service pages' pattern, and kept deliberately: the
+  // page stays in the sitemap, so it stays described to a crawler.
+  const breadcrumbs = getBreadcrumbSchema([
+    { name: 'Home', url: '/' },
+    { name: 'Search Homes', url: '/properties' },
+  ]);
+
   return (
-    <main className="min-h-screen bg-linen">
-      {/* Hero Section */}
-      {/* Hunter, not eXp Navy — hunter is the dark surface everywhere now and
-          navy is reserved for the logo marks. Bone (`text-linen`, the same
-          value) on hunter is 13.1:1. */}
-      <section className="relative bg-hunter py-32">
-        <div className="container mx-auto px-6">
-          <div className="mx-auto max-w-4xl text-center">
-            <h1 className="font-serif text-5xl tracking-tight text-linen sm:text-6xl lg:text-7xl">
-              Featured Properties
-            </h1>
-            <p className="mt-6 font-sans text-lg font-light leading-relaxed text-linen/80">
-              Discover exceptional homes curated for discerning buyers in Metro Atlanta's most sought-after neighborhoods.
-            </p>
-          </div>
-        </div>
-      </section>
+    <>
+      <StructuredData data={breadcrumbs} />
 
-      {/* Properties Grid */}
-      <section className="py-32">
-        <div className="container mx-auto px-6">
-          <div className="grid gap-12 md:grid-cols-2">
-            {properties.map((property) => (
-              <article
-                key={property.id}
-                className="group relative overflow-hidden rounded-2xl border border-navy/10 bg-linen shadow-sm transition-all duration-500 hover:shadow-2xl"
-              >
-                {/* Image */}
-                <div className="relative aspect-[4/3] overflow-hidden">
-                  <Image
-                    src={property.image}
-                    alt={property.title}
-                    fill
-                    className="object-cover transition-transform duration-700 group-hover:scale-110"
-                  />
-                  {/* Status Badge */}
-                  <div className="absolute right-4 top-4">
-                    <span
-                      className={`rounded-full px-4 py-2 font-sans text-xs font-medium uppercase tracking-wider ${statusBadgeClasses(
-                        property.status
-                      )}`}
-                    >
-                      {property.status}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Content */}
-                <div className="p-8">
-                  <div className="mb-4">
-                    <h2 className="font-serif text-2xl text-navy">
-                      {property.title}
-                    </h2>
-                    <p className="mt-2 font-sans text-sm font-light text-stone">
-                      {property.location}
-                    </p>
-                  </div>
-
-                  <div className="mb-6">
-                    <p className="font-serif text-3xl text-navy">
-                      {property.price}
-                    </p>
-                  </div>
-
-                  {/* Property Details */}
-                  <div className="mb-6 flex items-center gap-6 border-t border-navy/10 pt-6">
-                    <div className="flex items-center gap-2">
-                      <span className="font-sans text-lg font-light text-navy">
-                        {property.beds}
-                      </span>
-                      <span className="font-sans text-sm font-light text-stone">
-                        Beds
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="font-sans text-lg font-light text-navy">
-                        {property.baths}
-                      </span>
-                      <span className="font-sans text-sm font-light text-stone">
-                        Baths
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="font-sans text-lg font-light text-navy">
-                        {property.sqft}
-                      </span>
-                      <span className="font-sans text-sm font-light text-stone">
-                        Sq Ft
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* CTA */}
-                  <Link
-                    href="/get-started"
-                    className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-accent/20 bg-transparent px-6 py-4 font-sans text-base font-normal text-accent transition-all duration-300 hover:border-accent hover:bg-accent hover:text-linen"
-                  >
-                    Schedule Viewing
-                    <svg
-                      className="h-4 w-4 transition-transform group-hover:translate-x-1"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M9 5l7 7-7 7"
-                      />
-                    </svg>
-                  </Link>
-                </div>
-              </article>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      {/* Hunter, not eXp Navy, like the masthead above. The gold CTA inside
-          still works: gold on hunter is 6.5:1 as a fill, and its label is
-          `champagne-foreground` so the pairing is decided in the theme. */}
-      <section className="bg-hunter py-32">
-        <div className="container mx-auto px-6">
-          <div className="mx-auto max-w-3xl text-center">
-            <h2 className="font-serif text-4xl text-linen sm:text-5xl">
-              Don't See What You're Looking For?
-            </h2>
-            <p className="mt-6 font-sans text-lg font-light leading-relaxed text-linen/80">
-              Let me help you find the perfect property. With exclusive access to off-market listings and deep local expertise, I'll match you with your ideal home.
-            </p>
-            <div className="mt-10">
-              <Link
-                href="/get-started"
-                className="inline-flex items-center justify-center gap-3 rounded-2xl bg-champagne px-10 py-5 font-sans text-lg font-normal text-champagne-foreground transition-all duration-300 hover:bg-champagne/90 hover:shadow-2xl hover:shadow-onyx/40"
-              >
-                Start Your Search
-                <svg
-                  className="h-5 w-5"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 5l7 7-7 7"
-                  />
-                </svg>
-              </Link>
+      <main className="min-h-screen bg-linen">
+        {/* Masthead. Hunter, not eXp Navy — hunter is the dark surface
+            everywhere now and navy is reserved for the logo marks. Bone
+            (`text-linen`, the same value) on hunter is 13.1:1. */}
+        <section className="relative bg-hunter py-32">
+          <div className="container mx-auto px-6">
+            <div className="mx-auto max-w-4xl text-center">
+              <h1 className="font-serif text-5xl tracking-tight text-linen sm:text-6xl lg:text-7xl">
+                Search Atlanta Homes
+              </h1>
+              {/* Verbatim from the `service-area` playbook entry. */}
+              <p className="mt-6 font-sans text-lg font-light leading-relaxed text-linen/80">
+                Joey serves all of Georgia, with deep expertise in Metro
+                Atlanta, including Cobb, Fulton, DeKalb, and Gwinnett counties.
+              </p>
             </div>
           </div>
-        </div>
-      </section>
-    </main>
+        </section>
+
+        {/* Joey's own inventory, first. */}
+        <section className="py-24">
+          <div className="container mx-auto px-6">
+            <div className="mx-auto max-w-3xl text-center">
+              <h2 className="font-serif text-4xl text-navy sm:text-5xl">
+                Joey's Listings and Recent Transactions
+              </h2>
+              {/* Describes the widget's own configuration — `sort-order` and
+                  the five values in `listing-status` — and claims nothing
+                  beyond it. In particular it does not say these homes are all
+                  for sale, because `Sold` and `Rented` are in that list. */}
+              <p className="mt-6 font-sans text-lg font-light leading-relaxed text-stone">
+                Newest first, from Joey's own RealScout account: homes for sale
+                and for rent, under contract, sold and rented.
+              </p>
+            </div>
+
+            <div className="mt-16">
+              <RealScoutYourListings />
+            </div>
+          </div>
+        </section>
+
+        {/* Then the wider market. */}
+        <section className="bg-hunter py-24">
+          <div className="container mx-auto px-6">
+            <div className="mx-auto max-w-3xl text-center">
+              <h2 className="font-serif text-4xl text-linen sm:text-5xl">
+                Search the Wider Market
+              </h2>
+              <p className="mt-6 font-sans text-lg font-light leading-relaxed text-linen/80">
+                Set your own criteria — beds, baths and price range.
+              </p>
+            </div>
+
+            <div className="mt-16">
+              <RealScoutAdvancedSearch />
+            </div>
+          </div>
+        </section>
+
+        {/* The crawlable half of the page. Each paragraph is one of Joey's
+            approved answers, named in the heading comment above it. */}
+        <section className="py-32">
+          <div className="container mx-auto px-6">
+            <div className="mx-auto max-w-3xl">
+              <h2 className="font-serif text-4xl text-navy sm:text-5xl">
+                Before You Start Searching
+              </h2>
+
+              <div className="mt-10 space-y-8">
+                {/* `first-time-buyer` */}
+                <p className="font-sans text-lg leading-relaxed text-stone">
+                  Every first-time buyer's path is different, and the buyers
+                  who win start with a plan. Joey builds that plan with you
+                  personally: your goals, your budget, and your next steps.
+                </p>
+
+                {/* `pre-approval-first` */}
+                <p className="font-sans text-lg leading-relaxed text-stone">
+                  Joey walks every buyer through the pre-approval process
+                  personally and connects you with a trusted lending partner
+                  when you're ready. Starting with a plan puts you ahead of
+                  most buyers.
+                </p>
+
+                {/* `home-valuation` — selling rather than buying, and the
+                    reason a search tool is not a valuation. */}
+                <p className="font-sans text-lg leading-relaxed text-stone">
+                  Every home is different. Price and timing depend on your
+                  home's condition, the market right now, and recent sales
+                  near you, so Joey reviews your home personally instead of
+                  giving a generic online estimate.
+                </p>
+
+                {/* `investment-property` */}
+                <p className="font-sans text-lg leading-relaxed text-stone">
+                  Joey is an investor himself in rentals and flips, so he looks
+                  at every deal numbers first.
+                </p>
+
+                {/* `who-is-joey` — the credential line, which is also the
+                    `eXp Realty ICON Agent` award in src/config/site.ts. */}
+                <p className="font-sans text-lg leading-relaxed text-stone">
+                  Joey Oberndorfer is a licensed Georgia Realtor with eXp
+                  Realty and an eXp ICON Agent, serving clients across all of
+                  Georgia with a global network of agents and properties.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Closing CTA. Hunter, like the masthead. The gold CTA inside still
+            works: gold on hunter is 6.5:1 as a fill, and its label is
+            `champagne-foreground` so the pairing is decided in the theme. */}
+        <section className="bg-hunter py-32">
+          <div className="container mx-auto px-6">
+            <div className="mx-auto max-w-3xl text-center">
+              <h2 className="font-serif text-4xl text-linen sm:text-5xl">
+                Don't See What You're Looking For?
+              </h2>
+              {/* Was "With exclusive access to off-market listings and deep
+                  local expertise, I'll match you with your ideal home" — a
+                  claim with no source in this repo and an outcome promise on
+                  top of it. Replaced by two of Joey's own sentences:
+                  `closing-services` and `am-i-talking-to-a-bot`. */}
+              <p className="mt-6 font-sans text-lg font-light leading-relaxed text-linen/80">
+                Joey personally manages every deal from contract to closing,
+                and attends every one of his closings in person. Joey handles
+                every client personally, and the best way to get his full
+                attention is a short consultation.
+              </p>
+              <div className="mt-10">
+                <Link
+                  href="/get-started"
+                  className="inline-flex items-center justify-center gap-3 rounded-2xl bg-champagne px-10 py-5 font-sans text-lg font-normal text-champagne-foreground transition-all duration-300 hover:bg-champagne/90 hover:shadow-2xl hover:shadow-onyx/40"
+                >
+                  Book a Consultation
+                  <svg
+                    className="h-5 w-5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 5l7 7-7 7"
+                    />
+                  </svg>
+                </Link>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+    </>
   );
 }
-
