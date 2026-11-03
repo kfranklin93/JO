@@ -4,14 +4,13 @@ import * as React from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import Image from 'next/image';
 import { siteConfig } from '@/config/site';
-import { Button } from '@/components/ui/Button';
 import { MagneticButton } from '@/components/ui/MagneticButton';
+import { RealScoutSimpleSearch } from '@/components/widgets/RealScout';
 
 // JOEY UPDATE: Created search-first hero with parallax scrolling inspired by Chase Mizell
 // Features cinematic background, prominent search bar, and layered motion effects
 
 export function EnhancedHeroSection() {
-  const [searchQuery, setSearchQuery] = React.useState('');
   const heroRef = React.useRef<HTMLDivElement>(null);
 
   // JOEY UPDATE: Parallax scroll effects for layered depth
@@ -25,12 +24,6 @@ export function EnhancedHeroSection() {
   const contentY = useTransform(scrollYProgress, [0, 1], ['0%', '50%']);
   const opacity = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    // JOEY UPDATE: Navigate to properties page with search query
-    window.location.href = `/properties?search=${encodeURIComponent(searchQuery)}`;
-  };
-
   return (
     /* Hunter, like every other dark surface on the site. This used to be navy
        on the argument that the wash is photographic rather than a brand fill,
@@ -41,8 +34,9 @@ export function EnhancedHeroSection() {
        (#0F2A5E, 0.026), so the same `/60` multiply plus the same gradient
        suppress the photograph slightly *more* than before. The headline is
        bone at 13:1 against the fill and nothing about the wash got lighter.
-       The search button is gold here, not hunter: a hunter action on a hunter
-       section is 1:1 against its own background and was invisible. */
+       The gold-button note that used to be here described the hero's Search
+       button, which is gone: the search is RealScout's widget now and draws
+       its own control. */
     <section ref={heroRef} className="relative min-h-screen overflow-hidden bg-hunter">
       {/* JOEY UPDATE: Parallax background image layer */}
       <motion.div
@@ -92,53 +86,25 @@ export function EnhancedHeroSection() {
             Expert guidance for buyers and sellers across Atlanta's most desirable neighborhoods
           </motion.p>
 
-          {/* JOEY UPDATE: Prominent search bar - central to the experience */}
-          <motion.form
-            onSubmit={handleSearch}
+          {/* The real search, from Joey's RealScout account.
+              What was here was theatre: an input and a Search button whose
+              handler set `window.location.href` to
+              `/properties?search=<query>`, a parameter that page never read,
+              landing the visitor on four invented homes with no relation to
+              what they typed. The state and the handler are gone with it.
+              RealScout's simple-search element draws its own input and
+              button, so there is no markup to colour here — its custom
+              properties are mapped onto the brand tokens in the `@layer base`
+              block of globals.css, including the width constraint that keeps
+              the owner's 640px off a 390px viewport. */}
+          <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.6 }}
-            className="mx-auto mt-12 max-w-3xl"
+            className="mx-auto mt-12 w-full max-w-3xl"
           >
-            <div className="flex flex-col gap-4 sm:flex-row">
-              <div className="relative flex-1">
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search by neighborhood, city, or ZIP code..."
-                  className="h-16 w-full rounded-lg border-2 border-bone/20 bg-bone/10 px-6 font-sans text-lg text-bone placeholder-bone/60 backdrop-blur-md transition-all focus:border-champagne focus:bg-bone/20 focus:outline-none"
-                  aria-label="Search properties"
-                />
-                <svg
-                  className="absolute right-6 top-1/2 h-6 w-6 -translate-y-1/2 text-bone/60"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                  aria-hidden="true"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
-                </svg>
-              </div>
-              {/* Gold, via the variant rather than a colour override here.
-                  This button was `bg-cerulean`, which is hunter, and the
-                  section behind it is now hunter too — the same colour as
-                  itself. `champagne` gives it a 6.5:1 edge against the wash
-                  and an onyx label at 8.4:1, and its focus ring is bone
-                  rather than the old `outline-cerulean`, which would have
-                  been hunter on hunter. Sizing only in the className: the
-                  colours all come from the variant. */}
-              <Button
-                type="submit"
-                variant="champagne"
-                size="lg"
-                className="h-16 rounded-lg px-8 font-sans text-lg hover:shadow-2xl hover:shadow-champagne/20 sm:px-12"
-              >
-                Search
-              </Button>
-            </div>
-          </motion.form>
+            <RealScoutSimpleSearch />
+          </motion.div>
 
           {/* JOEY UPDATE: Quick action buttons */}
           <motion.div
