@@ -15,7 +15,7 @@ export function Footer({ className }: FooterProps) {
   return (
     <footer
       className={cn(
-        'w-full border-t border-neutral-200 bg-neutral-50',
+        'w-full border-t border-border bg-bone',
         className
       )}
     >
@@ -210,7 +210,7 @@ export function Footer({ className }: FooterProps) {
                   href={siteConfig.social.facebook}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex min-h-11 min-w-11 items-center justify-center rounded-lg text-stone transition-colors hover:bg-neutral-100 hover:text-navy focus-visible:bg-neutral-100 focus-visible:text-navy focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy"
+                  className="flex min-h-11 min-w-11 items-center justify-center rounded-lg text-stone transition-colors hover:bg-border hover:text-navy focus-visible:bg-border focus-visible:text-navy focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy"
                   aria-label="Follow us on Facebook"
                 >
                   <svg
@@ -226,7 +226,7 @@ export function Footer({ className }: FooterProps) {
                   href={siteConfig.social.linkedin}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex min-h-11 min-w-11 items-center justify-center rounded-lg text-stone transition-colors hover:bg-neutral-100 hover:text-navy focus-visible:bg-neutral-100 focus-visible:text-navy focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy"
+                  className="flex min-h-11 min-w-11 items-center justify-center rounded-lg text-stone transition-colors hover:bg-border hover:text-navy focus-visible:bg-border focus-visible:text-navy focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy"
                   aria-label="Follow us on LinkedIn"
                 >
                   <svg
@@ -242,7 +242,7 @@ export function Footer({ className }: FooterProps) {
                   href={siteConfig.social.instagram}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex min-h-11 min-w-11 items-center justify-center rounded-lg text-stone transition-colors hover:bg-neutral-100 hover:text-navy focus-visible:bg-neutral-100 focus-visible:text-navy focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy"
+                  className="flex min-h-11 min-w-11 items-center justify-center rounded-lg text-stone transition-colors hover:bg-border hover:text-navy focus-visible:bg-border focus-visible:text-navy focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy"
                   aria-label="Follow us on Instagram"
                 >
                   <svg
@@ -258,7 +258,7 @@ export function Footer({ className }: FooterProps) {
                   href={siteConfig.social.youtube}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex min-h-11 min-w-11 items-center justify-center rounded-lg text-stone transition-colors hover:bg-neutral-100 hover:text-navy focus-visible:bg-neutral-100 focus-visible:text-navy focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy"
+                  className="flex min-h-11 min-w-11 items-center justify-center rounded-lg text-stone transition-colors hover:bg-border hover:text-navy focus-visible:bg-border focus-visible:text-navy focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy"
                   aria-label="Follow us on YouTube"
                 >
                   <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
@@ -271,7 +271,7 @@ export function Footer({ className }: FooterProps) {
         </div>
 
         {/* Bottom Bar */}
-        <div className="mt-12 border-t border-neutral-200 pt-8">
+        <div className="mt-12 border-t border-border pt-8">
           <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
             <p className="text-sm text-stone">
               &copy; {currentYear} {siteConfig.name}. All rights reserved.

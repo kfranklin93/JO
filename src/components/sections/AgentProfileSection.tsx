@@ -8,7 +8,7 @@ import { siteConfig } from '@/config/site';
 
 export function AgentProfileSection() {
   return (
-    <section className="relative bg-neutral-900 py-20 lg:py-32">
+    <section className="relative bg-onyx py-32 lg:py-40">
       {/* Background Image */}
       <div className="absolute inset-0">
         <Image
@@ -18,7 +18,7 @@ export function AgentProfileSection() {
           className="object-cover object-center opacity-20"
           sizes="100vw"
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-neutral-900 via-neutral-900/95 to-neutral-900/80" />
+        <div className="absolute inset-0 bg-gradient-to-r from-onyx via-onyx/95 to-onyx/80" />
       </div>
 
       {/* Content */}
@@ -32,19 +32,19 @@ export function AgentProfileSection() {
             transition={{ duration: 0.8 }}
           >
             {/* Eyebrow */}
-            <div className="mb-6 inline-block border-l-4 border-white pl-4">
-              <span className="font-sans text-sm font-medium uppercase tracking-wider text-white">
+            <div className="mb-6 inline-block border-l-4 border-bone pl-4">
+              <span className="font-sans text-sm font-medium uppercase tracking-wider text-bone">
                 About Joey
               </span>
             </div>
 
             {/* Headline */}
-            <h2 className="mb-8 font-serif text-4xl leading-tight text-white sm:text-5xl lg:text-6xl">
+            <h2 className="mb-8 font-serif text-4xl leading-tight text-bone sm:text-5xl lg:text-6xl">
               Experience That Makes the Difference
             </h2>
 
             {/* Description */}
-            <div className="space-y-6 font-sans text-lg leading-relaxed text-neutral-300">
+            <div className="space-y-6 font-sans text-lg leading-relaxed text-bone/80">
               <p>
                 Former San Diego Police Department officer and Division II football player turned top-producing real
                 estate agent. Joey brings discipline, integrity, and a winning mindset to every transaction.
@@ -80,7 +80,7 @@ export function AgentProfileSection() {
               </MagneticButton>
 
               {/* `onDark` rather than `outline` + a colour override: this sits
-                  on a neutral-900 section, where `outline`'s navy-on-
+                  on an onyx section, where `outline`'s navy-on-
                   transparent is effectively invisible. */}
               <MagneticButton
                 href="/contact"
@@ -92,18 +92,18 @@ export function AgentProfileSection() {
             </div>
 
             {/* Credentials */}
-            <div className="mt-12 flex flex-wrap gap-8 border-t border-neutral-700 pt-8">
+            <div className="mt-12 flex flex-wrap gap-8 border-t border-bone/10 pt-8">
               <div>
-                <div className="font-serif text-3xl text-white">{siteConfig.stats.closedDeals}</div>
-                <div className="mt-1 font-sans text-sm text-neutral-400">Closed Deals</div>
+                <div className="font-serif text-3xl text-bone">{siteConfig.stats.closedDeals}</div>
+                <div className="mt-1 font-sans text-sm text-bone/60">Closed Deals</div>
               </div>
               <div>
-                <div className="font-serif text-3xl text-white">{siteConfig.stats.totalVolume}</div>
-                <div className="mt-1 font-sans text-sm text-neutral-400">Total Volume</div>
+                <div className="font-serif text-3xl text-bone">{siteConfig.stats.totalVolume}</div>
+                <div className="mt-1 font-sans text-sm text-bone/60">Total Volume</div>
               </div>
               <div>
-                <div className="font-serif text-3xl text-white">{siteConfig.stats.conversionRate}</div>
-                <div className="mt-1 font-sans text-sm text-neutral-400">Conversion Rate</div>
+                <div className="font-serif text-3xl text-bone">{siteConfig.stats.conversionRate}</div>
+                <div className="mt-1 font-sans text-sm text-bone/60">Conversion Rate</div>
               </div>
             </div>
           </motion.div>
@@ -119,16 +119,16 @@ export function AgentProfileSection() {
             <div className="w-full">
               {/* Video Label */}
               <div className="mb-4">
-                <span className="font-sans text-sm font-medium uppercase tracking-wider text-neutral-400">
+                <span className="font-sans text-sm font-medium uppercase tracking-wider text-bone/60">
                   Featured Interview
                 </span>
-                <h3 className="mt-2 font-serif text-2xl text-white">
+                <h3 className="mt-2 font-serif text-2xl text-bone">
                   {siteConfig.featured.interviewTitle}
                 </h3>
               </div>
 
               {/* YouTube Embed */}
-              <div className="relative aspect-video w-full overflow-hidden rounded-lg bg-black shadow-2xl">
+              <div className="relative aspect-video w-full overflow-hidden rounded-lg bg-onyx shadow-2xl">
                 <iframe
                   src={`https://www.youtube.com/embed/${siteConfig.featured.youtubeInterview.split('v=')[1]}`}
                   title={siteConfig.featured.interviewTitle}
@@ -144,7 +144,7 @@ export function AgentProfileSection() {
                   href={siteConfig.featured.youtubeInterview}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 font-sans text-sm text-neutral-400 transition-colors hover:text-white"
+                  className="inline-flex items-center gap-2 font-sans text-sm text-bone/60 transition-colors hover:text-bone"
                 >
                   <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />

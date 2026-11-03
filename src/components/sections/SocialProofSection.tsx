@@ -24,7 +24,7 @@ const accolades = [
 
 export function SocialProofSection() {
   return (
-    <section className="bg-neutral-50 py-20 lg:py-32">
+    <section className="bg-bone py-24 lg:py-32">
       <div className="mx-auto max-w-7xl px-8 lg:px-12">
         {/* Section Header */}
         <motion.div
@@ -34,10 +34,10 @@ export function SocialProofSection() {
           transition={{ duration: 0.6 }}
           className="mb-16 text-center"
         >
-          <h2 className="font-serif text-4xl text-black sm:text-5xl lg:text-6xl">
+          <h2 className="font-serif text-4xl text-onyx sm:text-5xl lg:text-6xl">
             Proven Excellence
           </h2>
-          <p className="mt-4 font-sans text-lg text-neutral-600">
+          <p className="mt-4 font-sans text-lg text-stone">
             Recognition from industry leaders and publications
           </p>
         </motion.div>
@@ -51,20 +51,20 @@ export function SocialProofSection() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: index * 0.1 }}
-              className="group relative overflow-hidden border border-neutral-200 bg-white p-8 transition-all duration-300 hover:border-black hover:shadow-lg"
+              className="group relative overflow-hidden border border-border bg-bone p-8 transition-all duration-300 hover:border-onyx hover:shadow-lg"
             >
               {/* Decorative Element */}
-              <div className="absolute right-0 top-0 h-1 w-0 bg-black transition-all duration-300 group-hover:w-full" />
+              <div className="absolute right-0 top-0 h-1 w-0 bg-onyx transition-all duration-300 group-hover:w-full" />
 
               {/* Content */}
               <div className="relative">
-                <h3 className="font-serif text-3xl text-black lg:text-4xl">
+                <h3 className="font-serif text-3xl text-onyx lg:text-4xl">
                   {accolade.title}
                 </h3>
-                <p className="mt-3 font-sans text-base font-medium text-neutral-700">
+                <p className="mt-3 font-sans text-base font-medium text-stone">
                   {accolade.subtitle}
                 </p>
-                <p className="mt-4 font-sans text-sm leading-relaxed text-neutral-600">
+                <p className="mt-4 font-sans text-sm leading-relaxed text-stone">
                   {accolade.description}
                 </p>
               </div>
@@ -92,23 +92,23 @@ export function SocialProofSection() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6, delay: 0.4 }}
-          className="mt-16 grid gap-8 border-t border-neutral-200 pt-12 sm:grid-cols-3"
+          className="mt-16 grid gap-8 border-t border-border pt-12 sm:grid-cols-3"
         >
           <div className="text-center">
-            <div className="font-serif text-5xl text-black">{siteConfig.stats.closedDeals}</div>
-            <div className="mt-2 font-sans text-sm uppercase tracking-wider text-neutral-600">
+            <div className="font-serif text-5xl text-onyx">{siteConfig.stats.closedDeals}</div>
+            <div className="mt-2 font-sans text-sm uppercase tracking-wider text-stone">
               Closed Deals
             </div>
           </div>
           <div className="text-center">
-            <div className="font-serif text-5xl text-black">{siteConfig.stats.totalVolume}</div>
-            <div className="mt-2 font-sans text-sm uppercase tracking-wider text-neutral-600">
+            <div className="font-serif text-5xl text-onyx">{siteConfig.stats.totalVolume}</div>
+            <div className="mt-2 font-sans text-sm uppercase tracking-wider text-stone">
               Total Volume
             </div>
           </div>
           <div className="text-center">
-            <div className="font-serif text-5xl text-black">{siteConfig.stats.conversionRate}</div>
-            <div className="mt-2 font-sans text-sm uppercase tracking-wider text-neutral-600">
+            <div className="font-serif text-5xl text-onyx">{siteConfig.stats.conversionRate}</div>
+            <div className="mt-2 font-sans text-sm uppercase tracking-wider text-stone">
               Conversion Rate
             </div>
           </div>

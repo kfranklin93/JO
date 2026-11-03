@@ -65,7 +65,7 @@ export function WhyJoeySection() {
   ];
 
   return (
-    <section className="bg-neutral-50 py-20 lg:py-32">
+    <section className="bg-bone py-24 lg:py-32">
       <div className="mx-auto max-w-7xl px-8 lg:px-12">
         {/* Section Header */}
         <motion.div
@@ -75,7 +75,7 @@ export function WhyJoeySection() {
           transition={{ duration: 0.6 }}
           className="mb-16 text-center"
         >
-          <h2 className="font-serif text-4xl text-navy sm:text-5xl lg:text-6xl">
+          <h2 className="font-serif text-4xl text-onyx sm:text-5xl lg:text-6xl">
             Why Work With Me?
           </h2>
           <p className="mx-auto mt-6 max-w-2xl font-sans text-lg text-stone">
@@ -92,7 +92,7 @@ export function WhyJoeySection() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: index * 0.1 }}
-              className="group rounded-lg bg-white p-8 shadow-sm transition-all duration-300 hover:shadow-lg"
+              className="group rounded-lg border border-border bg-bone p-8 shadow-sm transition-all duration-300 hover:shadow-lg"
             >
               {/* Icon */}
               <div className="mb-4 text-silver transition-colors group-hover:text-cerulean">
@@ -100,7 +100,7 @@ export function WhyJoeySection() {
               </div>
 
               {/* Content */}
-              <h3 className="mb-3 font-serif text-xl text-navy">{reason.title}</h3>
+              <h3 className="mb-3 font-serif text-xl text-onyx">{reason.title}</h3>
               <p className="font-sans text-sm leading-relaxed text-stone">{reason.description}</p>
             </motion.div>
           ))}

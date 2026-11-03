@@ -11,7 +11,7 @@ import { atlantaNeighborhoods } from '@/data/neighborhoods';
 
 export function NeighborhoodsSection() {
   return (
-    <section className="bg-white py-20 lg:py-32">
+    <section className="bg-bone py-24 lg:py-32">
       <div className="mx-auto max-w-7xl px-8 lg:px-12">
         {/* Section Header */}
         <motion.div
@@ -21,7 +21,7 @@ export function NeighborhoodsSection() {
           transition={{ duration: 0.6 }}
           className="mb-16 text-center"
         >
-          <h2 className="font-serif text-4xl text-navy sm:text-5xl lg:text-6xl">
+          <h2 className="font-serif text-4xl text-onyx sm:text-5xl lg:text-6xl">
             Explore Atlanta Neighborhoods
           </h2>
           <p className="mx-auto mt-6 max-w-2xl font-sans text-lg text-stone">
@@ -38,11 +38,11 @@ export function NeighborhoodsSection() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: index * 0.1 }}
-              className="group relative overflow-hidden rounded-lg bg-white shadow-md transition-all duration-300 hover:shadow-2xl"
+              className="group relative overflow-hidden rounded-lg border border-border bg-bone shadow-md transition-all duration-300 hover:shadow-2xl"
             >
               {/* JOEY UPDATE: Neighborhood image with parallax hover effect */}
               <Link href={`/properties?neighborhood=${neighborhood.slug}`} className="block">
-                <div className="relative aspect-[4/3] overflow-hidden bg-neutral-100">
+                <div className="relative aspect-[4/3] overflow-hidden bg-border">
                   <Image
                     src={neighborhood.image}
                     alt={neighborhood.name}
@@ -54,14 +54,14 @@ export function NeighborhoodsSection() {
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
                   
                   {/* Price range badge */}
-                  <div className="absolute right-4 top-4 rounded-full bg-white/90 px-4 py-2 backdrop-blur-sm">
-                    <span className="font-sans text-sm font-medium text-black">{neighborhood.priceRange}</span>
+                  <div className="absolute right-4 top-4 rounded-full bg-bone/90 px-4 py-2 backdrop-blur-sm">
+                    <span className="font-sans text-sm font-medium text-onyx">{neighborhood.priceRange}</span>
                   </div>
                 </div>
 
                 {/* JOEY UPDATE: Neighborhood details */}
                 <div className="p-6">
-                  <h3 className="font-serif text-2xl text-navy transition-colors group-hover:text-cerulean">
+                  <h3 className="font-serif text-2xl text-onyx transition-colors group-hover:text-cerulean">
                     {neighborhood.name}
                   </h3>
                   <p className="mt-3 font-sans text-base leading-relaxed text-stone">
@@ -73,7 +73,7 @@ export function NeighborhoodsSection() {
                     {neighborhood.highlights.slice(0, 3).map((highlight) => (
                       <span
                         key={highlight}
-                        className="rounded-full bg-neutral-100 px-3 py-1 font-sans text-xs text-stone"
+                        className="rounded-full border border-border bg-bone px-3 py-1 font-sans text-xs text-stone"
                       >
                         {highlight}
                       </span>
@@ -81,7 +81,7 @@ export function NeighborhoodsSection() {
                   </div>
 
                   {/* JOEY UPDATE: View homes CTA */}
-                  <div className="mt-6 flex items-center gap-2 font-sans text-sm font-medium text-navy transition-colors group-hover:text-cerulean">
+                  <div className="mt-6 flex items-center gap-2 font-sans text-sm font-medium text-onyx transition-colors group-hover:text-cerulean">
                     <span>View Homes</span>
                     <svg
                       className="h-4 w-4 transition-transform group-hover:translate-x-2"
@@ -109,7 +109,7 @@ export function NeighborhoodsSection() {
         >
           <Link
             href="/properties"
-            className="inline-flex items-center gap-2 rounded-lg border-2 border-navy bg-white px-8 py-4 font-sans text-sm font-medium uppercase tracking-wider text-navy transition-all hover:border-cerulean hover:bg-cerulean hover:text-bone hover:shadow-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cerulean"
+            className="inline-flex items-center gap-2 rounded-lg border-2 border-onyx bg-bone px-8 py-4 font-sans text-sm font-medium uppercase tracking-wider text-onyx transition-all hover:border-cerulean hover:bg-cerulean hover:text-bone hover:shadow-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cerulean"
           >
             <span>Explore All Areas</span>
             <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>

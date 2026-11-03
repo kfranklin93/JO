@@ -13,7 +13,7 @@ export function FinalCTA() {
        Both buttons are bone-based — a bone fill with a navy label, and a bone
        outline — so neither is a hunter action on a hunter surface: bone on
        hunter is 13.1:1 and navy on bone is 11.8:1. */
-    <section className="bg-hunter py-32 sm:py-40">
+    <section className="bg-hunter py-32 lg:py-40">
       <div className="mx-auto max-w-4xl px-8 text-center lg:px-12">
         <motion.div
           initial={{ opacity: 0, y: 30 }}

@@ -43,7 +43,7 @@ const ctaCards = [
 
 export function ThreeCardCTA() {
   return (
-    <section className="bg-white py-20 lg:py-32">
+    <section className="bg-bone py-24 lg:py-32">
       <div className="mx-auto max-w-7xl px-8 lg:px-12">
         {/* Section Header */}
         <motion.div
@@ -53,10 +53,10 @@ export function ThreeCardCTA() {
           transition={{ duration: 0.6 }}
           className="mb-16 text-center"
         >
-          <h2 className="font-serif text-4xl text-black sm:text-5xl lg:text-6xl">
+          <h2 className="font-serif text-4xl text-onyx sm:text-5xl lg:text-6xl">
             How Can I Help You?
           </h2>
-          <p className="mt-4 font-sans text-lg text-neutral-600">
+          <p className="mt-4 font-sans text-lg text-stone">
             Choose the service that best fits your needs
           </p>
         </motion.div>
@@ -70,7 +70,7 @@ export function ThreeCardCTA() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: index * 0.1 }}
-              className="group relative flex flex-col border border-neutral-200 bg-white p-8 transition-all duration-300 hover:border-primary hover:shadow-2xl lg:p-10"
+              className="group relative flex flex-col border border-border bg-bone p-8 transition-all duration-300 hover:border-primary hover:shadow-2xl lg:p-10"
             >
               {/* Icon */}
               <div className="mb-6 text-silver transition-colors duration-300 group-hover:text-primary">
@@ -78,12 +78,12 @@ export function ThreeCardCTA() {
               </div>
 
               {/* Title */}
-              <h3 className="mb-4 font-serif text-2xl text-black lg:text-3xl">
+              <h3 className="mb-4 font-serif text-2xl text-onyx lg:text-3xl">
                 {card.title}
               </h3>
 
               {/* Description */}
-              <p className="mb-8 flex-grow font-sans text-base leading-relaxed text-neutral-600">
+              <p className="mb-8 flex-grow font-sans text-base leading-relaxed text-stone">
                 {card.description}
               </p>
 
@@ -105,7 +105,7 @@ export function ThreeCardCTA() {
               </Link>
 
               {/* Decorative Corner */}
-              <div className="absolute bottom-0 right-0 h-0 w-0 border-b-[40px] border-r-[40px] border-b-transparent border-r-neutral-100 transition-all duration-300 group-hover:border-r-primary" />
+              <div className="absolute bottom-0 right-0 h-0 w-0 border-b-[40px] border-r-[40px] border-b-transparent border-r-border transition-all duration-300 group-hover:border-r-primary" />
             </motion.div>
           ))}
         </div>
@@ -118,7 +118,7 @@ export function ThreeCardCTA() {
           transition={{ duration: 0.6, delay: 0.4 }}
           className="mt-16 text-center"
         >
-          <p className="mb-6 font-sans text-lg text-neutral-600">
+          <p className="mb-6 font-sans text-lg text-stone">
             Not sure where to start?
           </p>
           <MagneticButton 

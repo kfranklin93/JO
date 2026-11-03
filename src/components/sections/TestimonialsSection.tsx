@@ -18,7 +18,7 @@ import { clientTestimonials } from '@/data/testimonials';
 
 export function TestimonialsSection() {
   return (
-    <section className="bg-neutral-50 py-20 lg:py-32">
+    <section className="bg-bone py-24 lg:py-32">
       <div className="mx-auto max-w-7xl px-8 lg:px-12">
         {/* Section Header */}
         <motion.div
@@ -28,7 +28,7 @@ export function TestimonialsSection() {
           transition={{ duration: 0.6 }}
           className="mb-16 text-center"
         >
-          <h2 className="font-serif text-4xl text-navy sm:text-5xl lg:text-6xl">
+          <h2 className="font-serif text-4xl text-onyx sm:text-5xl lg:text-6xl">
             What My Clients Say
           </h2>
           <p className="mx-auto mt-6 max-w-2xl font-sans text-lg text-stone">
@@ -45,7 +45,7 @@ export function TestimonialsSection() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: index * 0.1 }}
-              className="group relative flex flex-col rounded-lg bg-white p-8 shadow-md transition-all duration-300 hover:shadow-xl"
+              className="group relative flex flex-col rounded-lg border border-border bg-bone p-8 shadow-md transition-all duration-300 hover:shadow-xl"
             >
               {/* JOEY UPDATE: Star rating */}
               <div className="flex gap-1">
@@ -67,9 +67,9 @@ export function TestimonialsSection() {
               </blockquote>
 
               {/* JOEY UPDATE: Client info */}
-              <div className="mt-6 flex items-center gap-4 border-t border-neutral-200 pt-6">
+              <div className="mt-6 flex items-center gap-4 border-t border-border pt-6">
                 {testimonial.image && (
-                  <div className="relative h-12 w-12 overflow-hidden rounded-full bg-neutral-200">
+                  <div className="relative h-12 w-12 overflow-hidden rounded-full bg-border">
                     <Image
                       src={testimonial.image}
                       alt={testimonial.name}
@@ -80,7 +80,7 @@ export function TestimonialsSection() {
                   </div>
                 )}
                 <div>
-                  <p className="font-sans text-sm font-medium text-navy">{testimonial.name}</p>
+                  <p className="font-sans text-sm font-medium text-onyx">{testimonial.name}</p>
                   <p className="font-sans text-xs text-stone">{testimonial.role}</p>
                   {testimonial.location && (
                     <p className="font-sans text-xs text-stone">{testimonial.location}</p>

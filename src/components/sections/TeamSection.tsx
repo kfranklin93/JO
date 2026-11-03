@@ -10,7 +10,7 @@ import { siteConfig } from '@/config/site';
 
 export function TeamSection() {
   return (
-    <section className="bg-white py-20 lg:py-32">
+    <section className="border-t border-border bg-bone py-24 lg:py-32">
       <div className="mx-auto max-w-7xl px-8 lg:px-12">
         {/* Section Header */}
         <motion.div
@@ -20,7 +20,7 @@ export function TeamSection() {
           transition={{ duration: 0.6 }}
           className="mb-16 text-center"
         >
-          <h2 className="font-serif text-4xl text-navy sm:text-5xl lg:text-6xl">
+          <h2 className="font-serif text-4xl text-onyx sm:text-5xl lg:text-6xl">
             Meet Your Agent
           </h2>
           <p className="mx-auto mt-6 max-w-2xl font-sans text-lg text-stone">
@@ -38,7 +38,7 @@ export function TeamSection() {
             transition={{ duration: 0.8 }}
             className="relative"
           >
-            <div className="relative aspect-[4/5] overflow-hidden rounded-lg bg-neutral-100 shadow-2xl">
+            <div className="relative aspect-[4/5] overflow-hidden rounded-lg bg-border shadow-2xl">
               {/* JOEY UPDATE: Replace with actual team photo when available */}
               <Image
                 src="/images/joey-hero-instagram.jpg"
@@ -60,7 +60,7 @@ export function TeamSection() {
             transition={{ duration: 0.8, delay: 0.2 }}
             className="flex flex-col justify-center"
           >
-            <h3 className="font-serif text-3xl text-navy lg:text-4xl">
+            <h3 className="font-serif text-3xl text-onyx lg:text-4xl">
               {siteConfig.fullName}
             </h3>
             <p className="mt-2 font-sans text-lg text-stone">
@@ -90,7 +90,7 @@ export function TeamSection() {
                   {siteConfig.background.specialties.map((specialty, index) => (
                     <span
                       key={index}
-                      className="rounded-full border border-neutral-200 bg-neutral-50 px-4 py-2 font-sans text-sm text-stone"
+                      className="rounded-full border border-border bg-bone px-4 py-2 font-sans text-sm text-stone"
                     >
                       {specialty}
                     </span>
@@ -138,7 +138,7 @@ export function TeamSection() {
               </a>
               <a
                 href={`mailto:${siteConfig.contact.email}`}
-                className="inline-flex items-center gap-2 rounded-lg border-2 border-navy bg-white px-6 py-3 font-sans text-sm font-medium text-navy transition-all hover:border-cerulean hover:bg-cerulean hover:text-bone focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cerulean"
+                className="inline-flex items-center gap-2 rounded-lg border-2 border-onyx bg-bone px-6 py-3 font-sans text-sm font-medium text-onyx transition-all hover:border-cerulean hover:bg-cerulean hover:text-bone focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cerulean"
               >
                 <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />

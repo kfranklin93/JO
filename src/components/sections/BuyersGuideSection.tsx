@@ -63,7 +63,7 @@ export function BuyersGuideSection() {
   ];
 
   return (
-    <section className="bg-white py-20 lg:py-32">
+    <section className="border-t border-border bg-bone py-24 lg:py-32">
       <div className="mx-auto max-w-7xl px-8 lg:px-12">
         {/* Section Header */}
         <motion.div
@@ -73,7 +73,7 @@ export function BuyersGuideSection() {
           transition={{ duration: 0.6 }}
           className="mb-16 text-center"
         >
-          <h2 className="font-serif text-4xl text-navy sm:text-5xl lg:text-6xl">
+          <h2 className="font-serif text-4xl text-onyx sm:text-5xl lg:text-6xl">
             Your Home Buying Journey
           </h2>
           <p className="mx-auto mt-6 max-w-2xl font-sans text-lg text-stone">
@@ -90,16 +90,17 @@ export function BuyersGuideSection() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: index * 0.1 }}
-              className="group relative rounded-lg border border-neutral-200 bg-white p-8 transition-all duration-300 hover:border-cerulean hover:shadow-lg"
+              className="group relative rounded-lg border border-border bg-bone p-8 transition-all duration-300 hover:border-cerulean hover:shadow-lg"
             >
               {/* Step number, as a watermark behind the card content rather
-                  than as copy. It measures 1.26:1 on white and it is supposed
-                  to: the step order is carried by the document order and the
-                  heading, so the numeral is decoration. Darkening it to clear
-                  4.5:1 turns it into a solid grey numeral and loses the
-                  effect.
-                  contrast-ok: decorative watermark numeral on bg-white, step order is also conveyed by document order and the step heading */}
-              <div className="mb-4 font-serif text-5xl text-neutral-200 transition-colors group-hover:text-cerulean/30">
+                  than as copy. It measures about 1.1:1 on bone and it is
+                  supposed to: the step order is carried by the document order
+                  and the heading, so the numeral is decoration. Darkening it
+                  to clear 4.5:1 turns it into a solid grey numeral and loses
+                  the effect. `text-border` rather than the old neutral-200,
+                  which was a cool grey the palette does not contain.
+                  contrast-ok: decorative watermark numeral on bg-bone, step order is also conveyed by document order and the step heading */}
+              <div className="mb-4 font-serif text-5xl text-border transition-colors group-hover:text-cerulean/30">
                 {step.number}
               </div>
 
@@ -109,7 +110,7 @@ export function BuyersGuideSection() {
               </div>
 
               {/* Content */}
-              <h3 className="mb-3 font-serif text-xl text-navy">{step.title}</h3>
+              <h3 className="mb-3 font-serif text-xl text-onyx">{step.title}</h3>
               <p className="font-sans text-sm leading-relaxed text-stone">{step.description}</p>
             </motion.div>
           ))}
@@ -121,9 +122,9 @@ export function BuyersGuideSection() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6, delay: 0.6 }}
-          className="mt-16 rounded-lg bg-neutral-50 p-8 text-center lg:p-12"
+          className="mt-16 rounded-lg border border-border bg-bone p-8 text-center lg:p-12"
         >
-          <h3 className="font-serif text-3xl text-navy">Ready to Start Your Journey?</h3>
+          <h3 className="font-serif text-3xl text-onyx">Ready to Start Your Journey?</h3>
           <p className="mx-auto mt-4 max-w-2xl font-sans text-lg text-stone">
             Whether you're buying your first home or your fifth, I'm here to make the process smooth, transparent, and successful.
           </p>

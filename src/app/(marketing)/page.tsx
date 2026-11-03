@@ -72,6 +72,52 @@ import { FinalCTA } from '@/components/sections/FinalCTA';
  *
  * The form that button opened, `ServicesInquiryForm`, is not orphaned: it opens
  * from the contact page now. See ServicesInquiryLauncher.
+ *
+ * ## Surfaces: four brand colours, and no fifth light tier
+ *
+ * Six sections on this page and the footer carried `bg-white`,
+ * `bg-neutral-50/100/200`, `border-neutral-200` and `text-black` from before
+ * the brand work — roughly forty off-palette surfaces on the one page the
+ * owner looks at. They are all on the palette now: the light surface is Bone,
+ * the hairline is `border`, secondary text is `stone` and near-black text is
+ * `onyx`.
+ *
+ * That removes the separation those sections were relying on. A white card on
+ * a grey section is two tiers of light, and this palette has one:
+ * `--color-surface` and `--color-bone` hold the same value, and globals.css
+ * sets out why a second light grey cannot both read as "one step quieter" and
+ * clear AA on Bone. So a card is now separated from its section by a hairline —
+ * `border border-border` — and by the whitespace around it, with its existing
+ * shadow kept. The alternative was inventing a fifth light colour, which is
+ * the one thing the owner asked not to happen.
+ *
+ * ## Rhythm comes from two padding tiers and a rule, not a new dark surface
+ *
+ * Section padding was an accidental mix of `py-20`, `py-32` and `py-40`. There
+ * are two tiers now, chosen once: `py-24 lg:py-32` for the light sections, and
+ * `py-32 lg:py-40` for the dark feature sections (HowItStarts, MarketStats)
+ * and the hunter closers, so a dark band reads as a deliberate pause rather
+ * than as another row of content.
+ *
+ * Three runs of consecutive light sections are broken by `border-t
+ * border-border` on PropertyCategories, BuyersGuideSection and TeamSection.
+ * Flipping one of them to onyx instead would mean recolouring every text node
+ * inside it, which is contrast risk accepted for a pacing problem a hairline
+ * and the padding tiers already solve.
+ *
+ * ## `text-navy` stayed in the chrome and the dashboard, deliberately
+ *
+ * The display headings on this page's sections moved from `text-navy` to
+ * `text-onyx`, because eXp Navy is not one of the four brand colours and a
+ * navy heading on a Bone section is a second dark hue competing with Onyx.
+ *
+ * It was *not* chased into src/components/layout/Header.tsx, MobileMenu.tsx,
+ * src/components/chat/JoeyChat.tsx, or anything under src/app/dashboard/ and
+ * src/components/dashboard/. That is roughly a hundred further call sites with
+ * no brand-sheet mandate behind the rename, navy on bone measures 11.8:1 so
+ * none of it is an accessibility problem, and globals.css documents the policy
+ * of renaming retired aliases opportunistically when a file is next touched.
+ * `--color-navy` stays defined for genuine eXp usage either way.
  */
 export default function HomePage() {
   return (

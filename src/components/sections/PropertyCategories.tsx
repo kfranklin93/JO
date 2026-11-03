@@ -76,17 +76,24 @@ import { motion } from 'framer-motion';
  *
  * ## Colours
  *
- * A review found this note describing a surface the classes do not set, so to
- * be exact about what is here: the section is `bg-white` with `bg-linen`
- * cards. That pairing is not a brand leftover — NeighborhoodsSection,
- * BuyersGuideSection and TeamSection further down the page all use white with
- * navy headings, and the contrast audit passes on it. The section immediately
- * below this one is the onyx MarketStatsSection, which is the reason a light
- * surface belongs here: the section above is neutral, so a dark one in this
- * slot would run straight into the scoreboard.
+ * Two earlier versions of this note described a surface the classes did not
+ * set, so it is written against the class strings below rather than from
+ * memory. The section is `bg-bone` and the cards are `bg-bone` too: Bone is
+ * the only light surface in the palette, and there is no second light tier to
+ * promote a card with — `--color-surface` and `--color-bone` hold the same
+ * value, and globals.css explains why a second light grey cannot exist here
+ * and clear AA. So a card is separated from its section by a hairline,
+ * `border border-border`, and by the whitespace around it. That is the
+ * editorial answer; inventing an off-palette grey is not.
  *
- * Card text is navy and stone on linen; the link is `text-accent`, which
- * resolves to hunter at 13.1:1.
+ * Headings are onyx (16.6:1 on bone) and body copy is stone (4.97:1). The
+ * link is `text-accent`, which resolves to hunter at 13.1:1.
+ *
+ * The section immediately below this one is the onyx MarketStatsSection, which
+ * is the reason a light surface belongs here: the section above is light too,
+ * so a dark one in this slot would run straight into the scoreboard. The run
+ * of light sections is paced by the `border-t border-border` rule on this
+ * section and by the padding tiers, not by a colour change.
  */
 const categories = [
   {
@@ -114,10 +121,10 @@ const categories = [
 
 export function PropertyCategories() {
   return (
-    <section className="bg-white py-32 sm:py-40">
+    <section className="border-t border-border bg-bone py-24 lg:py-32">
       <div className="mx-auto max-w-7xl px-8 lg:px-12">
         <div className="text-center">
-          <h2 className="font-serif text-5xl text-navy sm:text-6xl">
+          <h2 className="font-serif text-5xl text-onyx sm:text-6xl">
             Where Would You Like to Start?
           </h2>
           {/* Was "Browse what's available, or pick the side of the deal you're
@@ -136,10 +143,10 @@ export function PropertyCategories() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: index * 0.1 }}
-              className="group relative flex flex-col overflow-hidden rounded-2xl border border-navy/10 bg-linen"
+              className="group relative flex flex-col overflow-hidden rounded-2xl border border-border bg-bone"
             >
               <div className="flex flex-1 flex-col p-10">
-                <h3 className="font-serif text-3xl text-navy">
+                <h3 className="font-serif text-3xl text-onyx">
                   {category.title}
                 </h3>
                 <p className="mt-4 font-sans font-light text-stone">

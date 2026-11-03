@@ -18,7 +18,7 @@ export function FeaturedListings() {
           <h2 className="mt-4 font-serif text-5xl text-primary sm:text-6xl">
             Curated Collection
           </h2>
-          <p className="mx-auto mt-6 max-w-2xl font-sans text-lg text-neutral-600">
+          <p className="mx-auto mt-6 max-w-2xl font-sans text-lg text-stone">
             Handpicked luxury homes ready for your exclusive viewing
           </p>
         </div>

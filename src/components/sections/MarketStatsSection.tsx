@@ -32,7 +32,7 @@ export function MarketStatsSection() {
   const backgroundY = useTransform(scrollYProgress, [0, 1], ['0%', '20%']);
 
   return (
-    <section ref={sectionRef} className="relative overflow-hidden bg-onyx py-20 lg:py-32">
+    <section ref={sectionRef} className="relative overflow-hidden bg-onyx py-32 lg:py-40">
       {/* JOEY UPDATE: Parallax background pattern */}
       <motion.div
         style={{ y: backgroundY }}

@@ -55,7 +55,7 @@ export function StartTheConversationCTA({
   };
 
   return (
-    <section className="bg-hunter py-24 lg:py-32">
+    <section className="bg-hunter py-32 lg:py-40">
       <div className="mx-auto max-w-3xl px-8 text-center lg:px-12">
         <h2 className="font-serif text-4xl text-bone lg:text-5xl">
           {heading}

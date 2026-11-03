@@ -92,7 +92,7 @@ export function HowItStartsSection() {
   };
 
   return (
-    <section className="bg-onyx py-32 sm:py-40">
+    <section className="bg-onyx py-32 lg:py-40">
       <div className="mx-auto max-w-3xl px-8 lg:px-12">
         <motion.div
           initial={{ opacity: 0, y: 24 }}
