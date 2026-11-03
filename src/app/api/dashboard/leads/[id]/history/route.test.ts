@@ -266,3 +266,51 @@ describe('payload', () => {
     expect(body.error).toContain('chat-schema.sql');
   });
 });
+
+/**
+ * The RealScout block.
+ *
+ * This is a named person's browsing behaviour — which houses they looked at,
+ * saved and asked to see — and the cookie check at the top of this handler is
+ * the only thing between it and the internet. The `authorization` suite above
+ * already proves the whole route is gated; these cover the block itself.
+ *
+ * The service is not mocked. It reports `unconfigured` without touching the
+ * network or the database when there is no `REALSCOUT_API_TOKEN`, which is the
+ * state of `testEnv` here, so the real module runs and the route's contract is
+ * asserted rather than a stub's.
+ */
+describe('the RealScout block', () => {
+  it('returns a RealScout block alongside the conversation', async () => {
+    const body = await (await get()).json();
+
+    expect(body.realscout).toEqual({
+      reason: 'unconfigured',
+      missingScope: null,
+      contact: null,
+      activity: [],
+    });
+  });
+
+  it('serves no browsing data to an unauthenticated caller', async () => {
+    requestCookie = undefined;
+
+    const response = await get();
+    const body = await response.json();
+
+    expect(response.status).toBe(401);
+    expect(body).toEqual({ error: 'Unauthorized' });
+    expect('realscout' in body).toBe(false);
+  });
+
+  it('serves the conversation even when RealScout has nothing to give', async () => {
+    // RealScout is one section of a row whose primary job is the transcript,
+    // and that works without it. `realScoutLeadSnapshot` turns every failure
+    // into a reason rather than throwing — realscout-lead.test.ts covers each
+    // kind — so the route cannot lose the transcript to a RealScout problem.
+    const body = await (await get()).json();
+
+    expect(body.history).toHaveLength(2);
+    expect(body.realscout.contact).toBeNull();
+  });
+});

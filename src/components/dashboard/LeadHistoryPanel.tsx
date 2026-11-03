@@ -73,6 +73,48 @@ interface HistoryResponse {
   history: HistoryEntry[];
   assistant: { muted: boolean; reason: 'global' | 'lead' | 'unavailable' | null };
   appointments: AppointmentEntry[];
+  realscout: RealScoutLeadSnapshot;
+}
+
+/**
+ * What RealScout knows, as the route serialises it.
+ *
+ * Declared here rather than imported from the service so this client component
+ * does not pull a module that imports the database driver into the browser
+ * bundle. The field names match `RealScoutLeadSnapshot` in
+ * src/lib/services/realscout-lead.ts; that file is the definition.
+ */
+interface RealScoutLeadSnapshot {
+  reason:
+    | 'unconfigured'
+    | 'not_found'
+    | 'auth'
+    | 'scope'
+    | 'rate_limited'
+    | 'unavailable'
+    | null;
+  missingScope: string | null;
+  contact: {
+    id: string;
+    url: string | null;
+    scoutScore: number | null;
+    scoutScoreChange7d: number | null;
+    scoutScoreChange30d: number | null;
+    summary30d: string | null;
+    emailable: boolean | null;
+    lastActiveAt: string | null;
+    leadSource: string | null;
+    tags: string[];
+  } | null;
+  activity: {
+    id: string;
+    action: string;
+    at: string | null;
+    rating: number | null;
+    label: string;
+    detail: string | null;
+    url: string | null;
+  }[];
 }
 
 const CHANNEL_LABELS: Record<HistoryEntry['channel'], string> = {
@@ -81,6 +123,49 @@ const CHANNEL_LABELS: Record<HistoryEntry['channel'], string> = {
   email: 'Email',
   phone: 'Phone',
   in_person: 'In person',
+};
+
+/**
+ * RealScout's action names, in the tense Joey reads them in.
+ *
+ * Keyed loosely rather than by a union, because the activity feed's published
+ * action set can grow and an unlisted action must still render — see
+ * `realScoutActionLabel`.
+ */
+const REALSCOUT_ACTION_LABELS: Record<string, string> = {
+  view: 'Viewed',
+  save: 'Saved',
+  unsave: 'Un-saved',
+  hide: 'Hid',
+  unhide: 'Un-hid',
+  rated: 'Rated',
+  comment: 'Commented on',
+  request_showing: 'Asked to see',
+  open_house_view: 'Viewed the open house for',
+  home_report_view: 'Opened',
+  market_alert_view: 'Opened',
+  cma_view: 'Opened',
+};
+
+/** A label for an action, falling back to the action name made readable. */
+function realScoutActionLabel(action: string): string {
+  return REALSCOUT_ACTION_LABELS[action] ?? action.replace(/_/g, ' ');
+}
+
+/** A signed score movement, or null when RealScout has no figure. */
+function formatScoreChange(change: number | null): string | null {
+  if (change === null) return null;
+  if (change === 0) return 'no change';
+  return change > 0 ? `+${change}` : String(change);
+}
+
+/** Why the RealScout section has nothing to show, in Joey's terms. */
+const REALSCOUT_UNAVAILABLE: Record<string, string> = {
+  unconfigured: 'RealScout is not connected to this site yet.',
+  not_found: 'This person is not a RealScout contact.',
+  auth: 'RealScout rejected the API token. It needs to be replaced in Netlify.',
+  rate_limited: 'RealScout is rate-limiting us right now. Try again in a minute.',
+  unavailable: 'Could not reach RealScout just now.',
 };
 
 /**
@@ -99,6 +184,156 @@ function formatWhen(iso: string): string {
     hour: 'numeric',
     minute: '2-digit',
   });
+}
+
+/**
+ * What RealScout knows about this person.
+ *
+ * Always rendered, including when there is nothing to show, because "they are
+ * not a RealScout contact" and "RealScout is down" are both answers to the
+ * question Joey is asking and an absent section answers neither.
+ *
+ * Colours come from the `@theme` tokens only. The Scout Score is a champagne
+ * fill with its paired `champagne-foreground` label — gold is a fill, never
+ * text on a light surface — and every other surface here is the same white card
+ * on `navy/10` the bookings and messages above use.
+ */
+function RealScoutSection({ data }: { data: RealScoutLeadSnapshot }) {
+  const heading = (
+    <h4 className="font-sans text-xs font-semibold tracking-wider text-stone uppercase">
+      RealScout
+    </h4>
+  );
+
+  if (data.contact === null) {
+    const message =
+      data.reason === 'scope'
+        ? data.missingScope === null
+          ? 'The RealScout token is missing a permission this needs.'
+          : `The RealScout token is missing the ${data.missingScope} permission.`
+        : (REALSCOUT_UNAVAILABLE[data.reason ?? 'unavailable'] ??
+          'Could not reach RealScout just now.');
+
+    return (
+      <section>
+        {heading}
+        <p className="mt-2 font-sans text-sm text-stone">{message}</p>
+      </section>
+    );
+  }
+
+  const contact = data.contact;
+  const change7d = formatScoreChange(contact.scoutScoreChange7d);
+  const change30d = formatScoreChange(contact.scoutScoreChange30d);
+
+  return (
+    <section>
+      {heading}
+
+      <div className="mt-2 rounded-xl border border-navy/10 bg-white px-4 py-3">
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+          <span className="rounded-full bg-champagne px-3 py-1 font-sans text-sm font-semibold text-champagne-foreground">
+            Scout Score {contact.scoutScore ?? '—'}
+          </span>
+
+          {change7d !== null && (
+            <span className="font-sans text-xs text-stone">7 days {change7d}</span>
+          )}
+
+          {change30d !== null && (
+            <span className="font-sans text-xs text-stone">30 days {change30d}</span>
+          )}
+
+          {contact.lastActiveAt !== null && (
+            <span className="font-sans text-xs text-stone">
+              Last active {formatWhen(contact.lastActiveAt)}
+            </span>
+          )}
+
+          {contact.url !== null && (
+            <a
+              href={contact.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="ml-auto font-sans text-sm font-medium text-accent underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cerulean"
+            >
+              Open in RealScout
+            </a>
+          )}
+        </div>
+
+        {contact.summary30d !== null && (
+          <p className="mt-2 font-sans text-sm text-navy">{contact.summary30d}</p>
+        )}
+
+        {contact.leadSource !== null && (
+          <p className="mt-1 font-sans text-xs text-stone">
+            RealScout lead source: {contact.leadSource}
+          </p>
+        )}
+
+        {contact.tags.length > 0 && (
+          <p className="mt-1 font-sans text-xs text-stone">
+            Tags: {contact.tags.join(', ')}
+          </p>
+        )}
+
+        {contact.emailable === false && (
+          <p className="mt-2 font-sans text-xs font-medium text-red-600">
+            RealScout cannot email this contact. Do not add them to an email
+            sequence — reach them by phone or text.
+          </p>
+        )}
+      </div>
+
+      {data.activity.length === 0 ? (
+        <p className="mt-2 font-sans text-sm text-stone">
+          No RealScout activity recorded for this person yet.
+        </p>
+      ) : (
+        <ul className="mt-2 space-y-2">
+          {data.activity.map((item) => (
+            <li
+              key={item.id}
+              className="rounded-xl border border-navy/10 bg-white px-4 py-3"
+            >
+              <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+                <span className="font-sans text-xs font-semibold tracking-wider text-navy uppercase">
+                  {realScoutActionLabel(item.action)}
+                </span>
+                {item.url === null ? (
+                  <span className="font-sans text-sm text-navy">{item.label}</span>
+                ) : (
+                  <a
+                    href={item.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-sans text-sm text-accent underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cerulean"
+                  >
+                    {item.label}
+                  </a>
+                )}
+                {item.rating !== null && (
+                  <span className="font-sans text-xs text-stone">
+                    {item.rating} / 5
+                  </span>
+                )}
+                {item.at !== null && (
+                  <span className="ml-auto font-sans text-xs text-stone">
+                    {formatWhen(item.at)}
+                  </span>
+                )}
+              </div>
+
+              {item.detail !== null && (
+                <p className="mt-1 font-sans text-xs text-stone">{item.detail}</p>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
+  );
 }
 
 export function LeadHistoryPanel({ leadId }: { leadId: string }) {
@@ -257,6 +492,11 @@ export function LeadHistoryPanel({ leadId }: { leadId: string }) {
           </ul>
         </section>
       )}
+
+      {/* ── RealScout ──
+          Above the conversation because "are they actually looking at houses?"
+          decides whether the transcript is worth reading. */}
+      <RealScoutSection data={data.realscout} />
 
       {/* ── Conversation ── */}
       {data.history.length === 0 ? (

@@ -5,6 +5,7 @@ import { envErrorResponse, requireEnv } from '@/lib/utils/require-env';
 import { leadHistory } from '@/lib/services/lead-history';
 import { assistantMuteState } from '@/lib/services/assistant-mute';
 import { forLead, withLeads, type BookingWithLead } from '@/lib/services/booking';
+import { realScoutLeadSnapshot } from '@/lib/services/realscout-lead';
 
 /**
  * GET /api/dashboard/leads/[id]/history — one lead's full conversation.
@@ -18,11 +19,16 @@ import { forLead, withLeads, type BookingWithLead } from '@/lib/services/booking
  *
  * Returns the merged history across chat, SMS and email, plus whether the
  * assistant is currently muted for this lead — the dashboard needs both to
- * render the row, and two round trips for one panel is wasteful.
+ * render the row, and two round trips for one panel is wasteful. It also
+ * returns what RealScout knows about the person: their Scout Score and the
+ * properties they have been viewing, saving and asking to see.
  *
  * Authorization is the same cookie check as `/api/dashboard/data`, verified
  * here independently (8.7). `/api/*` sits outside the request interceptor's
- * matcher, so this handler cannot assume anything upstream looked.
+ * matcher, so this handler cannot assume anything upstream looked. That check
+ * is load-bearing for more than the transcript now: the RealScout block is a
+ * named person's browsing history, and this route is the only thing that reads
+ * it.
  */
 export async function GET(
   _request: Request,
@@ -66,6 +72,31 @@ export async function GET(
         return [];
       });
 
+    // What RealScout knows about this person: their Scout Score and what they
+    // have been browsing. Resolved outside the Promise.all above and after the
+    // conversation, for the same reason the appointments are — it reaches a
+    // third-party API, and a RealScout outage must cost Joey a section rather
+    // than the transcript.
+    //
+    // `realScoutLeadSnapshot` already turns every failure into a reason it can
+    // render, so this `catch` is only for the unexpected.
+    //
+    // This is client browsing behaviour, and the session check at the top of
+    // this handler is the only thing between it and the internet. It must not
+    // be moved into a route that does not make that check.
+    const realscout = await realScoutLeadSnapshot(id).catch((error: unknown) => {
+      console.error(
+        `[dashboard:history] RealScout snapshot failed for lead ${id}:`,
+        error,
+      );
+      return {
+        reason: 'unavailable' as const,
+        missingScope: null,
+        contact: null,
+        activity: [],
+      };
+    });
+
     return NextResponse.json({
       leadId: id,
       history,
@@ -74,6 +105,7 @@ export async function GET(
         reason: mute.reason,
       },
       appointments,
+      realscout,
     });
   } catch (error) {
     const envError = envErrorResponse(error);

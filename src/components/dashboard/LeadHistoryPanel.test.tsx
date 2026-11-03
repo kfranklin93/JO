@@ -53,6 +53,16 @@ function respondWith(appointments: unknown[]) {
       history: HISTORY,
       assistant: { muted: false, reason: null },
       appointments,
+      // The RealScout block the route now returns. `not_found` is the quiet
+      // case — this person is not a RealScout contact — so it renders one line
+      // and does not interfere with the bookings assertions below. The
+      // RealScout rendering itself is covered in its own suite.
+      realscout: {
+        reason: 'not_found',
+        missingScope: null,
+        contact: null,
+        activity: [],
+      },
     }),
   });
 }
