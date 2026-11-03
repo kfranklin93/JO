@@ -263,6 +263,104 @@ function importRowValues(
   };
 }
 
+/** Where a synced row came from, in the two forms the row has to record. */
+export interface SyncedLeadOrigin {
+  /** The pipeline stage to file the row under. */
+  status: LeadStatusValue;
+  /** Human-readable provenance, appended to `notes` for Joey to read. */
+  provenance: string;
+  /** Machine-readable provenance, merged into `form_data` for queries. */
+  formData: Record<string, unknown>;
+}
+
+/** The row a sync wrote. */
+export interface SyncedLeadResult {
+  leadId: string;
+  /** Always 0. Returned rather than assumed so the caller can state it. */
+  followUpsCreated: 0;
+}
+
+/**
+ * Write one lead that arrived from an outside system, with no drip and no
+ * notification.
+ *
+ * This is the bulk-import write with its provenance supplied by the caller,
+ * and it exists so a sync does not get a second write path. The whole reason
+ * this module is separate from `lead-capture.ts` applies unchanged to a contact
+ * synced out of an external contact book: the person is in somebody else's
+ * system, they never typed their address into a form on this site, and routing
+ * them through the website path would queue five marketing emails each, email
+ * and text Joey once each, and clear every unsubscribe among them. See this
+ * module's header for the arithmetic.
+ *
+ * So, exactly as with the spreadsheet, this writes one row in `leads` and
+ * nothing else:
+ *
+ *   - `email`, `phone`, `first_name`, `last_name`, `full_name`,
+ *     `property_interest` (the submission's intent), `timeline`, `status` and
+ *     `source` (`other`);
+ *   - `notes` — the caller's provenance line, after any note the submission
+ *     carried;
+ *   - `form_data` — the caller's machine-readable provenance.
+ *
+ * and does not write or send:
+ *
+ *   - **any `follow_ups` row.** Not scheduled, not sending, none. There is no
+ *     option to ask for one, unlike {@link createManualLead}, because no
+ *     outside system can consent on a person's behalf.
+ *   - any email, SMS or CRM sync;
+ *   - anything in `email_opt_outs` — no consent recorded, no suppression
+ *     cleared. Anyone on that list stays on it.
+ *
+ * `submission` has already been through `leadSubmissionSchema`, so a synced
+ * lead cannot be a shape the rest of the app does not expect.
+ *
+ * @throws MissingEnvError when DATABASE_URL is absent, before anything is
+ *   written. RESEND_API_KEY is not required: this path sends nothing.
+ */
+export async function createSyncedLead(
+  submission: LeadSubmission,
+  origin: SyncedLeadOrigin
+): Promise<SyncedLeadResult> {
+  requireEnv('DATABASE_URL');
+
+  return db.transaction(async (tx) => {
+    const rows = await tx
+      .insert(leads)
+      .values({
+        email: submission.email,
+        phone: submission.phone ?? null,
+        firstName: submission.firstName,
+        lastName: submission.lastName ?? null,
+        fullName: submission.fullName,
+        propertyInterest: submission.intent,
+        timeline: submission.timeline ?? null,
+        status: origin.status,
+        // Same value and same reasoning as the hand-entered and imported rows
+        // above: `other` says only "not the website form, not an inbound text",
+        // which is all that is actually known. The provenance line carries the
+        // part that matters — which system this row came out of.
+        source: MANUAL_SOURCE,
+        notes:
+          submission.additionalNotes === undefined
+            ? origin.provenance
+            : `${submission.additionalNotes}\n\n${origin.provenance}`,
+        formData: {
+          ...origin.formData,
+          ...(submission.additionalNotes === undefined
+            ? {}
+            : { additionalNotes: submission.additionalNotes }),
+        },
+      })
+      .returning({ id: leads.id });
+
+    const inserted = rows[0];
+    if (!inserted) throw new Error('Lead insert returned no row');
+
+    return { leadId: inserted.id, followUpsCreated: 0 as const };
+  });
+}
+
 /** What a manual entry wrote. */
 export interface ManualLeadResult {
   leadId: string;
