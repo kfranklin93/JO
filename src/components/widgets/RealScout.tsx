@@ -8,29 +8,29 @@
  *
  * ## Three widgets, three jobs
  *
- * ## Four widgets, four jobs
- *
  * - `RealScoutSimpleSearch` — one input. The hero.
  * - `RealScoutAdvancedSearch` — beds, baths, price range. `/properties`.
- * - `RealScoutYourListings` — the only one of the four that *renders
+ * - `RealScoutYourListings` — the only one of the three that *renders
  *   properties*. The search widgets are entry points and display none, so do
  *   not write copy anywhere that promises a grid of homes beneath them.
- * - `RealScoutHomeValue` — a seller's address-to-valuation capture.
- *   `/sell-home`.
  *
- * ## Where the home-value widget's leads go, which is not here
+ * ## No capture surface here, deliberately
  *
- * `RealScoutHomeValue` captures a name, an address and contact details, and
- * **submits them to RealScout, not to this app.** Nothing about it touches
- * `src/lib/db/schema.ts`. So a seller who fills it in does not appear in
- * Joey's dashboard, does not enter the five-touch drip, and is not covered by
- * our unsubscribe suppression list — they are a second lead pool, reachable
- * only inside RealScout. Reconciling the two (RealScout's Agent API exposes
- * `GET /contacts`) is out of scope here and is flagged rather than attempted.
+ * RealScout also offers a `realscout-home-value` widget, which takes a
+ * seller's name, address and contact details and **submits them to RealScout,
+ * not to this app.** A seller who filled it in would not appear in Joey's
+ * dashboard, would not enter the five-touch drip and would not be covered by
+ * our unsubscribe suppression list — a second lead pool, reachable only
+ * inside RealScout, sitting alongside forms that do reach the leads table and
+ * looking identical to a visitor. So it is not embedded anywhere. Every
+ * capture path on this site goes through `src/lib/services/lead-capture.ts`.
+ * Adding it would mean reconciling the two pools first (RealScout's Agent API
+ * exposes `GET /contacts`) or the owner confirming he works RealScout's
+ * contacts directly.
  *
  * ## How the script loads, and why it is not `next/script`
  *
- * One bundle upgrades all four elements. It is a `type="module"` script, which
+ * One bundle upgrades all three elements. It is a `type="module"` script, which
  * `next/script` handles poorly:
  * its `afterInteractive` path builds the element itself and the module type is
  * easy to lose on the way through, and a module that never executes leaves the
@@ -60,7 +60,7 @@ import { siteConfig } from '@/config/site';
 const { agentEncodedId, scriptSrc } = siteConfig.realscout;
 
 /**
- * The shared UMD bundle that upgrades all four elements.
+ * The shared UMD bundle that upgrades all three elements.
  *
  * Rendered by each widget rather than once at the layout level, so a page only
  * pays for it when it actually embeds a widget. Mounting two widgets on one
@@ -122,25 +122,6 @@ export function RealScoutYourListings() {
         property-types="SFR,MF,TC,LAL,MOBILE,OTHER"
         include-seller-listings=""
       />
-    </>
-  );
-}
-
-/**
- * Address-to-valuation capture for sellers.
- *
- * Read the note at the top of this file about where its leads go before
- * treating it as a replacement for anything in `src/lib/services`: it is not
- * wired to our database, our drip or our suppression list.
- *
- * Its widget width is `auto` in the owner's snippet, so unlike the two search
- * widgets it needs no responsive constraint invented for it.
- */
-export function RealScoutHomeValue() {
-  return (
-    <>
-      <RealScoutScript />
-      <realscout-home-value agent-encoded-id={agentEncodedId} />
     </>
   );
 }

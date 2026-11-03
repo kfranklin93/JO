@@ -427,55 +427,6 @@
     display: block;
     width: 100%;
   }
-
-  /*
-   * Home value — the seller capture on /sell-home.
-   *
-   * Four of the nine values in the owner's snippet were off-palette defaults
-   * and are remapped rather than merely re-expressed:
-   *
-   *   title-color          `#000000`, pure black, which is not a colour on
-   *                        this site. Joey's darkest is onyx.
-   *   subtitle-color       `rgba(28, 30, 38, 0.5)`. Composited over bone that
-   *                        lands near #878A92, which fails AA for body text —
-   *                        the exact failure stone was darkened to #6A645C to
-   *                        fix earlier in this project. Stone at full opacity
-   *                        measures 4.97:1 on bone.
-   *   primary-button-text  `#ffffff`. White on hunter does pass, but bone is
-   *                        the label colour on every dark surface here and
-   *                        white is not a brand colour.
-   *   secondary-button-    `rgb(35, 93, 137)`, a blue in no part of the
-   *   text                 palette — a leftover RealScout default. Hunter is
-   *                        the brand's action colour and measures 13.1:1 on
-   *                        the bone secondary button.
-   *
-   * Three were already right and keep their colour exactly, changing only
-   * from pasted hex to the token that hex is: background bone, input text
-   * onyx, primary button hunter.
-   *
-   * The one judgement call: `secondary-button-color` was `#ffffff`, which is
-   * not a token, so leaving it would mean a raw hex in this file. It is bone
-   * instead — the site's light surface, and a warm off-white against which
-   * the hunter label above still measures 13.1:1.
-   *
-   * `widget-width` is `auto` in the snippet, so there is no fixed width to
-   * constrain; `max-width: 100%` is belt and braces against the widget
-   * sizing itself from its content.
-   */
-  realscout-home-value {
-    --rs-hvw-background-color: var(--color-bone);
-    --rs-hvw-title-color: var(--color-onyx);
-    --rs-hvw-subtitle-color: var(--color-stone);
-    --rs-hvw-input-text-color: var(--color-onyx);
-    --rs-hvw-primary-button-text-color: var(--color-bone);
-    --rs-hvw-primary-button-color: var(--color-hunter);
-    --rs-hvw-secondary-button-text-color: var(--color-hunter);
-    --rs-hvw-secondary-button-color: var(--color-bone);
-    --rs-hvw-widget-width: auto;
-    display: block;
-    width: 100%;
-    max-width: 100%;
-  }
 }
 
 /*
