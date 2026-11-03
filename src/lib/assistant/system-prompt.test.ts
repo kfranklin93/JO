@@ -342,6 +342,111 @@ describe('system prompt — licensing boundaries', () => {
   });
 });
 
+/**
+ * Plain text, which is Joey's instruction in his own words: "there shouldn't be
+ * any asterisk in the responses. they need to be punctuated and read like a
+ * regular text conversation with Joey."
+ *
+ * The panel renders a reply with `whitespace-pre-line` and no markdown library,
+ * on purpose, so an asterisk the model types is an asterisk the client reads.
+ * Of the 25 assistant messages stored in production, 8 contained `**` and 9
+ * contained `- ` bullets. The prompt is the primary fix — `toPlainText` in
+ * ./plain-text.ts is the net behind it — so the rule has to stay in the prompt.
+ */
+describe('system prompt — plain text, no markdown', () => {
+  const section = prompt.slice(prompt.indexOf('## HOW YOU WRITE'));
+
+  it('has a section about how to write at all', () => {
+    expect(prompt).toContain('## HOW YOU WRITE (plain text, like a text message)');
+    expect(section.length).toBeGreaterThan(0);
+  });
+
+  it('forbids markdown by name, marker by marker', () => {
+    expect(section).toMatch(/NEVER use markdown/);
+    expect(section).toContain('**bold**');
+    expect(section).toContain('*italics*');
+    expect(section).toContain('_underscores_');
+    expect(section).toMatch(/no # headings/);
+    expect(section).toMatch(/no\s+backticks/);
+  });
+
+  it('forbids lists of every marker, bulleted and numbered', () => {
+    expect(section).toMatch(/no bullet lists of any kind/);
+    expect(section).toContain('(no "-", no "*", no "•")');
+    expect(section).toMatch(/no numbered\s+lists/);
+  });
+
+  it('asks for ordinary sentences in place of the structure', () => {
+    expect(section).toMatch(/Short sentences, proper punctuation/);
+    expect(section).toMatch(/say them in a sentence or two/);
+  });
+
+  it('allows line breaks but not a bullet wearing one', () => {
+    expect(section).toMatch(/Line breaks between\s+thoughts are fine/);
+    expect(section).toMatch(
+      /never start a line with a dash, a bullet or a\s+number followed by a full stop/,
+    );
+  });
+
+  it('states the ban in the hard rules too', () => {
+    expect(prompt).toMatch(
+      /NEVER format a reply with markdown\./,
+    );
+    expect(prompt).toMatch(/no bulleted or numbered lists\. See HOW YOU WRITE/);
+  });
+
+  it('does not reintroduce the forbidden word', () => {
+    expect(section).not.toMatch(/\bcommission\b/i);
+  });
+});
+
+/**
+ * The tension this had to resolve: times must be quoted exactly as `describeSlot`
+ * worded them, including the zone, because a client in another timezone who
+ * guesses shows up an hour out — and the new instruction asks for a sentence
+ * rather than a bulleted list of times. The resolution is that one complete
+ * label per day survives verbatim and the remaining times on that day are given
+ * as bare clock times copied from their labels. Nothing licenses rewording a
+ * label, and the assertions below are what stops a later edit quietly doing so.
+ */
+describe('system prompt — offering times conversationally', () => {
+  const section = prompt.slice(
+    prompt.indexOf('## BOOKING A CONSULTATION'),
+    prompt.indexOf('## HARD RULES'),
+  );
+
+  it('asks for the times in a sentence, not a list', () => {
+    expect(section).toMatch(/Offer those times in a sentence/);
+    expect(section).toMatch(/never as a list/);
+    expect(section).toMatch(
+      /No date as a heading, nothing\s+in bold, no line that starts with a dash, a bullet or a number/,
+    );
+  });
+
+  it('shows an example that is conversational and still zone-complete', () => {
+    expect(section).toContain(
+      "I've got Friday, March 13 at 9:00 AM Eastern Time, or 9:15",
+    );
+  });
+
+  it('keeps the exact-label rule in force', () => {
+    expect(section).toMatch(/worded exactly as the tool\s+labelled it/);
+    expect(section).toMatch(/never abbreviate it or\s+substitute a different name for it/);
+  });
+
+  it('states that conversational phrasing is not permission to reword a time', () => {
+    expect(section).toMatch(/does NOT let you reword a time/);
+    expect(section).toMatch(
+      /give one COMPLETE label exactly as the tool worded it for each day\s+you mention/,
+    );
+    expect(section).toMatch(/copied digit for digit from their labels/);
+    expect(section).toMatch(/Never reword or drop the zone/);
+    expect(section).toMatch(
+      /never offer times from two days without making clear\s+which day each time belongs to/,
+    );
+  });
+});
+
 describe('system prompt — substitution', () => {
   it('leaves no placeholder unfilled once the facts are supplied', () => {
     expect(prompt).not.toMatch(/\{\{[A-Z_]+\}\}/);
