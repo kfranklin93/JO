@@ -20,15 +20,8 @@ export const siteConfig = {
   // own '+' — appending another renders "60++", which was live on the closing
   // CTA. It counts closed transactions, not clients.
   //
-  // UNVERIFIED — these two still need Joey's real numbers:
+  // UNVERIFIED — this one still needs Joey's real number:
   //
-  //   avgDaysOnMarket  '0-4-7 Months'  A day count written in months, in a
-  //                                    format that reads as corrupted data.
-  //                                    No label can honestly describe it, so
-  //                                    MarketStatsSection no longer renders a
-  //                                    tile for it; the grid is three wide.
-  //                                    Restore the tile once there is a real
-  //                                    figure in days.
   //   conversionRate   'One-Tour'      A descriptor, not a rate. Labelled
   //                                    "First-Tour Buyers" rather than
   //                                    "Conversion Rate" so the label matches
@@ -38,10 +31,14 @@ export const siteConfig = {
   // Do not substitute plausible-looking numbers here. These are a licensed
   // agent's published performance claims; an invented one is a professional
   // and a legal problem, not a copy problem.
+  //
+  // `avgDaysOnMarket` is gone. It held a day count written in months, taken
+  // from the named inventory framework the owner has since said is not a real
+  // concept — so the value is retired as data rather than merely hidden from
+  // the page. Add a real day count under a new field if one ever exists.
   stats: {
     closedDeals: '60+',
     totalVolume: '$23.9M',
-    avgDaysOnMarket: '0-4-7 Months',
     conversionRate: 'One-Tour',
   },
   

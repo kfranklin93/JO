@@ -14,19 +14,19 @@ interface CTAMessage {
   urgency?: string;
 }
 
+// This component is still imported by nothing, so none of this reaches a
+// visitor. The 25%-depth entry offered a download of the named month-inventory
+// guide the owner has said is not a real concept, and it is gone with the rest
+// of that retirement. The urgency lines left below — the spot and tour counts,
+// the "Limited access" — are unsourced in the same way and are out of this
+// change's scope; they need Joey's sign-off or deletion before this component
+// is ever placed.
 const ctaMessages: CTAMessage[] = [
   {
     minDepth: 0,
     message: 'Discover Joey\'s Strategy',
     cta: 'Get Started',
     href: '/get-started',
-  },
-  {
-    minDepth: 25,
-    message: 'Unlock the 0-4-7 Inventory Guide',
-    cta: 'Download Free Guide',
-    href: '/get-started?intent=sell',
-    urgency: '3 spots left this week',
   },
   {
     minDepth: 50,

@@ -18,12 +18,14 @@
  *    /properties/future-visions and /properties/legacy, none of which is a
  *    route in this app
  *  - the homepage still has exactly one `<h1>` and no stand-in copy
- *  - the middle of the page has something to act on, and the 0-4-7 Month
- *    Inventory Guide is on it
- *  - nothing in the section placed there routes a visitor into /properties,
- *    whose four listings are invented — the reason `FeaturedListings` was not
- *    the section placed — and the 0-4-7 action asks for the consultation
- *    rather than for an answer the assistant has no approved entry for
+ *  - the middle of the page has something to act on, and the action opens the
+ *    chat rather than navigating away while still carrying a working fallback
+ *    href for the window before hydration
+ *  - the section filling that dead zone asserts no price, no guarantee and no
+ *    unsourced figure, which is what a prior pass at the slot was rejected for
+ *  - nothing in the browsing section routes a visitor into /properties, whose
+ *    four listings are invented — the same fabricated data that disqualified
+ *    `FeaturedListings` from the dead-zone slot
  *  - one persistent floating element, in the bottom-right corner, labelled for
  *    what it gets you, on every marketing route and through the real layout
  *  - the closing CTA states credentials that exist in src/config/site.ts and
@@ -43,6 +45,7 @@ import userEvent from '@testing-library/user-event';
 import { JoeyChat } from '@/components/chat/JoeyChat';
 import { MobileMenu } from '@/components/layout/MobileMenu';
 import { PropertyCategories } from '@/components/sections/PropertyCategories';
+import { HowItStartsSection } from '@/components/sections/HowItStartsSection';
 import { FinalCTA } from '@/components/sections/FinalCTA';
 import { siteConfig } from '@/config/site';
 import MarketingLayout from './layout';
@@ -215,15 +218,6 @@ describe('the homepage', () => {
     }
   });
 
-  it('puts the 0-4-7 Month Inventory Guide on the page', () => {
-    // Joey's own named framework, in a component that nothing imported, so it
-    // was live nowhere at all. A grep for it against the homepage returned
-    // nothing before this.
-    const { container } = render(<HomePage />);
-
-    expect(container.textContent).toContain('0-4-7 Month Inventory Guide');
-  });
-
   it('gives the middle of the page something to act on', async () => {
     // Why Joey, Testimonials and Market Stats ran consecutively with almost
     // nothing to click. These are the two sections interleaved into that run;
@@ -264,20 +258,26 @@ describe('the homepage', () => {
     }
   });
 
-  it('offers the 0-4-7 section an action the chat can actually deliver', async () => {
-    // The label read "Ask About the 0-4-7 Guide". There is no playbook entry
-    // for the guide, and system-prompt.ts instructs the assistant to say it
-    // does not know rather than guess — so the section's primary button
-    // invited a question the panel behind it would decline. The consultation
-    // is the thing the panel can deliver.
-    render(<HomePage />);
+  it('asserts nothing in the dead-zone section that Joey did not approve', () => {
+    // `HowItStartsSection` is the section filling the dead zone, and a prior
+    // pass at that slot was rejected for exactly four things: a price, an
+    // outcome guarantee, a conversion descriptor dressed up as a rate, and a
+    // repeat of the performance figures that WhyJoeySection and
+    // MarketStatsSection already carry. Every sentence in it now traces to one
+    // of Joey's approved playbook answers — see the doc comment at the top of
+    // the component — and these patterns are what a regression would look
+    // like.
+    //
+    // "Book 15 Minutes with Joey" is deliberately unaffected by the last
+    // pattern: its unit is minutes, which is the consultation length
+    // system-prompt.ts defines.
+    const { container } = render(<HowItStartsSection />);
+    const text = container.textContent ?? '';
 
-    expect(
-      await screen.findByRole('link', { name: /book 15 minutes with joey/i })
-    ).toBeInTheDocument();
-    expect(
-      screen.queryByRole('link', { name: /ask about the 0-4-7 guide/i })
-    ).not.toBeInTheDocument();
+    expect(text.length).toBeGreaterThan(0);
+    expect(text).not.toContain('$');
+    expect(text).not.toMatch(/guarantee/i);
+    expect(text).not.toMatch(/\d+\s*(%|percent|days?|months?)/i);
   });
 
   it('asks the chat to open rather than navigating away', async () => {

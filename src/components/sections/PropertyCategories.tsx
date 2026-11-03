@@ -8,8 +8,8 @@ import { motion } from 'framer-motion';
  * The three ways into working with Joey, in the middle of the homepage.
  *
  * Built, never imported, and placed now to give the stretch of page that
- * carries the trust argument something to click. ValueProposition is the other
- * half of that fix.
+ * carries the trust argument something to click. `HowItStartsSection` is the
+ * other half of that fix.
  *
  * ## There is no honest browsing card, so there is no browsing card
  *

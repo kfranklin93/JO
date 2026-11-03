@@ -18,12 +18,7 @@ import { siteConfig } from '@/config/site';
 // against a near-black fill. It is onyx-and-bone with champagne accents, which
 // is the palette: bone on onyx is 16.6:1, champagne on onyx is 8.4:1.
 //
-// A fourth tile used to render `stats.avgDaysOnMarket` ('0-4-7 Months') under
-// the label "Avg Days on Market" — a day count expressed in months, in a
-// format that reads as corrupted data. No label can honestly describe that
-// value, so the tile is removed and the grid reflows to three rather than
-// publishing a broken figure. It comes back when Joey supplies the real
-// number. See the note on `stats` in src/config/site.ts.
+// The grid is three tiles wide.
 
 export function MarketStatsSection() {
   const sectionRef = React.useRef<HTMLDivElement>(null);
