@@ -48,6 +48,7 @@ declare module 'react' {
       'realscout-simple-search': RealScoutElementAttributes;
       'realscout-advanced-search': RealScoutElementAttributes;
       'realscout-your-listings': RealScoutYourListingsAttributes;
+      'realscout-home-value': RealScoutElementAttributes;
     }
   }
 }
