@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 /**
  * Tests for the transport-agnostic lead capture entry point.
@@ -341,6 +341,9 @@ describe('captureLead — the non-HTTP entry point', () => {
         loftyCRM: true,
         emailNotification: true,
         smsAlert: true,
+        // No REALSCOUT_API_TOKEN in `testEnv`, so the push skips rather than
+        // reaching the network. See realscout-push.test.ts for the outcomes.
+        realScoutContact: false,
       },
     });
   });
@@ -602,6 +605,7 @@ describe('captureLead — the immediate touchpoint', () => {
       loftyCRM: false,
       emailNotification: true,
       smsAlert: false,
+      realScoutContact: false,
     });
   });
 });
@@ -790,5 +794,129 @@ describe('updateCapturedLead — refusals', () => {
       MissingEnvError
     );
     expect(recordedUpdates).toEqual([]);
+  });
+});
+
+/**
+ * The RealScout push, exercised through `captureLead` rather than in isolation.
+ *
+ * `realscout-push` is deliberately *not* mocked here. The property under test
+ * is that a RealScout problem cannot fail a lead capture, and a mock that
+ * resolves tidily would assert nothing about that: the whole risk is the real
+ * module throwing. So the real push runs against a stubbed `fetch`.
+ *
+ * The lead is committed before any of this runs. A revoked token, a withdrawn
+ * scope, an outage or an unreachable host must therefore cost a `false` in the
+ * reported integrations and nothing else — not a 500, not a rejected promise,
+ * and above all not a visitor being told to submit the form again.
+ */
+describe('captureLead — the RealScout push cannot fail a capture', () => {
+  const fetchMock = vi.fn();
+
+  beforeEach(() => {
+    testEnv.REALSCOUT_API_TOKEN = 'rs_agent_test';
+    fetchMock.mockReset();
+    vi.stubGlobal('fetch', fetchMock);
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  const jsonResponse = (status: number, body: unknown): Response =>
+    new Response(JSON.stringify(body), {
+      status,
+      headers: { 'Content-Type': 'application/json' },
+    });
+
+  it('stores the lead and reports the contact when RealScout accepts it', async () => {
+    fetchMock.mockImplementation(() => jsonResponse(201, { contact: { id: 'c1' } }));
+
+    const outcome = await captureLead(validInput);
+
+    expect(outcome).toMatchObject({
+      ok: true,
+      leadId: LEAD_ID,
+      integrations: { realScoutContact: true },
+    });
+  });
+
+  it('counts an address RealScout already holds as a success', async () => {
+    fetchMock.mockImplementation(() =>
+      jsonResponse(400, {
+        error: { code: 'invalid_request', message: 'taken', field: 'email' },
+      })
+    );
+
+    const outcome = await captureLead(validInput);
+
+    expect(outcome).toMatchObject({ ok: true, integrations: { realScoutContact: true } });
+  });
+
+  it('still returns the lead id when the RealScout token has been revoked', async () => {
+    fetchMock.mockImplementation(() =>
+      jsonResponse(401, {
+        error: { code: 'unauthorized', message: 'Invalid or missing credentials.' },
+      })
+    );
+
+    const outcome = await captureLead(validInput);
+
+    expect(outcome).toMatchObject({
+      ok: true,
+      leadId: LEAD_ID,
+      integrations: { realScoutContact: false },
+    });
+  });
+
+  it('still returns the lead id when contacts:write has been withdrawn', async () => {
+    // The owner's token carries contacts:write today, and the RealScout token
+    // screen states that a permission change takes effect on the next call —
+    // so it can be withdrawn without the token string changing.
+    fetchMock.mockImplementation(() =>
+      jsonResponse(403, {
+        error: {
+          code: 'missing_scope',
+          message:
+            'This call requires the contacts:write scope, which this credential was not granted.',
+        },
+      })
+    );
+
+    const outcome = await captureLead(validInput);
+
+    expect(outcome).toMatchObject({ ok: true, integrations: { realScoutContact: false } });
+  });
+
+  it('still returns the lead id when RealScout is unreachable', async () => {
+    fetchMock.mockRejectedValue(new Error('ECONNREFUSED'));
+
+    const outcome = await captureLead(validInput);
+
+    expect(outcome).toMatchObject({ ok: true, integrations: { realScoutContact: false } });
+  });
+
+  it('does not let a RealScout failure suppress the drip or the notifications', async () => {
+    fetchMock.mockRejectedValue(new Error('ECONNREFUSED'));
+
+    const outcome = await captureLead(validInput);
+
+    expect(outcome).toMatchObject({
+      ok: true,
+      integrations: {
+        followUp: true,
+        emailNotification: true,
+        smsAlert: true,
+        realScoutContact: false,
+      },
+    });
+    expect(followUpInsertValues()).toHaveLength(FOLLOW_UP_SCHEDULE.length);
+  });
+
+  it('makes no RealScout call at all for a payload that fails validation', async () => {
+    const outcome = await captureLead({ ...validInput, email: 'not-an-email' });
+
+    expect(outcome.ok).toBe(false);
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 });

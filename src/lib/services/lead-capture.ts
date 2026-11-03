@@ -36,6 +36,7 @@ import { markSent, recordFailure } from '@/lib/db/follow-up-queue';
 import { sendImmediateFollowUp } from '@/lib/services/follow-up-scheduler';
 import type { Lead } from '@/lib/services/follow-up-scheduler';
 import { sendLeadToLofty } from '@/lib/api/lofty';
+import { pushLeadToRealScout } from '@/lib/services/realscout-push';
 import { notifyJoeyOfNewLead } from '@/lib/services/email-service';
 import { recordFreshConsent } from '@/lib/services/email-preferences';
 import { sendSMSAlert } from '@/lib/services/sms-service';
@@ -82,6 +83,16 @@ export interface LeadIntegrationOutcomes {
   loftyCRM: boolean;
   emailNotification: boolean;
   smsAlert: boolean;
+  /**
+   * Whether this lead is a RealScout contact now.
+   *
+   * True for a contact created and for an address RealScout already held — both
+   * mean the person is in Joey's RealScout book, which is what the push is for.
+   * False for an unconfigured deployment or a RealScout failure, neither of
+   * which affects the lead: it is already committed by the time the push runs.
+   * See `pushLeadToRealScout` for why nothing on that path throws.
+   */
+  realScoutContact: boolean;
 }
 
 /**
@@ -325,14 +336,25 @@ export async function captureLead(
   // and what the cron retries from.
   await recordImmediateOutcome(immediateFollowUpId, immediateFailureReason);
 
-  const [loftyResult, emailResult, smsResult] = await Promise.allSettled([
-    sendLeadToLofty(lead),
-    notifyJoeyOfNewLead(lead, { immediateFollowUpSent }),
-    sendSMSAlert(
-      `🔥 New ${lead.intent.toUpperCase()} Lead`,
-      `${lead.name}\n${lead.email}\n${lead.phone ?? 'No phone'}\n${lead.location ?? ''} | ${lead.budget ?? ''}`
-    ),
-  ]);
+  const [loftyResult, emailResult, smsResult, realScoutResult] =
+    await Promise.allSettled([
+      sendLeadToLofty(lead),
+      notifyJoeyOfNewLead(lead, { immediateFollowUpSent }),
+      sendSMSAlert(
+        `🔥 New ${lead.intent.toUpperCase()} Lead`,
+        `${lead.name}\n${lead.email}\n${lead.phone ?? 'No phone'}\n${lead.location ?? ''} | ${lead.budget ?? ''}`
+      ),
+      // Alongside the other integrations, for the same reason: the lead is
+      // committed and an outage downstream must not reach the visitor. The push
+      // resolves rather than rejects on every path, so it cannot even reach the
+      // `rejected` branch — but it is settled here anyway, so a future change
+      // that does throw still cannot fail a form submission.
+      pushLeadToRealScout(lead),
+    ]);
+
+  const realScoutStatus =
+    realScoutResult.status === 'fulfilled' ? realScoutResult.value.status : 'failed';
+  const inRealScout = realScoutStatus === 'created' || realScoutStatus === 'exists';
 
   if (immediateFollowUpSent) {
     console.log('✅ Immediate follow-up sent to:', lead.email);
@@ -356,6 +378,12 @@ export async function captureLead(
     console.warn('⚠️  SMS notification skipped or failed');
   }
 
+  if (inRealScout) {
+    console.log(`✅ Lead is a RealScout contact (${realScoutStatus})`);
+  } else {
+    console.warn(`⚠️  RealScout contact not created (${realScoutStatus})`);
+  }
+
   return {
     ok: true,
     leadId: savedLead.id,
@@ -364,6 +392,7 @@ export async function captureLead(
       loftyCRM: succeeded(loftyResult),
       emailNotification: succeeded(emailResult),
       smsAlert: succeeded(smsResult),
+      realScoutContact: inRealScout,
     },
   };
 }
@@ -432,8 +461,10 @@ function sameValue(held: unknown, proposed: string | number): boolean {
  * and this does NOT write, touch or send:
  *
  *   - any `follow_ups` row — no new drip, and no change to the existing one;
- *   - the immediate follow-up email, Joey's new-lead email, the SMS alert, or
- *     the Lofty CRM sync, all of which announce a lead that is not new;
+ *   - the immediate follow-up email, Joey's new-lead email, the SMS alert, the
+ *     Lofty CRM sync or the RealScout contact push, all of which announce a
+ *     lead that is not new — and the RealScout push in particular would be
+ *     refused as a duplicate address on every later turn of the conversation;
  *   - a fresh consent record, since the email address is never overwritten
  *     here, so the address that consented is still the address on the row;
  *   - `id`, `createdAt`, `status` or `source`. A conversation that keeps talking

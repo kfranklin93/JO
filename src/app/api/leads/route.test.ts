@@ -287,6 +287,10 @@ describe('POST /api/leads — success', () => {
       loftyCRM: false,
       emailNotification: true,
       smsAlert: true,
+      // False because this deployment has no REALSCOUT_API_TOKEN, so the push
+      // skips without a network call. That it reports `false` rather than
+      // failing the request is the point: the lead is already stored.
+      realScoutContact: false,
     });
   });
 
