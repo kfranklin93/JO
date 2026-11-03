@@ -67,6 +67,21 @@ const envSchema = z.object({
   LOFTY_API_BASE_URL: z.string().optional(),
   LOFTY_API_KEY: z.string().optional(),
 
+  // RealScout agent API — the bearer token for
+  // https://www.realscout.com/api/agent/v1.
+  //
+  // Optional at parse time like every other integration key, because this file
+  // parses at module import and a required value would fail `next build`
+  // instead of the request. Every RealScout call site asserts it at request
+  // time, and the contact sync treats an absent token as "nothing to do"
+  // rather than as a fault.
+  //
+  // Secret-scoped in Netlify, so its value is not readable from the CLI or a
+  // local shell. The only way to know the credential works is server-side:
+  // GET /api/dashboard/realscout on a deployed build. The token must never be
+  // logged, returned in a response, or put in an error message.
+  REALSCOUT_API_TOKEN: z.string().optional(),
+
   // JOEY UPDATE: AI assistant (Claude via the Anthropic API) — brain for the
   // client-facing assistant. Optional at parse time for the same reason as
   // every other integration key: this file parses at module import, so a
@@ -144,6 +159,7 @@ export const env = envSchema.parse({
   CALENDLY_LINK: process.env.CALENDLY_LINK,
   LOFTY_API_BASE_URL: process.env.LOFTY_API_BASE_URL,
   LOFTY_API_KEY: process.env.LOFTY_API_KEY,
+  REALSCOUT_API_TOKEN: process.env.REALSCOUT_API_TOKEN,
   // JOEY UPDATE: parse calls for the assistant vars. A schema entry without a
   // matching line here silently stays undefined, because this object is the
   // only input the schema ever sees.
