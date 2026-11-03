@@ -256,6 +256,19 @@ function bookIntroCallResult(): Record<string, unknown> {
  *  existing (Zod-validated) leads pipeline — dashboard + drips keep working. */
 export type LocalCaptureHook = (input: Record<string, unknown>) => Promise<{ lead_id: string }>;
 
+/** Whether the note reached the lead row. `missing` means there was no row. */
+export type NoteOutcome = "recorded" | "missing";
+
+/**
+ * Hook the host app supplies so log_lead_note actually writes something.
+ *
+ * It takes the note text and nothing else. The lead comes from the lead the
+ * conversation has already established server-side, closed over by the host —
+ * the same injection defence as `book_appointment`, for the same reason: a
+ * `lead_id` argument is somewhere for "write this on lead 42 instead" to land.
+ */
+export type NoteHook = (note: string) => Promise<NoteOutcome>;
+
 /** One free slot, as the availability tool reports it to the model. */
 export interface OfferedSlot {
   /** Machine-readable instant, to be passed straight back to book_appointment. */
@@ -319,6 +332,7 @@ export type BookingToolResult =
 export interface ExecutorHooks {
   localCapture?: LocalCaptureHook;
   booking?: BookingHooks;
+  note?: NoteHook;
 }
 
 /**
@@ -364,12 +378,15 @@ function noBookingConfigured(): Record<string, unknown> {
  */
 const BOOKING_REASONS = {
   slot_taken: "Someone else booked that time first.",
-  too_soon:
-    "That time is now inside Joey's minimum-notice window, so it can no longer " +
-    "be held — it was free when it was offered, and the booking window has " +
-    "since closed on it.",
-  in_the_past: "That time has already passed.",
-  not_on_the_calendar: "That time is not one of Joey's bookable slots.",
+  // "Minimum-notice window" and "the booking window has since closed on it"
+  // are how the rule is described internally, not how a client would hear it.
+  // Said out loud it sounds like policy; what it means to them is that Joey
+  // needs a couple of hours' warning. Two hours is the real figure —
+  // MIN_NOTICE_MINUTES in src/lib/services/availability.ts — so the sentence is
+  // accurate as well as shorter.
+  too_soon: "That one's too close to now — Joey needs a couple of hours' notice.",
+  in_the_past: "That time's gone by now.",
+  not_on_the_calendar: "Joey isn't available then.",
   unavailable: "Joey's calendar could not be reached, so no time was held.",
 } as const;
 
@@ -437,9 +454,23 @@ function bookAppointmentResult(result: BookingToolResult): Record<string, unknow
           CONFIRMATION_GUIDANCE[result.confirmation],
       };
 
+    case "in_the_past":
+      // Split out from the other failures for one line of observability. The
+      // client is told the same thing either way, but this status should be
+      // unreachable: the model is instructed to offer only times from a fresh
+      // check_availability result, and that result never contains a past slot.
+      // Reaching a client means something upstream is wrong — a stale list
+      // being booked from, or a clock disagreement — and a silent failure is
+      // one nobody goes looking for.
+      console.warn(
+        "[assistant:tools] book_appointment returned in_the_past — the assistant " +
+          "should only ever book times from a fresh check_availability result, so " +
+          "this status reaching a client indicates an upstream problem.",
+      );
+      return bookingFailure(result.status, result.alternatives);
+
     case "slot_taken":
     case "too_soon":
-    case "in_the_past":
     case "not_on_the_calendar":
       return bookingFailure(result.status, result.alternatives);
 
@@ -510,6 +541,59 @@ function isBookingTool(name: ToolName): boolean {
   return name === "check_availability" || name === "book_appointment";
 }
 
+/**
+ * What the model may say about the note, per actual outcome.
+ *
+ * `log_lead_note` used to return `{ status: "logged_mock" }` and write nothing
+ * anywhere, in either executor. The model read that as done and told clients
+ * their question had been passed to Joey — the same shape of untruth as the
+ * confirmation email that never sent, so the claim is gated the same way, on a
+ * value the write produced rather than on the call having been made.
+ */
+const NOTE_RECORDED: Record<string, unknown> = {
+  status: "logged",
+  note_recorded: true,
+  message:
+    "The note is saved on the lead record, so you may tell the client you " +
+    "added it to the notes for Joey.",
+};
+
+const NOTE_NOT_RECORDED: Record<string, unknown> = {
+  status: "not_recorded",
+  note_recorded: false,
+  message:
+    "The note was NOT saved. Do NOT tell the client anything was added to the " +
+    "notes. Make sure you have their name and email and call capture_lead first.",
+};
+
+/**
+ * Run log_lead_note against the host's note hook.
+ *
+ * `call.input.lead_id` is read nowhere, deliberately. The tool still publishes
+ * it — changing the schema would be a separate change to what the model emits —
+ * but the row written is the one the host closed over, so an injected lead id
+ * has no effect. Mirrors the injection defence documented on
+ * `bookAppointmentResult`.
+ *
+ * Every failure, including a thrown hook, reports `note_recorded: false`. An
+ * errored tool_result would also work, but the model then has to infer what it
+ * may still say; this tells it.
+ */
+async function executeLeadNoteTool(
+  call: ToolCall,
+  note?: NoteHook,
+): Promise<Record<string, unknown>> {
+  const text = typeof call.input.note === "string" ? call.input.note.trim() : "";
+  if (!note || !text) return NOTE_NOT_RECORDED;
+
+  try {
+    return (await note(text)) === "recorded" ? NOTE_RECORDED : NOTE_NOT_RECORDED;
+  } catch (err) {
+    console.error("[assistant:tools] log_lead_note failed:", err);
+    return NOTE_NOT_RECORDED;
+  }
+}
+
 export interface MockExecutorResult {
   status: string;
   lead_id?: string;
@@ -520,12 +604,15 @@ export class MockToolExecutor implements ToolExecutor {
   constructor(
     private localCapture?: LocalCaptureHook,
     private booking?: BookingHooks,
+    private note?: NoteHook,
   ) {}
 
   async execute(call: ToolCall): Promise<Record<string, unknown>> {
     console.log(`[assistant:mock] tool=${call.name} input=${JSON.stringify(call.input)}`);
 
     if (isBookingTool(call.name)) return executeBookingTool(call, this.booking);
+
+    if (call.name === "log_lead_note") return executeLeadNoteTool(call, this.note);
 
     if (call.name === "capture_lead") {
       if (this.localCapture) {
@@ -554,6 +641,7 @@ export class ComposioToolExecutor implements ToolExecutor {
   constructor(
     private localCapture?: LocalCaptureHook,
     private booking?: BookingHooks,
+    private note?: NoteHook,
   ) {}
 
   // Maps our tool -> Composio toolkit actions (CRM MIRROR ONLY — local
@@ -581,6 +669,12 @@ export class ComposioToolExecutor implements ToolExecutor {
     // ACTION_MAP — see the note on executeBookingTool. Enabling Composio must
     // not change what booking does.
     if (isBookingTool(call.name)) return executeBookingTool(call, this.booking);
+
+    // The note goes on our own lead row, so it is handled here for the same
+    // reason: `ACTION_MAP.log_lead_note` names an unimplemented HubSpot action
+    // and the branch below throws, so setting COMPOSIO_API_KEY would turn
+    // note-writing from "works" into "throws".
+    if (call.name === "log_lead_note") return executeLeadNoteTool(call, this.note);
 
     // capture_lead: local store FIRST (source of truth), CRM mirror second.
     if (call.name === "capture_lead" && this.localCapture) {
@@ -620,6 +714,6 @@ export function createToolExecutor(
   // changes, not the calendar, and a booking tool that threw as soon as
   // COMPOSIO_API_KEY was set would be a trap rather than a configuration.
   return env.COMPOSIO_API_KEY
-    ? new ComposioToolExecutor(resolved.localCapture, resolved.booking)
-    : new MockToolExecutor(resolved.localCapture, resolved.booking);
+    ? new ComposioToolExecutor(resolved.localCapture, resolved.booking, resolved.note)
+    : new MockToolExecutor(resolved.localCapture, resolved.booking, resolved.note);
 }

@@ -245,6 +245,103 @@ describe('system prompt — booking instructions', () => {
   });
 });
 
+/**
+ * Market numbers, which the assistant has no tool for.
+ *
+ * "If you don't know something, say so" dead-ends here: a client who asks what
+ * homes are going for gets a refusal and the conversation stops. So the prompt
+ * carries a pivot — the figure that matters is the one for their street, which
+ * is worth going through with Joey — and the pivot's one factual claim, that
+ * their question was written down for him, is gated on log_lead_note actually
+ * having written it. That is the `confirmation_email` pattern applied to a
+ * second claim.
+ *
+ * The section sits above `## BOOKING A CONSULTATION` on purpose: the booking
+ * assertions above slice from that heading to `## HARD RULES`, so inserting
+ * here leaves that slice byte-identical.
+ */
+describe('system prompt — market numbers', () => {
+  const section = prompt.slice(
+    prompt.indexOf('## MARKET NUMBERS YOU DO NOT HAVE'),
+    prompt.indexOf('## BOOKING A CONSULTATION'),
+  );
+
+  it('has a market section at all', () => {
+    expect(prompt).toContain('## MARKET NUMBERS YOU DO NOT HAVE');
+    expect(section.length).toBeGreaterThan(0);
+  });
+
+  it('forbids stating or estimating a figure', () => {
+    expect(section).toMatch(/There is no tool that fetches market data/);
+    expect(section).toMatch(/NEVER\s+state, estimate or bracket a figure/);
+    expect(section).toMatch(/never cite a source for one/);
+  });
+
+  it('pivots rather than dead-ending on "I do not have that"', () => {
+    expect(section).toMatch(/it ends the conversation/);
+    expect(section).toMatch(/the figure worth\s+having is the one for their street/);
+    expect(section).toMatch(/Offer the 15-minute consultation/);
+  });
+
+  it('writes the question down with log_lead_note, after a lead exists', () => {
+    expect(section).toMatch(/only when a lead has already been captured/);
+    expect(section).toMatch(/call log_lead_note with\s+their question/);
+  });
+
+  it('gates the "added to the notes" claim on note_recorded being true', () => {
+    expect(section).toMatch(/log_lead_note's result carries "note_recorded"/);
+    expect(section).toMatch(
+      /added\s+their question to the notes for Joey ONLY when that value is true/,
+    );
+    expect(section).toMatch(/make the pivot without the claim/);
+    expect(prompt).toMatch(
+      /NEVER tell a client their question was added to Joey's notes unless\s+log_lead_note returned note_recorded true/,
+    );
+  });
+
+  it('introduces no outside data source to fill the gap', () => {
+    expect(section).toMatch(/Do not reach for a web lookup/);
+    expect(section).not.toMatch(/\bMCP\b/);
+    expect(section).not.toMatch(/\bsearch the web\b/i);
+  });
+
+  it('does not reintroduce the forbidden word', () => {
+    expect(section).not.toMatch(/\bcommission\b/i);
+  });
+});
+
+/**
+ * The two things Joey is not. Both were stated wrongly in an earlier draft of
+ * the playbook, and both are the kind of error that misrepresents a licensed
+ * professional's services rather than merely reading badly.
+ */
+describe('system prompt — licensing boundaries', () => {
+  const rules = prompt.slice(prompt.indexOf('## HARD RULES'));
+
+  it('states that Joey is not an insurance agent', () => {
+    expect(rules).toMatch(/Joey is NOT an insurance agent/);
+    expect(rules).toMatch(/never name a carrier/);
+    expect(rules).toMatch(/never quote a premium/);
+    expect(rules).toMatch(/never recommend an\s+amount of coverage/);
+  });
+
+  it('states that Joey is not a title or escrow company', () => {
+    expect(rules).toMatch(/Joey is NOT a title or escrow company/);
+    expect(rules).toMatch(/manages the deal from\s+contract to closing/);
+    expect(rules).toMatch(/attends every\s+closing in person/);
+  });
+
+  it('keeps the market-statistic ban in the hard rules, not in a placeholder', () => {
+    // Every {{PLACEHOLDER}} is overridable by an ASSISTANT_* variable, so a
+    // boundary stated in one stops being a boundary the moment somebody tunes
+    // the variable.
+    expect(rules).toMatch(/NEVER quote or estimate a market statistic/);
+    expect(SYSTEM_PROMPT.slice(SYSTEM_PROMPT.indexOf('## HARD RULES'))).not.toMatch(
+      /\{\{[A-Z_]+\}\}/,
+    );
+  });
+});
+
 describe('system prompt — substitution', () => {
   it('leaves no placeholder unfilled once the facts are supplied', () => {
     expect(prompt).not.toMatch(/\{\{[A-Z_]+\}\}/);

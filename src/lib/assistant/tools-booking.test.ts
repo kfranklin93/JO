@@ -24,6 +24,9 @@ type OfferedSlot = import('./tools').OfferedSlot;
 beforeEach(() => {
   for (const key of Object.keys(testEnv)) delete testEnv[key];
   vi.spyOn(console, 'log').mockImplementation(() => {});
+  // Silenced rather than ignored: `in_the_past` warns, and the case asserting
+  // that reads this spy.
+  vi.spyOn(console, 'warn').mockImplementation(() => {});
 });
 
 const call = { name: 'book_intro_call' as const, input: { lead_id: 'lead-7' } };
@@ -336,30 +339,52 @@ describe('book_appointment — the reason it failed', () => {
     });
   }
 
-  it('says the notice window closed when the slot aged out mid-conversation', async () => {
+  it('says the slot is too close to now when it aged out mid-conversation', async () => {
+    // The assertions follow the copy rather than the copy being kept for the
+    // assertions. "Minimum-notice window" and "it was free when it was
+    // offered" are how the rule is described internally; a client hears policy
+    // and an excuse. What they need to know is that Joey needs a couple of
+    // hours' warning, which is the real rule (MIN_NOTICE_MINUTES = 120).
     const result = await failWith({ status: 'too_soon', alternatives: SLOTS });
 
     expect(result.status).toBe('too_soon');
-    expect(String(result.reason)).toMatch(/minimum-notice window/i);
-    // The honest part: it was a real slot when it was offered.
-    expect(String(result.reason)).toMatch(/free when it was offered/i);
+    expect(String(result.reason)).toMatch(/too close to now/i);
+    expect(String(result.reason)).toMatch(/couple of hours' notice/i);
   });
 
   it('says the time has passed rather than that it was taken', async () => {
     const result = await failWith({ status: 'in_the_past', alternatives: SLOTS });
 
     expect(result.status).toBe('in_the_past');
-    expect(String(result.reason)).toMatch(/already passed/i);
+    expect(String(result.reason)).toMatch(/gone by now/i);
   });
 
-  it('says a time off the grid is not one of Joey’s slots', async () => {
+  it('says a time off the grid is one Joey is not available for', async () => {
     const result = await failWith({
       status: 'not_on_the_calendar',
       alternatives: SLOTS,
     });
 
     expect(result.status).toBe('not_on_the_calendar');
-    expect(String(result.reason)).toMatch(/not one of Joey's bookable slots/i);
+    expect(String(result.reason)).toMatch(/isn't available then/i);
+  });
+
+  it('warns on in_the_past, because that status should be unreachable', async () => {
+    // The client is told the same thing either way. The warn is for us: the
+    // model is instructed to book only from a fresh check_availability result,
+    // and that result never contains a past slot, so this arriving means
+    // something upstream is wrong. too_soon is a normal race and stays quiet.
+    const warn = vi.mocked(console.warn);
+    warn.mockClear();
+
+    await failWith({ status: 'in_the_past', alternatives: SLOTS });
+    expect(warn).toHaveBeenCalledTimes(1);
+    expect(String(warn.mock.calls[0]?.[0])).toMatch(/in_the_past/);
+    expect(String(warn.mock.calls[0]?.[0])).toMatch(/upstream problem/i);
+
+    warn.mockClear();
+    await failWith({ status: 'too_soon', alternatives: SLOTS });
+    expect(warn).not.toHaveBeenCalled();
   });
 
   it.each([

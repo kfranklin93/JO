@@ -36,9 +36,11 @@ import {
   LeadCaptureValidationError,
   toLeadSubmissionInput,
   type LocalCaptureHook,
+  type NoteHook,
   type OfferedSlot,
 } from '@/lib/assistant/tools';
 import { captureLead, updateCapturedLead } from '@/lib/services/lead-capture';
+import { appendLeadNote } from '@/lib/services/lead-note';
 import { recordChatTurn, sessionLeadId } from '@/lib/services/chat-store';
 import { bookingLink } from '@/lib/services/booking-link';
 import { assistantMuteState } from '@/lib/services/assistant-mute';
@@ -414,6 +416,40 @@ export async function POST(req: NextRequest) {
     },
   };
 
+  /**
+   * The note hook behind `log_lead_note`.
+   *
+   * The lead is resolved at call time, in the same order and for the same
+   * reason as `bookingHooks.book`: the model can capture a lead and log a note
+   * in one turn, and `capturedLeadId` is only assigned partway through it. A
+   * value closed over here would be the `undefined` it held when the hooks were
+   * built.
+   *
+   * The note text is the only argument, so an injected "write this on lead 42"
+   * has nowhere to put the id — see the note on `bookingHooks`.
+   *
+   * `missing` rather than a throw when there is no lead, because that is a
+   * conversation that has not got to a name and email yet, not a fault.
+   * `tools.ts` turns it into instructions to capture the lead first, and the
+   * prompt forbids claiming the note was filed on anything but `recorded`.
+   */
+  const noteHook: NoteHook = async (note) => {
+    const forLead = leadId ?? capturedLeadId;
+
+    if (!forLead) {
+      console.log(
+        `[assistant:chat] session=${sessionId} log_lead_note with no lead yet — nothing written`,
+      );
+      return 'missing';
+    }
+
+    const outcome = await appendLeadNote(forLead, note);
+    console.log(
+      `[assistant:chat] session=${sessionId} log_lead_note lead=${forLead} ${outcome}`,
+    );
+    return outcome;
+  };
+
   // Requirement 8.5: when Joey has switched the assistant off, the inbound
   // message is still recorded but no reply is generated.
   //
@@ -465,7 +501,7 @@ export async function POST(req: NextRequest) {
       // `history` spread only when present: exactOptionalPropertyTypes rejects an
       // explicit undefined for an optional property.
       { sessionId, message, ...(history ? { history } : {}) },
-      { localCapture: captureLeadLocally, booking: bookingHooks },
+      { localCapture: captureLeadLocally, booking: bookingHooks, note: noteHook },
     );
   } catch (err) {
     console.error('[assistant:chat] error:', err);

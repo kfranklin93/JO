@@ -253,3 +253,88 @@ describe('MockToolExecutor — capture_lead', () => {
     );
   });
 });
+
+/**
+ * `log_lead_note`, which used to write nothing.
+ *
+ * Both executors answered `{ status: 'logged_mock' }` and persisted nothing
+ * anywhere, so the model read the call as filed and told clients their question
+ * had been passed to Joey. The claim is now gated on `note_recorded`, the same
+ * way the confirmation-email claim is gated on the send outcome: every path
+ * that did not write says so, and says what the model may still do.
+ */
+describe('log_lead_note', () => {
+  const call = {
+    name: 'log_lead_note' as const,
+    input: {
+      lead_id: 'lead-from-the-model',
+      note: 'Asked what homes on Oak Grove Drive are selling for.',
+    },
+  };
+
+  it('permits the claim when the note was written', async () => {
+    const note = vi.fn(async () => 'recorded' as const);
+
+    const result = await new MockToolExecutor(undefined, undefined, note).execute(call);
+
+    expect(result.note_recorded).toBe(true);
+    expect(result.status).toBe('logged');
+    expect(String(result.message)).toMatch(/you may tell the client/i);
+  });
+
+  it('passes the note text and only the note text to the hook', async () => {
+    // The lead id comes from the route's closure, never from the model: an
+    // argument for it is somewhere "write this on somebody else's lead"
+    // would land. Same defence as book_appointment.
+    const note = vi.fn(async () => 'recorded' as const);
+
+    await new MockToolExecutor(undefined, undefined, note).execute(call);
+
+    expect(note).toHaveBeenCalledWith(call.input.note);
+    expect(note).toHaveBeenCalledTimes(1);
+  });
+
+  it('forbids the claim when there was no lead row to write to', async () => {
+    const note = vi.fn(async () => 'missing' as const);
+
+    const result = await new MockToolExecutor(undefined, undefined, note).execute(call);
+
+    expect(result.note_recorded).toBe(false);
+    expect(result.status).toBe('not_recorded');
+    expect(String(result.message)).toMatch(/do NOT tell the client/i);
+    expect(String(result.message)).toMatch(/capture_lead/);
+  });
+
+  it('forbids the claim when the write threw', async () => {
+    const note = vi.fn(async () => {
+      throw new Error('connection terminated');
+    });
+
+    const result = await new MockToolExecutor(undefined, undefined, note).execute(call);
+
+    expect(result.note_recorded).toBe(false);
+    expect(String(result.message)).toMatch(/was NOT saved/i);
+  });
+
+  it('forbids the claim when no hook is wired up at all', async () => {
+    // The configuration that shipped. "logged_mock" read as success to the
+    // model; this reads as what it is.
+    const result = await new MockToolExecutor().execute(call);
+
+    expect(result.note_recorded).toBe(false);
+    expect(result.status).toBe('not_recorded');
+  });
+
+  it('writes the note through the Composio executor too', async () => {
+    // ACTION_MAP sends log_lead_note to an unimplemented HubSpot action that
+    // throws, so without local handling one environment variable would turn
+    // note-writing from "works" into "throws".
+    testEnv.COMPOSIO_API_KEY = 'composio-key-for-the-crm-mirror';
+    const note = vi.fn(async () => 'recorded' as const);
+
+    const result = await createToolExecutor({ note }).execute(call);
+
+    expect(result.note_recorded).toBe(true);
+    expect(note).toHaveBeenCalledWith(call.input.note);
+  });
+});

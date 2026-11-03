@@ -22,6 +22,7 @@ import {
 } from "./tools";
 import { getSystemPrompt } from "./system-prompt";
 import { getPlaybookDirective } from "./answer-playbook";
+import { ASSISTANT_FACT_DEFAULTS } from "./assistant-facts";
 
 // JOEY UPDATE: CREATE v2 item 5 — process.env reads replaced with the repo's
 // established @/config/env access. Schema entries AND parse calls were both
@@ -31,14 +32,22 @@ function getAssistantEnv() {
     apiKey: env.ANTHROPIC_API_KEY,
     model: env.ANTHROPIC_MODEL, // VERIFY: confirm alias/model ID in Anthropic console; may need date suffix
     maxTokens: env.ANTHROPIC_MAX_TOKENS,
+    // JOEY UPDATE: the fallback is Joey's actual answer, not the token. No
+    // ASSISTANT_* variable was ever set in Netlify, so every one of these fell
+    // through and the live prompt read "Buying representation:
+    // {{BUYER_SERVICES_SUMMARY}}" — see ./assistant-facts.ts. `env` stays the
+    // first operand, so a value tuned in Netlify still wins over the default.
     system: getSystemPrompt({
       SITE_NAME: env.NEXT_PUBLIC_SITE_NAME,
-      SERVICE_AREA: env.ASSISTANT_SERVICE_AREA ?? "{{SERVICE_AREA}}",
-      SERVICE_AREA_LIST: env.ASSISTANT_SERVICE_AREA_LIST ?? "{{SERVICE_AREA_LIST}}",
-      BUYER_SERVICES_SUMMARY: env.ASSISTANT_BUYER_SERVICES ?? "{{BUYER_SERVICES_SUMMARY}}",
-      SELLER_SERVICES_SUMMARY: env.ASSISTANT_SELLER_SERVICES ?? "{{SELLER_SERVICES_SUMMARY}}",
-      GUIDE_SUMMARY: env.ASSISTANT_GUIDE_SUMMARY ?? "{{GUIDE_SUMMARY}}",
-      TEAM_SUMMARY: env.ASSISTANT_TEAM_SUMMARY ?? "{{TEAM_SUMMARY}}",
+      SERVICE_AREA: env.ASSISTANT_SERVICE_AREA ?? ASSISTANT_FACT_DEFAULTS.SERVICE_AREA,
+      SERVICE_AREA_LIST:
+        env.ASSISTANT_SERVICE_AREA_LIST ?? ASSISTANT_FACT_DEFAULTS.SERVICE_AREA_LIST,
+      BUYER_SERVICES_SUMMARY:
+        env.ASSISTANT_BUYER_SERVICES ?? ASSISTANT_FACT_DEFAULTS.BUYER_SERVICES_SUMMARY,
+      SELLER_SERVICES_SUMMARY:
+        env.ASSISTANT_SELLER_SERVICES ?? ASSISTANT_FACT_DEFAULTS.SELLER_SERVICES_SUMMARY,
+      GUIDE_SUMMARY: env.ASSISTANT_GUIDE_SUMMARY ?? ASSISTANT_FACT_DEFAULTS.GUIDE_SUMMARY,
+      TEAM_SUMMARY: env.ASSISTANT_TEAM_SUMMARY ?? ASSISTANT_FACT_DEFAULTS.TEAM_SUMMARY,
     }),
   };
 }
