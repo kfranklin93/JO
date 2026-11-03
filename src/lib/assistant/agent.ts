@@ -21,6 +21,7 @@ import {
   ToolExecutor,
 } from "./tools";
 import { getSystemPrompt } from "./system-prompt";
+import { toPlainText } from "./plain-text";
 import { getPlaybookDirective } from "./answer-playbook";
 import { ASSISTANT_FACT_DEFAULTS } from "./assistant-facts";
 
@@ -131,7 +132,19 @@ export async function runAssistantTurn(
         .filter((b): b is Anthropic.TextBlock => b.type === "text")
         .map((b) => b.text)
         .join("\n");
-      return { reply: text, toolCalls: executed, usage: response.usage, mode: "live" };
+      // The one seam where model text becomes a reply, so the one place the
+      // markdown strip belongs: every caller — the chat panel route and
+      // /api/assistant — returns and persists the same sanitized text. The
+      // prompt's HOW YOU WRITE section is the primary fix; this is belt and
+      // braces behind it, because a model that enumerates appointment times on
+      // most turns drifts back to bullet lists. It removes markup only and
+      // never rewrites the words. See ./plain-text.ts.
+      return {
+        reply: toPlainText(text),
+        toolCalls: executed,
+        usage: response.usage,
+        mode: "live",
+      };
     }
 
     messages.push({ role: "assistant", content: response.content });
