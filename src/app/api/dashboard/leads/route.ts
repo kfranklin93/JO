@@ -40,7 +40,13 @@ import { createManualLead } from '@/lib/services/lead-import';
  * sequence — see `createManualLead` for why the default sits that way round.
  */
 
-/** 1000 chars is the `additionalNotes` cap in `leadSubmissionSchema`'s limits. */
+/**
+ * A present, non-blank string, or absent.
+ *
+ * Absent rather than `undefined`-valued, so the caller can spread it under
+ * `exactOptionalPropertyTypes`. It caps nothing: every length limit is
+ * `LEAD_FIELD_LIMITS` applied by `leadSubmissionSchema`.
+ */
 function readString(value: unknown): string | undefined {
   return typeof value === 'string' && value.trim() !== '' ? value : undefined;
 }
