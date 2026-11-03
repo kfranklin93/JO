@@ -143,9 +143,9 @@ export function ValueProposition() {
             </p>
             {/* Joey's philosophy, from the `who-is-joey` entry. Set in the
                   display face and champagne, which is how the same sentence is
-                  set on the contact page — one sentence, one treatment. Note
-                  `font-serif` is the display token and resolves to Archivo
-                  Expanded, not a serif; the name predates the brand sheet. */}
+                  set on the contact page — one sentence, one treatment.
+                  `font-serif` is the display token and now resolves to
+                  Cormorant Garamond. */}
             <p className="text-champagne font-serif text-xl leading-relaxed sm:text-2xl">
               Preparation Creates Confidence. Execution Creates Wins.
             </p>

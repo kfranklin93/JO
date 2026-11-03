@@ -212,16 +212,30 @@
   /*
    * `--font-serif` is the display/wordmark token — the name predates the brand
    * sheet and is kept because roughly a hundred call sites say `font-serif`.
-   * It now carries Archivo Expanded, which is the wdth 125 end of the variable
-   * Archivo family rather than a family of its own, so the width has to be
-   * pinned: Tailwind emits this sub-property as `font-variation-settings` on
-   * every `font-serif` utility. Without it Archivo renders at normal width.
+   * It carries Cormorant Garamond, a real serif; `--font-sans` carries Plus
+   * Jakarta Sans. The two must never resolve to the same family again: both
+   * pointed at one sans family, so every heading on the site was body text at
+   * display size, pinned to an expanded width axis.
+   *
+   * Display tracking is NOT a font sub-property here, and cannot be. Tailwind
+   * v4 emits only `--font-*--font-feature-settings` and
+   * `--font-*--font-variation-settings` as sub-properties of a font token, so
+   * `--font-serif--letter-spacing` produces no CSS at all (verified by
+   * compiling this stylesheet through @tailwindcss/node). The other tempting
+   * route — a `.font-serif { letter-spacing: ... }` rule after the import —
+   * would land in @layer utilities and silently beat every `tracking-*`
+   * utility at its call site: the same cascade failure as the unlayered
+   * `a { color: inherit }` fixed in e953b39. So tracking is a plain token
+   * below plus element rules inside `@layer base`, where a call-site
+   * `tracking-*` utility still wins.
    */
-  --font-serif: var(--font-archivo), Archivo, Helvetica Neue, Arial, sans-serif;
-  --font-serif--font-variation-settings: 'wdth' 125;
-  --font-sans: var(--font-archivo), Arial, sans-serif;
-  --font-signature: var(--font-instrument-serif), Georgia, serif;
+  --font-serif: var(--font-cormorant), Cormorant Garamond, Georgia, serif;
+  --font-sans: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-geist-mono), monospace;
+
+  /* Display tracking */
+  --tracking-display: -0.02em;
+  --tracking-display-tight: -0.03em;
   
   /* Box shadow */
   --shadow-soft: 0 10px 30px rgba(15, 23, 42, 0.08);
@@ -301,6 +315,23 @@
   img {
     max-width: 100%;
     height: auto;
+  }
+
+  /*
+   * Display tracking. Cormorant Garamond sets loose at display size, so the
+   * headings need negative tracking to hold together. These are element rules
+   * inside `@layer base` on purpose: a call-site `tracking-*` utility lives in
+   * @layer utilities and still wins, which is the direction required — the
+   * service-page h1s already carry `tracking-tight` and must keep overriding
+   * this.
+   */
+  h1 {
+    letter-spacing: var(--tracking-display-tight);
+  }
+
+  h2,
+  h3 {
+    letter-spacing: var(--tracking-display);
   }
 }
 

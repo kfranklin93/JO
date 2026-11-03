@@ -302,7 +302,7 @@ export function JoeyChat({ defaultOpen = false }: JoeyChatProps) {
           >
             <header className="flex items-start justify-between gap-3 border-b border-navy/10 bg-white px-4 py-3">
               <div>
-                <h2 id={titleId} className="font-serif text-lg text-navy">
+                <h2 id={titleId} className="font-serif text-xl text-navy">
                   Chat with Joey&rsquo;s team
                 </h2>
                 {/* The AI disclosure. Present in the UI as well as in the

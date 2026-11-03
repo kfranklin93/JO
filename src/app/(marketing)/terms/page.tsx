@@ -17,7 +17,7 @@ export default function TermsPage() {
       <section className="relative bg-hunter py-24">
         <div className="container mx-auto px-6">
           <div className="mx-auto max-w-4xl">
-            <h1 className="font-serif text-5xl font-light tracking-tight text-linen sm:text-6xl">
+            <h1 className="font-serif text-5xl tracking-tight text-linen sm:text-6xl">
               Terms of Service
             </h1>
             <p className="mt-6 font-sans text-lg font-light leading-relaxed text-linen/80">
@@ -41,7 +41,7 @@ export default function TermsPage() {
 
               {/* Acceptance of Terms */}
               <div className="mb-12">
-                <h2 className="mb-6 font-serif text-3xl font-light text-navy">
+                <h2 className="mb-6 font-serif text-3xl text-navy">
                   Acceptance of Terms
                 </h2>
                 <p className="font-sans font-light leading-relaxed text-stone">
@@ -51,7 +51,7 @@ export default function TermsPage() {
 
               {/* Services Description */}
               <div className="mb-12">
-                <h2 className="mb-6 font-serif text-3xl font-light text-navy">
+                <h2 className="mb-6 font-serif text-3xl text-navy">
                   Services Description
                 </h2>
                 <p className="mb-4 font-sans font-light leading-relaxed text-stone">
@@ -69,7 +69,7 @@ export default function TermsPage() {
 
               {/* User Responsibilities */}
               <div className="mb-12">
-                <h2 className="mb-6 font-serif text-3xl font-light text-navy">
+                <h2 className="mb-6 font-serif text-3xl text-navy">
                   User Responsibilities
                 </h2>
                 <p className="mb-4 font-sans font-light leading-relaxed text-stone">
@@ -87,7 +87,7 @@ export default function TermsPage() {
 
               {/* Property Information */}
               <div className="mb-12">
-                <h2 className="mb-6 font-serif text-3xl font-light text-navy">
+                <h2 className="mb-6 font-serif text-3xl text-navy">
                   Property Information and Listings
                 </h2>
                 <p className="font-sans font-light leading-relaxed text-stone">
@@ -97,7 +97,7 @@ export default function TermsPage() {
 
               {/* No Guarantee */}
               <div className="mb-12">
-                <h2 className="mb-6 font-serif text-3xl font-light text-navy">
+                <h2 className="mb-6 font-serif text-3xl text-navy">
                   No Guarantee of Results
                 </h2>
                 <p className="font-sans font-light leading-relaxed text-stone">
@@ -107,7 +107,7 @@ export default function TermsPage() {
 
               {/* Intellectual Property */}
               <div className="mb-12">
-                <h2 className="mb-6 font-serif text-3xl font-light text-navy">
+                <h2 className="mb-6 font-serif text-3xl text-navy">
                   Intellectual Property Rights
                 </h2>
                 <p className="font-sans font-light leading-relaxed text-stone">
@@ -117,7 +117,7 @@ export default function TermsPage() {
 
               {/* Third-Party Links */}
               <div className="mb-12">
-                <h2 className="mb-6 font-serif text-3xl font-light text-navy">
+                <h2 className="mb-6 font-serif text-3xl text-navy">
                   Third-Party Links and Services
                 </h2>
                 <p className="font-sans font-light leading-relaxed text-stone">
@@ -127,7 +127,7 @@ export default function TermsPage() {
 
               {/* Limitation of Liability */}
               <div className="mb-12">
-                <h2 className="mb-6 font-serif text-3xl font-light text-navy">
+                <h2 className="mb-6 font-serif text-3xl text-navy">
                   Limitation of Liability
                 </h2>
                 <p className="font-sans font-light leading-relaxed text-stone">
@@ -144,7 +144,7 @@ export default function TermsPage() {
 
               {/* Indemnification */}
               <div className="mb-12">
-                <h2 className="mb-6 font-serif text-3xl font-light text-navy">
+                <h2 className="mb-6 font-serif text-3xl text-navy">
                   Indemnification
                 </h2>
                 <p className="font-sans font-light leading-relaxed text-stone">
@@ -154,7 +154,7 @@ export default function TermsPage() {
 
               {/* Dispute Resolution */}
               <div className="mb-12">
-                <h2 className="mb-6 font-serif text-3xl font-light text-navy">
+                <h2 className="mb-6 font-serif text-3xl text-navy">
                   Dispute Resolution
                 </h2>
                 <p className="font-sans font-light leading-relaxed text-stone">
@@ -164,7 +164,7 @@ export default function TermsPage() {
 
               {/* Governing Law */}
               <div className="mb-12">
-                <h2 className="mb-6 font-serif text-3xl font-light text-navy">
+                <h2 className="mb-6 font-serif text-3xl text-navy">
                   Governing Law
                 </h2>
                 <p className="font-sans font-light leading-relaxed text-stone">
@@ -174,7 +174,7 @@ export default function TermsPage() {
 
               {/* Changes to Terms */}
               <div className="mb-12">
-                <h2 className="mb-6 font-serif text-3xl font-light text-navy">
+                <h2 className="mb-6 font-serif text-3xl text-navy">
                   Changes to Terms
                 </h2>
                 <p className="font-sans font-light leading-relaxed text-stone">
@@ -184,7 +184,7 @@ export default function TermsPage() {
 
               {/* Severability */}
               <div className="mb-12">
-                <h2 className="mb-6 font-serif text-3xl font-light text-navy">
+                <h2 className="mb-6 font-serif text-3xl text-navy">
                   Severability
                 </h2>
                 <p className="font-sans font-light leading-relaxed text-stone">
@@ -194,7 +194,7 @@ export default function TermsPage() {
 
               {/* Entire Agreement */}
               <div className="mb-12">
-                <h2 className="mb-6 font-serif text-3xl font-light text-navy">
+                <h2 className="mb-6 font-serif text-3xl text-navy">
                   Entire Agreement
                 </h2>
                 <p className="font-sans font-light leading-relaxed text-stone">
@@ -204,7 +204,7 @@ export default function TermsPage() {
 
               {/* Contact */}
               <div className="rounded-2xl border border-navy/10 bg-white p-8">
-                <h2 className="mb-4 font-serif text-3xl font-light text-navy">
+                <h2 className="mb-4 font-serif text-3xl text-navy">
                   Questions About These Terms?
                 </h2>
                 <p className="mb-6 font-sans font-light leading-relaxed text-stone">

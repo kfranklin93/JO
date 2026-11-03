@@ -248,7 +248,7 @@ export function ChatTranscriptsPanel() {
           {selected ? (
             <>
               <header className="border-b border-navy/10 px-5 py-4">
-                <h3 className="font-serif text-lg text-navy">
+                <h3 className="font-serif text-xl text-navy">
                   {selected.session.leadId
                     ? 'Conversation that became a lead'
                     : 'Conversation with no contact details'}

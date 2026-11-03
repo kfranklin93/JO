@@ -302,7 +302,7 @@ export default function DashboardPage() {
         <div className="mx-auto flex max-w-screen-xl items-center justify-between">
           <div className="flex items-center gap-6">
             <div>
-              <span className="font-serif text-xl text-navy">Joey O.</span>
+              <span className="font-serif text-2xl text-navy">Joey O.</span>
               <span className="ml-3 text-sm uppercase tracking-widest text-stone">
                 Dashboard
               </span>

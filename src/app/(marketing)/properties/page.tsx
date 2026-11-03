@@ -65,7 +65,7 @@ export default function PropertiesPage() {
       <section className="relative bg-hunter py-32">
         <div className="container mx-auto px-6">
           <div className="mx-auto max-w-4xl text-center">
-            <h1 className="font-serif text-5xl font-light tracking-tight text-linen sm:text-6xl lg:text-7xl">
+            <h1 className="font-serif text-5xl tracking-tight text-linen sm:text-6xl lg:text-7xl">
               Featured Properties
             </h1>
             <p className="mt-6 font-sans text-lg font-light leading-relaxed text-linen/80">
@@ -107,7 +107,7 @@ export default function PropertiesPage() {
                 {/* Content */}
                 <div className="p-8">
                   <div className="mb-4">
-                    <h2 className="font-serif text-2xl font-light text-navy">
+                    <h2 className="font-serif text-2xl text-navy">
                       {property.title}
                     </h2>
                     <p className="mt-2 font-sans text-sm font-light text-stone">
@@ -116,7 +116,7 @@ export default function PropertiesPage() {
                   </div>
 
                   <div className="mb-6">
-                    <p className="font-serif text-3xl font-light text-navy">
+                    <p className="font-serif text-3xl text-navy">
                       {property.price}
                     </p>
                   </div>
@@ -183,7 +183,7 @@ export default function PropertiesPage() {
       <section className="bg-hunter py-32">
         <div className="container mx-auto px-6">
           <div className="mx-auto max-w-3xl text-center">
-            <h2 className="font-serif text-4xl font-light text-linen sm:text-5xl">
+            <h2 className="font-serif text-4xl text-linen sm:text-5xl">
               Don't See What You're Looking For?
             </h2>
             <p className="mt-6 font-sans text-lg font-light leading-relaxed text-linen/80">

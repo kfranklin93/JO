@@ -24,7 +24,7 @@ export default function GlobalError({
     <html lang="en">
       <body className="bg-background text-foreground">
         <main className="mx-auto flex min-h-screen max-w-content flex-col justify-center px-6 py-24">
-          <h1 className="font-serif text-4xl font-light tracking-tight text-navy">
+          <h1 className="font-serif text-4xl tracking-tight text-navy">
             Something went wrong
           </h1>
           <p className="mt-4 font-sans font-light text-stone">{error.message}</p>

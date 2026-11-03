@@ -37,7 +37,7 @@ export default function BuyHomePage() {
           text at 13.1:1. */}
       <section className="bg-hunter py-24 lg:py-32">
         <div className="mx-auto max-w-4xl px-8 lg:px-12">
-          <h1 className="font-serif text-5xl font-light leading-tight tracking-tight text-bone sm:text-6xl">
+          <h1 className="font-serif text-5xl leading-tight tracking-tight text-bone sm:text-6xl">
             Buy a Home in Georgia
           </h1>
           <p className="mt-8 font-sans text-xl font-light leading-relaxed text-bone">
@@ -49,7 +49,7 @@ export default function BuyHomePage() {
 
       <section className="py-20 lg:py-28">
         <div className="mx-auto max-w-4xl px-8 lg:px-12">
-          <h2 className="font-serif text-4xl font-light text-onyx lg:text-5xl">
+          <h2 className="font-serif text-4xl text-onyx lg:text-5xl">
             Start With a Plan
           </h2>
           <div className="mt-10 space-y-6">
@@ -69,7 +69,7 @@ export default function BuyHomePage() {
 
       <section className="bg-onyx py-20 lg:py-28">
         <div className="mx-auto max-w-4xl px-8 lg:px-12">
-          <h2 className="font-serif text-4xl font-light text-bone lg:text-5xl">
+          <h2 className="font-serif text-4xl text-bone lg:text-5xl">
             Do You Need to Be Pre-Approved First?
           </h2>
           <div className="mt-10 space-y-6">
@@ -87,7 +87,7 @@ export default function BuyHomePage() {
 
       <section className="py-20 lg:py-28">
         <div className="mx-auto max-w-4xl px-8 lg:px-12">
-          <h2 className="font-serif text-4xl font-light text-onyx lg:text-5xl">
+          <h2 className="font-serif text-4xl text-onyx lg:text-5xl">
             Where Joey Works
           </h2>
           <div className="mt-10 grid gap-12 md:grid-cols-2">

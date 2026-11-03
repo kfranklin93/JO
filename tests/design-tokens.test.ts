@@ -195,6 +195,40 @@ describe('Design token CSS generation', () => {
     expect(css).toContain('.font-serif');
     expect(css).toContain('.font-sans');
     expect(css).toContain('.font-mono');
+
+    // Display is Cormorant Garamond, body is Plus Jakarta Sans.
+    expect(css).toContain('--font-serif: var(--font-cormorant)');
+    expect(css).toContain('--font-sans: var(--font-jakarta)');
+
+    // The retired faces, and the width pin that made every heading on the site
+    // stretched-wide sans rather than a display face.
+    expect(css).not.toContain("'wdth' 125");
+    expect(css).not.toContain('--font-archivo');
+    expect(css).not.toContain('--font-instrument-serif');
+    expect(css).not.toContain('--font-signature');
+
+    // The assertion that would have caught the original defect: both tokens
+    // pointed at Archivo, so `font-serif` and `font-sans` were one face.
+    const serif = /--font-serif:\s*([^;]+);/.exec(css)?.[1]?.trim();
+    const sans = /--font-sans:\s*([^;]+);/.exec(css)?.[1]?.trim();
+    expect(serif).toBeTruthy();
+    expect(sans).toBeTruthy();
+    expect(serif).not.toBe(sans);
+  });
+
+  it('generates the display tracking tokens', async () => {
+    // Tracking cannot ride on the font token: Tailwind v4 emits only
+    // `--font-*--font-feature-settings` and `--font-*--font-variation-settings`
+    // as font sub-properties, so `--font-serif--letter-spacing` would compile
+    // to nothing at all. These are plain tokens, consumed by the `h1`/`h2, h3`
+    // rules in @layer base and available as `tracking-display*` utilities.
+    const css = await compileFor(candidatesFrom('token-non-colors.html'));
+
+    expect(css).toContain('--tracking-display: -0.02em');
+    expect(css).toContain('--tracking-display-tight: -0.03em');
+
+    expect(css).toContain('.tracking-display');
+    expect(css).toMatch(/\.tracking-display\s*\{[^}]*letter-spacing:/);
   });
 
   it('should generate neutral color ramp utilities', async () => {

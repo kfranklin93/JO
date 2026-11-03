@@ -1,29 +1,28 @@
 import type { Metadata } from 'next';
-import { Archivo, Instrument_Serif, Geist_Mono } from 'next/font/google';
+import { Cormorant_Garamond, Plus_Jakarta_Sans, Geist_Mono } from 'next/font/google';
 import { defaultMetadata } from '@/config/seo';
 import './globals.css';
 
-// Joey's brand faces.
+// Typefaces.
 //
-// "Archivo Expanded" on the brand sheet is the wdth 125 end of the *variable*
-// Archivo family, not a separate Google Fonts family. So the family is loaded
-// with its `wdth` axis exposed here, and the display width is pinned to 125 by
-// `--font-serif--font-variation-settings` in the @theme block of globals.css.
-// Dropping `axes` would load a font that works and renders at normal width,
-// which is not the brand face.
-const archivo = Archivo({
-  variable: '--font-archivo',
+// Joey's brand sheet constrains colour only — the four brand colours are the
+// whole of it. The "Archivo Expanded" display face and the "Instrument Serif"
+// signature face were nominations, not brand requirements, and both are
+// explicitly released: the wdth 125 pin made every heading stretched-wide
+// sans, which is the look that was reported as childlike.
+//
+// Cormorant Garamond carries display, Plus Jakarta Sans carries body. Both are
+// variable-weight families, so neither needs a `weight` or an `axes` key — the
+// full range loads and `font-light` / `font-bold` resolve against it.
+const cormorant = Cormorant_Garamond({
+  variable: '--font-cormorant',
   subsets: ['latin'],
-  axes: ['wdth'],
+  style: ['normal', 'italic'],
   display: 'swap',
 });
 
-// Signature/tagline face. Regular and italic only — no weight range.
-// Applied by the `font-signature` utility on the hero signature line.
-const instrumentSerif = Instrument_Serif({
-  weight: '400',
-  style: ['normal', 'italic'],
-  variable: '--font-instrument-serif',
+const jakarta = Plus_Jakarta_Sans({
+  variable: '--font-jakarta',
   subsets: ['latin'],
   display: 'swap',
 });
@@ -44,7 +43,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${archivo.variable} ${instrumentSerif.variable} ${geistMono.variable} h-full scroll-smooth`}
+      className={`${cormorant.variable} ${jakarta.variable} ${geistMono.variable} h-full scroll-smooth`}
     >
       <body className="min-h-screen font-sans antialiased">
         {children}

@@ -24,7 +24,7 @@ export default function AboutPage() {
       <section className="relative overflow-hidden bg-black py-32 lg:py-40">
         <div className="container mx-auto px-6">
           <div className="mx-auto max-w-5xl">
-            <h1 className="font-serif text-5xl font-light leading-tight tracking-tight text-white sm:text-6xl lg:text-7xl">
+            <h1 className="font-serif text-5xl leading-tight tracking-tight text-white sm:text-6xl lg:text-7xl">
               Guided by Intuition.
               <br />
               Defined by Results.
@@ -61,7 +61,7 @@ export default function AboutPage() {
           <div className="mx-auto max-w-6xl">
             <div className="grid gap-12 md:grid-cols-3 lg:gap-16">
               <div className="text-center">
-                <div className="font-serif text-6xl font-light text-navy lg:text-7xl">
+                <div className="font-serif text-6xl text-navy lg:text-7xl">
                   12+
                 </div>
                 <div className="mt-4 font-sans text-base font-light uppercase tracking-[0.2em] text-stone">
@@ -69,7 +69,7 @@ export default function AboutPage() {
                 </div>
               </div>
               <div className="text-center">
-                <div className="font-serif text-6xl font-light text-navy lg:text-7xl">
+                <div className="font-serif text-6xl text-navy lg:text-7xl">
                   $50M+
                 </div>
                 <div className="mt-4 font-sans text-base font-light uppercase tracking-[0.2em] text-stone">
@@ -77,7 +77,7 @@ export default function AboutPage() {
                 </div>
               </div>
               <div className="text-center">
-                <div className="font-serif text-6xl font-light text-navy lg:text-7xl">
+                <div className="font-serif text-6xl text-navy lg:text-7xl">
                   98%
                 </div>
                 <div className="mt-4 font-sans text-base font-light uppercase tracking-[0.2em] text-stone">
@@ -93,7 +93,7 @@ export default function AboutPage() {
       <section className="py-24 lg:py-32">
         <div className="container mx-auto px-6">
           <div className="mx-auto max-w-4xl">
-            <h2 className="mb-12 font-serif text-4xl font-light text-navy lg:text-5xl">
+            <h2 className="mb-12 font-serif text-4xl text-navy lg:text-5xl">
               The Philosophy
             </h2>
             <div className="space-y-8">
@@ -118,7 +118,7 @@ export default function AboutPage() {
       <section className="bg-hunter py-24 lg:py-32">
         <div className="container mx-auto px-6">
           <div className="mx-auto max-w-4xl">
-            <h2 className="mb-12 font-serif text-4xl font-light text-linen lg:text-5xl">
+            <h2 className="mb-12 font-serif text-4xl text-linen lg:text-5xl">
               Off the Clock
             </h2>
             <div className="space-y-8">
@@ -140,7 +140,7 @@ export default function AboutPage() {
       <section className="py-24 lg:py-32">
         <div className="container mx-auto px-6">
           <div className="mx-auto max-w-4xl">
-            <h2 className="mb-12 font-serif text-4xl font-light text-navy lg:text-5xl">
+            <h2 className="mb-12 font-serif text-4xl text-navy lg:text-5xl">
               The Insider's Edge
             </h2>
             <div className="space-y-8">
@@ -171,7 +171,7 @@ export default function AboutPage() {
       <section className="py-24 lg:py-32">
         <div className="container mx-auto px-6">
           <div className="mx-auto max-w-4xl">
-            <h2 className="mb-12 font-serif text-4xl font-light text-navy lg:text-5xl">
+            <h2 className="mb-12 font-serif text-4xl text-navy lg:text-5xl">
               The Approach
             </h2>
             <div className="grid gap-12 md:grid-cols-2">
@@ -200,7 +200,7 @@ export default function AboutPage() {
       <section className="border-t border-navy/10 bg-white py-24">
         <div className="container mx-auto px-6">
           <div className="mx-auto max-w-3xl text-center">
-            <h2 className="mb-6 font-serif text-4xl font-light text-navy lg:text-5xl">
+            <h2 className="mb-6 font-serif text-4xl text-navy lg:text-5xl">
               Let's Begin
             </h2>
             <p className="mb-10 font-sans text-xl font-light leading-relaxed text-stone">

@@ -23,7 +23,7 @@ export default function Error({
       <p className="font-sans text-sm font-light uppercase tracking-[0.3em] text-cerulean">
         Error
       </p>
-      <h1 className="mt-6 font-serif text-4xl font-light tracking-tight text-navy sm:text-5xl">
+      <h1 className="mt-6 font-serif text-4xl tracking-tight text-navy sm:text-5xl">
         Something went wrong
       </h1>
       <p className="mt-6 max-w-2xl font-sans text-lg font-light leading-relaxed text-stone">

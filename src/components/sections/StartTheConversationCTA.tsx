@@ -57,7 +57,7 @@ export function StartTheConversationCTA({
   return (
     <section className="bg-hunter py-24 lg:py-32">
       <div className="mx-auto max-w-3xl px-8 text-center lg:px-12">
-        <h2 className="font-serif text-4xl font-light text-bone lg:text-5xl">
+        <h2 className="font-serif text-4xl text-bone lg:text-5xl">
           {heading}
         </h2>
         <p className="mt-6 font-sans text-lg font-light leading-relaxed text-bone">

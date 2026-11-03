@@ -86,11 +86,11 @@ export function Header({ sticky = true, className }: HeaderProps) {
                   CTAs a few pixels away this badge read as a second dark.
                   The linen "JO" is 13:1 on hunter. */}
               <div className="flex h-10 w-10 items-center justify-center rounded-full bg-hunter transition-transform duration-300 hover:scale-105">
-                <span className="font-serif text-lg font-bold text-linen" aria-hidden="true">
+                <span className="font-serif text-xl font-bold text-linen" aria-hidden="true">
                   JO
                 </span>
               </div>
-              <span className="font-serif text-xl text-navy">
+              <span className="font-serif text-2xl text-navy">
                 {siteConfig.name}
               </span>
             </Link>

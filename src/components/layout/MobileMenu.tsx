@@ -69,7 +69,7 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
         <div className="flex h-full flex-col">
           {/* Header */}
           <div className="flex items-center justify-between border-b border-neutral-200 px-6 py-5">
-            <span className="font-serif text-xl text-black">Menu</span>
+            <span className="font-serif text-2xl text-black">Menu</span>
             <button
               type="button"
               className="flex h-10 w-10 items-center justify-center rounded-lg text-black transition-colors hover:bg-neutral-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"

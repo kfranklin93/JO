@@ -35,7 +35,7 @@ export default function ContactPage() {
 
       <section className="bg-hunter py-24 lg:py-32">
         <div className="mx-auto max-w-4xl px-8 lg:px-12">
-          <h1 className="font-serif text-5xl font-light leading-tight tracking-tight text-bone sm:text-6xl">
+          <h1 className="font-serif text-5xl leading-tight tracking-tight text-bone sm:text-6xl">
             Contact Joey Oberndorfer
           </h1>
           <p className="mt-8 font-sans text-xl font-light leading-relaxed text-bone">
@@ -47,7 +47,7 @@ export default function ContactPage() {
 
       <section className="py-20 lg:py-28">
         <div className="mx-auto max-w-4xl px-8 lg:px-12">
-          <h2 className="font-serif text-4xl font-light text-onyx lg:text-5xl">
+          <h2 className="font-serif text-4xl text-onyx lg:text-5xl">
             How to Reach Him
           </h2>
           <dl className="mt-10 grid gap-10 sm:grid-cols-2">
@@ -114,7 +114,7 @@ export default function ContactPage() {
 
       <section className="bg-onyx py-20 lg:py-28">
         <div className="mx-auto max-w-4xl px-8 lg:px-12">
-          <h2 className="font-serif text-4xl font-light text-bone lg:text-5xl">
+          <h2 className="font-serif text-4xl text-bone lg:text-5xl">
             Who You Are Talking To
           </h2>
           <div className="mt-10 space-y-6">
@@ -130,7 +130,7 @@ export default function ContactPage() {
               First-time buyer, seller, investor, or relocating across the
               world, Joey has a plan for you.
             </p>
-            <p className="font-serif text-xl font-light leading-relaxed text-champagne lg:text-2xl">
+            <p className="font-serif text-xl leading-relaxed text-champagne lg:text-2xl">
               Preparation Creates Confidence. Execution Creates Wins.
             </p>
           </div>

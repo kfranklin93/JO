@@ -17,7 +17,7 @@ export default function PrivacyPage() {
       <section className="relative bg-hunter py-24">
         <div className="container mx-auto px-6">
           <div className="mx-auto max-w-4xl">
-            <h1 className="font-serif text-5xl font-light tracking-tight text-linen sm:text-6xl">
+            <h1 className="font-serif text-5xl tracking-tight text-linen sm:text-6xl">
               Privacy Policy
             </h1>
             <p className="mt-6 font-sans text-lg font-light leading-relaxed text-linen/80">
@@ -41,7 +41,7 @@ export default function PrivacyPage() {
 
               {/* Information We Collect */}
               <div className="mb-12">
-                <h2 className="mb-6 font-serif text-3xl font-light text-navy">
+                <h2 className="mb-6 font-serif text-3xl text-navy">
                   Information We Collect
                 </h2>
                 <div className="space-y-6">
@@ -82,7 +82,7 @@ export default function PrivacyPage() {
 
               {/* How We Use Your Information */}
               <div className="mb-12">
-                <h2 className="mb-6 font-serif text-3xl font-light text-navy">
+                <h2 className="mb-6 font-serif text-3xl text-navy">
                   How We Use Your Information
                 </h2>
                 <p className="mb-4 font-sans font-light leading-relaxed text-stone">
@@ -100,7 +100,7 @@ export default function PrivacyPage() {
 
               {/* Information Sharing */}
               <div className="mb-12">
-                <h2 className="mb-6 font-serif text-3xl font-light text-navy">
+                <h2 className="mb-6 font-serif text-3xl text-navy">
                   Information Sharing and Disclosure
                 </h2>
                 <p className="mb-4 font-sans font-light leading-relaxed text-stone">
@@ -115,7 +115,7 @@ export default function PrivacyPage() {
 
               {/* Data Security */}
               <div className="mb-12">
-                <h2 className="mb-6 font-serif text-3xl font-light text-navy">
+                <h2 className="mb-6 font-serif text-3xl text-navy">
                   Data Security
                 </h2>
                 <p className="font-sans font-light leading-relaxed text-stone">
@@ -125,7 +125,7 @@ export default function PrivacyPage() {
 
               {/* Your Rights */}
               <div className="mb-12">
-                <h2 className="mb-6 font-serif text-3xl font-light text-navy">
+                <h2 className="mb-6 font-serif text-3xl text-navy">
                   Your Rights and Choices
                 </h2>
                 <p className="mb-4 font-sans font-light leading-relaxed text-stone">
@@ -144,7 +144,7 @@ export default function PrivacyPage() {
 
               {/* Cookies */}
               <div className="mb-12">
-                <h2 className="mb-6 font-serif text-3xl font-light text-navy">
+                <h2 className="mb-6 font-serif text-3xl text-navy">
                   Cookies and Tracking Technologies
                 </h2>
                 <p className="font-sans font-light leading-relaxed text-stone">
@@ -154,7 +154,7 @@ export default function PrivacyPage() {
 
               {/* Third-Party Links */}
               <div className="mb-12">
-                <h2 className="mb-6 font-serif text-3xl font-light text-navy">
+                <h2 className="mb-6 font-serif text-3xl text-navy">
                   Third-Party Links
                 </h2>
                 <p className="font-sans font-light leading-relaxed text-stone">
@@ -164,7 +164,7 @@ export default function PrivacyPage() {
 
               {/* Children's Privacy */}
               <div className="mb-12">
-                <h2 className="mb-6 font-serif text-3xl font-light text-navy">
+                <h2 className="mb-6 font-serif text-3xl text-navy">
                   Children's Privacy
                 </h2>
                 <p className="font-sans font-light leading-relaxed text-stone">
@@ -174,7 +174,7 @@ export default function PrivacyPage() {
 
               {/* Changes to Policy */}
               <div className="mb-12">
-                <h2 className="mb-6 font-serif text-3xl font-light text-navy">
+                <h2 className="mb-6 font-serif text-3xl text-navy">
                   Changes to This Privacy Policy
                 </h2>
                 <p className="font-sans font-light leading-relaxed text-stone">
@@ -184,7 +184,7 @@ export default function PrivacyPage() {
 
               {/* Contact */}
               <div className="rounded-2xl border border-navy/10 bg-white p-8">
-                <h2 className="mb-4 font-serif text-3xl font-light text-navy">
+                <h2 className="mb-4 font-serif text-3xl text-navy">
                   Contact Us
                 </h2>
                 <p className="mb-6 font-sans font-light leading-relaxed text-stone">
