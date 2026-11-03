@@ -90,6 +90,24 @@ export const siteConfig = {
     ],
   },
   
+  // RealScout web components — the real MLS search and listings widgets.
+  //
+  // `agentEncodedId` is a *public embed identifier*, not a credential. It is
+  // rendered into the page as the `agent-encoded-id` attribute of every
+  // RealScout custom element, so it is visible in page source by design and
+  // belongs in source control rather than in an environment variable. It is
+  // kept here so the one place to change it when Joey's RealScout account
+  // changes is this file.
+  //
+  // `scriptSrc` is the single UMD bundle that upgrades all three elements —
+  // simple-search, advanced-search and your-listings. It is the same URL for
+  // every widget, which is why it lives here once: a page hosting two widgets
+  // must load it once, and React dedupes an async script by `src`.
+  realscout: {
+    agentEncodedId: 'QWdlbnQtMjcyNDY1',
+    scriptSrc: 'https://em.realscout.com/widgets/realscout-web-components.umd.js',
+  },
+
   // Featured Content
   featured: {
     youtubeInterview: 'https://www.youtube.com/watch?v=zdibORytY2c',

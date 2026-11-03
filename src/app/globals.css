@@ -333,6 +333,149 @@
   h3 {
     letter-spacing: var(--tracking-display);
   }
+
+  /*
+   * RealScout web components.
+   *
+   * These are element selectors on third-party custom elements, so they live
+   * in `@layer base` with the other element rules for the reason given above:
+   * unlayered CSS beats every Tailwind utility, and a rule on
+   * `realscout-your-listings` written outside a layer would win against any
+   * `max-w-*` or `w-*` a call site puts on the element. The custom properties
+   * themselves are unaffected by layering, but the `width` and `max-width`
+   * declarations below very much are.
+   *
+   * Every colour is a reference to a token in the `@theme` block. The owner
+   * supplied these as hex literals; pasting them here would be a second place
+   * colour values live, which is the rule `scripts/audit-contrast.mjs` and
+   * `tests/no-arbitrary-colour-escapes.test.ts` exist to protect.
+   *
+   * Values inherit through the shadow boundary, so setting them on the host
+   * from the document is how the widget's internals get recoloured. Document
+   * rules beat the shadow tree's own `:host` rules, so none of this needs
+   * `!important` — the owner's snippets used it and it is not carried over.
+   */
+
+  /*
+   * Simple search — the hero's input.
+   *
+   * The owner's snippet is the one of the three whose colours are off-brand:
+   * `#6a6d72` is a cool grey in no part of the palette and `#e9cc00` is a
+   * saturated yellow that reads as broken next to champagne gold. Remapped:
+   *
+   *   font-primary      → stone, the body-secondary text token. The widget
+   *                       draws its own light searchbar, and stone is the
+   *                       colour secondary text takes on a light surface
+   *                       everywhere else on the site.
+   *   searchbar-border  → champagne. The gold hairline is the brand's accent
+   *                       on an input, and it replaces the yellow.
+   *   box-shadow        → onyx at 10%, mixed from the token rather than
+   *                       written as `#0000001a`.
+   *
+   * Width: the snippet pinned 640px with `!important`, which overflows a
+   * 390px phone by 250px and puts the whole page into horizontal scroll —
+   * the third time a fixed-width element has done that here. The fix is the
+   * host, not the variable: the element is a centred block that is never
+   * wider than its container, and the variable is handed 100% so the widget
+   * sizes to a host that already fits. 640px survives as a max, so the
+   * desktop rendering is the width the owner chose.
+   */
+  realscout-simple-search {
+    --rs-ss-font-primary-color: var(--color-stone);
+    --rs-ss-searchbar-border-color: var(--color-champagne);
+    --rs-ss-box-shadow: 0 10px 15px -3px
+      color-mix(in srgb, var(--color-onyx) 10%, transparent);
+    --rs-ss-widget-width: 100%;
+    display: block;
+    width: 100%;
+    max-width: 640px;
+    margin-inline: auto;
+  }
+
+  /*
+   * Advanced search — beds, baths, price range, on /properties.
+   *
+   * The owner's colours here are already correct: `#c9a45c` is champagne,
+   * `#f2ece0` is bone, `#14291f` is hunter, and champagne text on a hunter
+   * button measures 6.55:1. The pairing is preserved exactly; only its
+   * expression changes, from pasted hex to the tokens those hex values are.
+   *
+   * Width gets the same treatment as simple search — 600px with `!important`
+   * overflows a 390px viewport by 210px — and keeps 600px as its maximum.
+   */
+  realscout-advanced-search {
+    --rs-as-button-text-color: var(--color-champagne);
+    --rs-as-background-color: var(--color-bone);
+    --rs-as-button-color: var(--color-hunter);
+    --rs-as-widget-width: 100%;
+    display: block;
+    width: 100%;
+    max-width: 600px;
+    margin-inline: auto;
+  }
+
+  /*
+   * Your listings — Joey's actual inventory and recent transactions.
+   *
+   * Unlike the two search widgets this one carries no fixed width and needs
+   * no constraint inventing for it: `width: 100%` is the owner's own value
+   * and it is already responsive. The divider colour is champagne and stays
+   * champagne, expressed as the token.
+   */
+  realscout-your-listings {
+    --rs-listing-divider-color: var(--color-champagne);
+    display: block;
+    width: 100%;
+  }
+
+  /*
+   * Home value — the seller capture on /sell-home.
+   *
+   * Four of the nine values in the owner's snippet were off-palette defaults
+   * and are remapped rather than merely re-expressed:
+   *
+   *   title-color          `#000000`, pure black, which is not a colour on
+   *                        this site. Joey's darkest is onyx.
+   *   subtitle-color       `rgba(28, 30, 38, 0.5)`. Composited over bone that
+   *                        lands near #878A92, which fails AA for body text —
+   *                        the exact failure stone was darkened to #6A645C to
+   *                        fix earlier in this project. Stone at full opacity
+   *                        measures 4.97:1 on bone.
+   *   primary-button-text  `#ffffff`. White on hunter does pass, but bone is
+   *                        the label colour on every dark surface here and
+   *                        white is not a brand colour.
+   *   secondary-button-    `rgb(35, 93, 137)`, a blue in no part of the
+   *   text                 palette — a leftover RealScout default. Hunter is
+   *                        the brand's action colour and measures 13.1:1 on
+   *                        the bone secondary button.
+   *
+   * Three were already right and keep their colour exactly, changing only
+   * from pasted hex to the token that hex is: background bone, input text
+   * onyx, primary button hunter.
+   *
+   * The one judgement call: `secondary-button-color` was `#ffffff`, which is
+   * not a token, so leaving it would mean a raw hex in this file. It is bone
+   * instead — the site's light surface, and a warm off-white against which
+   * the hunter label above still measures 13.1:1.
+   *
+   * `widget-width` is `auto` in the snippet, so there is no fixed width to
+   * constrain; `max-width: 100%` is belt and braces against the widget
+   * sizing itself from its content.
+   */
+  realscout-home-value {
+    --rs-hvw-background-color: var(--color-bone);
+    --rs-hvw-title-color: var(--color-onyx);
+    --rs-hvw-subtitle-color: var(--color-stone);
+    --rs-hvw-input-text-color: var(--color-onyx);
+    --rs-hvw-primary-button-text-color: var(--color-bone);
+    --rs-hvw-primary-button-color: var(--color-hunter);
+    --rs-hvw-secondary-button-text-color: var(--color-hunter);
+    --rs-hvw-secondary-button-color: var(--color-bone);
+    --rs-hvw-widget-width: auto;
+    display: block;
+    width: 100%;
+    max-width: 100%;
+  }
 }
 
 /*
