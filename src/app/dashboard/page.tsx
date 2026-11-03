@@ -6,6 +6,9 @@ import { ChatTranscriptsPanel } from '@/components/dashboard/ChatTranscriptsPane
 import { LeadHistoryPanel } from '@/components/dashboard/LeadHistoryPanel';
 import { AssistantKillSwitch } from '@/components/dashboard/AssistantKillSwitch';
 import { AppointmentsPanel } from '@/components/dashboard/AppointmentsPanel';
+import { AddLeadModal } from '@/components/dashboard/AddLeadModal';
+import { ImportLeadsModal } from '@/components/dashboard/ImportLeadsModal';
+import { Button } from '@/components/ui/Button';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -167,23 +170,39 @@ export default function DashboardPage() {
   // Expanded row for detail view
   const [expandedId, setExpandedId] = React.useState<string | null>(null);
 
-  // Load data
-  React.useEffect(() => {
-    fetch('/api/dashboard/data')
-      .then(async (res) => {
-        if (res.status === 401) {
-          router.push('/dashboard/login');
-          return;
-        }
-        if (!res.ok) throw new Error('Failed to load');
-        return res.json();
-      })
-      .then((d) => {
-        if (d) setData(d);
-      })
-      .catch(() => setError('Failed to load dashboard data.'))
-      .finally(() => setLoading(false));
+  // Lead entry and bulk import
+  const [addOpen, setAddOpen] = React.useState(false);
+  const [importOpen, setImportOpen] = React.useState(false);
+  const [writeNotice, setWriteNotice] = React.useState('');
+
+  /**
+   * Reload the table.
+   *
+   * Extracted from the mount effect so the two write paths can call it. They
+   * refetch rather than splicing the new row into state: the row shape the
+   * table renders is assembled by `/api/dashboard/data` out of the lead row and
+   * its follow-up counts, and a second copy of that assembly in the browser is
+   * a second thing to keep in step with the route. A refetch is one request and
+   * no page reload, which is what the requirement asks for.
+   */
+  const load = React.useCallback(async () => {
+    try {
+      const res = await fetch('/api/dashboard/data');
+      if (res.status === 401) {
+        router.push('/dashboard/login');
+        return;
+      }
+      if (!res.ok) throw new Error('Failed to load');
+      setData((await res.json()) as DashboardData);
+      setError('');
+    } catch {
+      setError('Failed to load dashboard data.');
+    }
   }, [router]);
+
+  React.useEffect(() => {
+    void load().finally(() => setLoading(false));
+  }, [load]);
 
   async function handleLogout() {
     await fetch('/api/auth/logout', { method: 'POST' });
@@ -393,11 +412,34 @@ export default function DashboardPage() {
 
       <main className={`mx-auto max-w-screen-xl px-6 py-8 space-y-8 ${activeView !== 'overview' ? 'hidden' : ''}`}>
 
-        {/* ── Stats Row ── */}
+        {/* ── Stats Row ──
+            The two write actions sit beside the Overview heading rather than
+            above the table, because they are things Joey does to the lead list
+            as a whole, not to a row he has found. */}
         <section>
-          <h2 className="mb-4 text-xs font-semibold uppercase tracking-widest text-stone">
-            Overview
-          </h2>
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+            <h2 className="text-xs font-semibold uppercase tracking-widest text-stone">
+              Overview
+            </h2>
+            <div className="flex gap-3">
+              <Button type="button" size="sm" variant="outline" onClick={() => setImportOpen(true)}>
+                Import clients
+              </Button>
+              <Button type="button" size="sm" onClick={() => setAddOpen(true)}>
+                Add lead
+              </Button>
+            </div>
+          </div>
+
+          {writeNotice ? (
+            <p
+              role="status"
+              className="mb-4 rounded-xl border border-neutral-200 bg-white px-4 py-3 text-sm text-neutral-900"
+            >
+              {writeNotice}
+            </p>
+          ) : null}
+
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
             <StatCard label="Total Leads" value={stats.total} />
             <StatCard label="This Week" value={stats.thisWeek} />
@@ -782,6 +824,30 @@ export default function DashboardPage() {
         </section>
 
       </main>
+
+      <AddLeadModal
+        isOpen={addOpen}
+        onClose={() => setAddOpen(false)}
+        onSaved={({ followUpsCreated }) => {
+          setWriteNotice(
+            followUpsCreated > 0
+              ? `Lead saved, and ${followUpsCreated} follow-up emails are queued for it.`
+              : 'Lead saved. No follow-up emails were queued.'
+          );
+          void load();
+        }}
+      />
+
+      <ImportLeadsModal
+        isOpen={importOpen}
+        onClose={() => setImportOpen(false)}
+        onImported={({ createdCount }) => {
+          setWriteNotice(
+            `Imported ${createdCount} contact${createdCount === 1 ? '' : 's'}. No follow-up emails were queued.`
+          );
+          void load();
+        }}
+      />
     </div>
   );
 }
