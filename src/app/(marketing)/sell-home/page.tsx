@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { StructuredData } from '@/components/seo/StructuredData';
 import { StartTheConversationCTA } from '@/components/sections/StartTheConversationCTA';
 import { getBreadcrumbSchema } from '@/config/structured-data';
+import { RealScoutHomeValue } from '@/components/widgets/RealScout';
 
 /**
  * Seller page.
@@ -63,6 +64,38 @@ export default function SellHomePage() {
               including strategies to buy your next home before you sell, so you
               do not miss out on one you love.
             </p>
+          </div>
+        </div>
+      </section>
+
+      {/* RealScout's home-value widget, placed directly after the value
+          proposition above because that section is what makes a seller want
+          it — and before compensation, which is a question that comes later.
+          It is the only capture surface this page has of its own.
+
+          The copy is careful on one point. The section above states, in
+          Joey's own words, that he reviews a home personally rather than
+          giving a generic online estimate; this widget *does* return an
+          automated number. So nothing here presents that number as Joey's
+          opinion of the home. "Start with the property address" is his
+          follow-up instruction on the `home-valuation` playbook entry, and
+          the consultation sentence is from the same entry's answer.
+
+          Note for whoever picks this up next: what this form captures goes to
+          RealScout, not to our leads table — see the header note in
+          src/components/widgets/RealScout.tsx. */}
+      <section className="py-20 lg:py-28">
+        <div className="mx-auto max-w-4xl px-8 lg:px-12">
+          <h2 className="font-serif text-4xl text-onyx lg:text-5xl">
+            What Is Your Home Worth?
+          </h2>
+          <p className="mt-8 font-sans text-lg font-light leading-relaxed text-stone lg:text-xl">
+            Start with the property address. Whatever number comes back, Joey
+            reviews your home personally, and he will go over all of it with
+            you in a seller consultation.
+          </p>
+          <div className="mt-10">
+            <RealScoutHomeValue />
           </div>
         </div>
       </section>
