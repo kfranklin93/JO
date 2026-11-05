@@ -1,63 +1,69 @@
-// JOEY UPDATE: Created testimonials data structure for social proof section
-// Replace placeholder content with real client testimonials
+/**
+ * Client testimonials.
+ *
+ * ## This file held six invented people
+ *
+ * `clientTestimonials` shipped with six fabricated reviews — names, roles,
+ * neighbourhoods, quoted outcomes ("8% over asking", "sold in 10 days",
+ * "closed in just 30 days") and a 5-star rating each — under a comment asking
+ * whoever came next to "replace placeholder content with real client
+ * testimonials". Nobody did, and they went live and got indexed as endorsements
+ * of a licensed real estate agent. They are deleted, not reworded: there is no
+ * edit that turns an invented endorsement into a real one.
+ *
+ * The array is empty and that is the correct state. It stays empty until Joey
+ * supplies reviews that exist somewhere a visitor can go and read them.
+ *
+ * ## Why `source` is required
+ *
+ * The old shape was `{ name, role, content, rating, image?, location? }`. It
+ * had no field for where a review came from, so an invented entry and a real
+ * one were the same object and nothing — not the type, not the component, not a
+ * test — could tell them apart. That is the actual defect, and it outlived the
+ * six entries.
+ *
+ * `source` is non-optional. TypeScript rejects an entry without it, so adding a
+ * testimonial now means naming the platform it was published on, linking to it,
+ * and dating it, or the build fails. `platform` is a union rather than a free
+ * string on purpose: the members are the places Joey actually has a public
+ * review profile (see `siteConfig.social` and the Google Business Profile note
+ * in src/config/site.ts), so "a client emailed me this" has nowhere to go.
+ *
+ * A review's rating and date feed the JSON-LD directly — see
+ * `getReviewSchemas` and `getAggregateRating` in src/config/structured-data.ts.
+ * Adding one entry here lights up both the homepage section and the review
+ * schema with no other edit.
+ */
+
+/** Where a review was published, and the public page a visitor can verify it on. */
+export interface TestimonialSource {
+  /**
+   * The platform the review was left on. Restricted to the profiles Joey
+   * publicly holds — a review with no public home is not a testimonial we can
+   * show, because a visitor has no way to check it.
+   */
+  platform: 'Zillow' | 'Realtor.com' | 'Homes.com' | 'Google' | 'Facebook';
+  /** Direct link to the review, or to the profile page that lists it. */
+  url: string;
+  /** Publication date, ISO 8601 `YYYY-MM-DD`. Fed to `datePublished` in JSON-LD. */
+  datePublished: string;
+}
 
 export interface Testimonial {
   name: string;
   role: string;
   content: string;
+  /** 1–5, as left by the reviewer on `source.platform`. Never assigned by us. */
   rating: number;
+  /** Required. See the note at the top of this file. */
+  source: TestimonialSource;
   image?: string;
   location?: string;
 }
 
-export const clientTestimonials: Testimonial[] = [
-  {
-    name: 'Sarah & Michael Thompson',
-    role: 'First-Time Homebuyers',
-    location: 'Roswell, GA',
-    content: 'Joey made our first home buying experience seamless and stress-free. His knowledge of the Atlanta market and dedication to finding us the perfect home was exceptional. We closed in just 30 days!',
-    rating: 5,
-    image: '/images/testimonials/client-1.jpg',
-  },
-  {
-    name: 'David Chen',
-    role: 'Luxury Home Seller',
-    location: 'Buckhead, GA',
-    content: 'Working with Joey was a game-changer. His marketing strategy and negotiation skills helped us sell our home for 8% over asking price. His professionalism and attention to detail are unmatched.',
-    rating: 5,
-    image: '/images/testimonials/client-2.jpg',
-  },
-  {
-    name: 'Jennifer Martinez',
-    role: 'Investment Property Buyer',
-    location: 'Midtown Atlanta',
-    content: 'Joey\'s market expertise and responsiveness made all the difference. He helped me identify and secure a fantastic investment property in a competitive market. I highly recommend him!',
-    rating: 5,
-    image: '/images/testimonials/client-3.jpg',
-  },
-  {
-    name: 'Robert & Lisa Johnson',
-    role: 'Relocating Family',
-    location: 'East Cobb, GA',
-    content: 'Relocating from out of state was daunting, but Joey made it easy. He took the time to understand our needs and showed us homes that truly fit our lifestyle. We couldn\'t be happier!',
-    rating: 5,
-    image: '/images/testimonials/client-4.jpg',
-  },
-  {
-    name: 'Amanda Williams',
-    role: 'Condo Buyer',
-    location: 'Smyrna, GA',
-    content: 'Joey is incredibly knowledgeable and patient. He walked me through every step of the buying process and negotiated a great deal. I felt supported and informed throughout.',
-    rating: 5,
-    image: '/images/testimonials/client-5.jpg',
-  },
-  {
-    name: 'Mark & Patricia Davis',
-    role: 'Downsizing Sellers',
-    location: 'Kennesaw, GA',
-    content: 'After 25 years in our home, we needed someone we could trust. Joey exceeded our expectations with his marketing, staging advice, and negotiation skills. Sold in 10 days!',
-    rating: 5,
-    image: '/images/testimonials/client-6.jpg',
-  },
-];
-
+/**
+ * Real, attributable client reviews. Empty until Joey provides them.
+ *
+ * Do not add an entry you cannot link to.
+ */
+export const clientTestimonials: Testimonial[] = [];

@@ -133,7 +133,12 @@ export default function HomePage() {
           Opens the chat. */}
       <HowItStartsSection />
 
-      {/* Social proof */}
+      {/* Social proof. Renders nothing today: the six testimonials this
+          carried were invented, they are deleted, and the section returns null
+          on an empty array rather than showing a heading over no quotes. It
+          stays mounted so a real, sourced review appears here and in the
+          review schema the moment one is added. See the notes in
+          TestimonialsSection and src/data/testimonials.ts. */}
       <TestimonialsSection />
 
       {/* The three ways in: buying, selling, closing. Light surface on purpose,
