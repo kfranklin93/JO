@@ -10,8 +10,49 @@
  */
 
 import { siteConfig } from './site';
+import { clientTestimonials } from '@/data/testimonials';
 
 const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://joeyoberndorfer.com';
+
+/**
+ * `aggregateRating` for the agent schema, computed from the real reviews.
+ *
+ * Returns an empty object when there are none, so the property is absent from
+ * the emitted JSON-LD rather than present and empty. That is the whole point:
+ * this block used to sit commented out with a hard-coded `4.9` over `47`
+ * reviews and a note to "add when you have reviews". Uncommenting it with no
+ * reviews behind it is schema spam — Google's review-snippet policy treats an
+ * aggregate with no underlying reviews as grounds for a manual action — so the
+ * figure is derived from `clientTestimonials` and nothing else.
+ *
+ * Spread, not assigned conditionally, because `exactOptionalPropertyTypes` is
+ * on and an `aggregateRating: undefined` key is not the same as no key.
+ */
+function getAggregateRating(): {
+  aggregateRating?: {
+    '@type': 'AggregateRating';
+    ratingValue: string;
+    reviewCount: string;
+    bestRating: string;
+    worstRating: string;
+  };
+} {
+  if (clientTestimonials.length === 0) {
+    return {};
+  }
+
+  const total = clientTestimonials.reduce((sum, review) => sum + review.rating, 0);
+
+  return {
+    aggregateRating: {
+      '@type': 'AggregateRating',
+      ratingValue: (total / clientTestimonials.length).toFixed(1),
+      reviewCount: String(clientTestimonials.length),
+      bestRating: '5',
+      worstRating: '1',
+    },
+  };
+}
 
 /**
  * RealEstateAgent Schema
@@ -134,14 +175,9 @@ export const realEstateAgentSchema = {
     },
   ],
   
-  // Aggregate Rating (add when you have reviews)
-  // aggregateRating: {
-  //   '@type': 'AggregateRating',
-  //   ratingValue: '4.9',
-  //   reviewCount: '47',
-  //   bestRating: '5',
-  //   worstRating: '1',
-  // },
+  // Aggregate Rating — present only when real reviews exist. See
+  // getAggregateRating() at the top of this file.
+  ...getAggregateRating(),
 };
 
 /**
@@ -338,6 +374,29 @@ export function getReviewSchema(review: {
 }
 
 /**
+ * One Review node per real testimonial, for the homepage graph.
+ *
+ * `getReviewSchema` above was written and then called by nothing, so no review
+ * has ever reached the page's structured data. It is called from here now, off
+ * `clientTestimonials`, which means the markup follows the data: an empty array
+ * emits no Review nodes at all, and adding one real review publishes it without
+ * another edit.
+ *
+ * `datePublished` comes from the required `source` on each testimonial, so a
+ * review cannot reach the schema without a date and a platform behind it.
+ */
+export function getReviewSchemas() {
+  return clientTestimonials.map((review) =>
+    getReviewSchema({
+      author: review.name,
+      rating: review.rating,
+      reviewBody: review.content,
+      datePublished: review.source.datePublished,
+    })
+  );
+}
+
+/**
  * Combined Schema for Homepage
  * Includes all primary schemas
  */
@@ -348,6 +407,7 @@ export const homepageSchema = {
     organizationSchema,
     realEstateAgentSchema,
     localBusinessSchema,
+    ...getReviewSchemas(),
   ],
 };
 
