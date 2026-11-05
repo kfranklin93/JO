@@ -132,8 +132,15 @@ export function MagneticButton({
    * Choose by weight rather than by colour: `champagne` for the action you
    * want pressed, `champagneOutline` for its alternatives, `onDark` where
    * another gold button would compete with gold already on the surface. The
-   * hero uses exactly that split — a solid gold Search, two gold-outlined
-   * quick actions.
+   * hero and /sell-home both use that split — one solid gold action beside
+   * one gold-outlined alternative.
+   *
+   * Keep one `champagne` per surface. The hero used to pair two
+   * `champagneOutline` quick actions under a solid gold Search button, which
+   * was the right call while that Search existed; it is RealScout's widget
+   * now and draws a bordered input instead, so the hero was briefly left with
+   * no solid action anywhere. If you step a `champagne` down to an outline,
+   * check what else on that surface is carrying the primary weight.
    *
    * The outline variant's label is bone, not gold, on purpose: gold ink is
    * 6.5:1 on hunter but 2.0:1 on bone, and a variant map does not know which

@@ -113,22 +113,25 @@ export function EnhancedHeroSection() {
             transition={{ duration: 0.8, delay: 0.8 }}
             className="mt-12 flex flex-wrap items-center justify-center gap-4"
           >
-            {/* `champagneOutline`, a step down in weight from the solid gold
-                Search above: a gold border with a bone label that fills to
-                gold with an onyx label on hover. Three solid gold buttons in
-                one hero is heavy, and these two are alternatives to the
-                search rather than equals of it, so the hierarchy that was
-                here before is kept — only the colour family changed.
-                The `bg-bone/10` frost is gone and the blur stays. The bone
-                tint lifted the surface immediately under the gold border,
-                which is the one thing that eats the border's 6.5:1 margin;
-                the blur alone still separates these from the photograph. */}
-            <MagneticButton
-              href="/buy-home"
-              variant="champagneOutline"
-              size="lg"
-              className="backdrop-blur-md"
-            >
+            {/* A solid primary and one outlined alternative.
+                This pair used to be two `champagneOutline` buttons, which was
+                correct while the hero also drew a solid gold Search: three
+                solid gold buttons in one hero is heavy, so the quick actions
+                were both stepped down. That Search is gone — the search is
+                RealScout's `simple-search` element now, and it draws a bordered
+                input, not a filled button. The reason for stepping both of
+                these down left with it, and what was left was a hero whose
+                every action was secondary weight, with nothing to press.
+                Verified at 390px against the photograph: two gold outlines
+                over a portrait read as a pair of empty frames.
+                `champagne` is the solid fill — onyx label at 8.4:1 on gold,
+                gold at 6.5:1 on the hunter wash — and it matches the primary
+                on /sell-home, where "Ask About Selling" is solid and "Send
+                Your Details" is outlined. Same split, same order of weight.
+                `I'm Selling` stays outlined as the alternative; the blur stays
+                on it to separate the border from the photograph, and the
+                solid fill does not need one. */}
+            <MagneticButton href="/buy-home" variant="champagne" size="lg">
               I'm Buying
             </MagneticButton>
             <MagneticButton
